@@ -1,0 +1,32 @@
+# Normaliza a LF en el repo
+*                 text=auto eol=lf
+
+# Mantén LF en scripts de shell (Husky)
+*.sh              text eol=lf
+.husky/**         text eol=lf
+
+# Código fuente en LF
+*.ts              text eol=lf
+*.tsx             text eol=lf
+*.js              text eol=lf
+*.jsx             text eol=lf
+*.json            text eol=lf
+*.yml             text eol=lf
+*.yaml            text eol=lf
+*.md              text eol=lf
+*.html            text eol=lf
+*.css             text eol=lf
+
+# Archivos que deben quedar en CRLF (opcional, típico Windows)
+*.bat             text eol=crlf
+*.cmd             text eol=crlf
+*.ps1             text eol=crlf
+
+# Binarios
+*.png             binary
+*.jpg             binary
+*.jpeg            binary
+*.gif             binary
+*.ico             binary
+*.zip             binary
+*.lock            binary
