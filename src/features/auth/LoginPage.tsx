@@ -11,7 +11,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useAuthStore } from '@app/auth/auth.store'
+import { useAuthStore, LoginPayload } from '@app/auth/auth.store'
 import { useNavigate, Link } from 'react-router-dom'
 
 const schema = z.object({
@@ -30,8 +30,9 @@ export default function LoginPage() {
   const nav = useNavigate()
 
   const onSubmit = (data: Form) => {
-    login({ email: data.email, role: data.role })
-    if (data.role === 'admin') nav('/admin')
+    const payload: LoginPayload = { email: data.email, role: data.role }
+    login(payload)
+    if (data.role === 'admin') nav('/admin/sites')
     else if (data.role === 'guard') nav('/guard')
     else nav('/app')
   }

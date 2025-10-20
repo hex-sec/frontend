@@ -9,12 +9,15 @@ export type SiteMembership = { siteId: string; role: Role; siteName?: string }
 
 export type User = { id: string; email: string; role: Role; sites?: SiteMembership[] }
 
+// payload used for login action (doesn't require full User object)
+export type LoginPayload = { email: string; role: Role; sites?: SiteMembership[]; id?: string }
+
 type AuthState = {
   user: User | null
   // currently selected tenant/site context
   currentSite: Site | null
   // actions
-  login: (user: User) => void
+  login: (payload: LoginPayload) => void
   logout: () => void
   setCurrentSite: (siteId: string | null) => void
 }
@@ -24,8 +27,14 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       currentSite: null,
-      login: (user) => {
-        // default to first site membership if available
+      login: (payload) => {
+        // normalize to a User object; generate id when missing (dev/stub behavior)
+        const user: User = {
+          id: payload.id ?? `u_${Date.now()}`,
+          email: payload.email,
+          role: payload.role,
+          sites: payload.sites,
+        }
         const first = user.sites && user.sites.length > 0 ? user.sites[0] : undefined
         const currentSite = first ? { id: first.siteId, name: first.siteName } : null
         set({ user, currentSite })
