@@ -7,10 +7,22 @@ export type Site = { id: string; name?: string; slug?: string; address?: string 
 
 export type SiteMembership = { siteId: string; role: Role; siteName?: string }
 
-export type User = { id: string; email: string; role: Role; sites?: SiteMembership[] }
+export type User = {
+  id: string
+  email: string
+  name?: string
+  role: Role
+  sites?: SiteMembership[]
+}
 
 // payload used for login action (doesn't require full User object)
-export type LoginPayload = { email: string; role: Role; sites?: SiteMembership[]; id?: string }
+export type LoginPayload = {
+  email: string
+  name?: string
+  role: Role
+  sites?: SiteMembership[]
+  id?: string
+}
 
 type AuthState = {
   user: User | null
@@ -32,6 +44,7 @@ export const useAuthStore = create<AuthState>()(
         const user: User = {
           id: payload.id ?? `u_${Date.now()}`,
           email: payload.email,
+          name: payload.name,
           role: payload.role,
           sites: payload.sites,
         }

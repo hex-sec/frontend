@@ -1,0 +1,28 @@
+{
+  "topnav": {
+    "title": "HEX",
+    "welcome": "Bienvenido,"
+  },
+  "settings": {
+    "title": "Configuración",
+    "openThemeEditor": "Abrir editor de temas",
+    "useSystem": "Usar configuración del sistema",
+    "theme": "Tema",
+    "density": "Densidad"
+  },
+  "themeEditor": {
+    "title": "Editor de temas",
+    "apply": "Aplicar"
+  },
+  "labels": {
+    "primary": "Color primario",
+    "secondary": "Color secundario",
+    "info": "Color informativo",
+    "success": "Color éxito",
+    "warning": "Color advertencia",
+    "error": "Color error",
+    "debug": "Color debug",
+    "brandName": "Nombre de marca",
+    "borderRadius": "Radio de borde"
+  }
+}

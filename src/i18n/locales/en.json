@@ -1,0 +1,28 @@
+{
+  "topnav": {
+    "title": "HEX",
+    "welcome": "Welcome,"
+  },
+  "settings": {
+    "title": "Settings",
+    "openThemeEditor": "Open theme editor",
+    "useSystem": "Use system settings",
+    "theme": "Theme",
+    "density": "Density"
+  },
+  "themeEditor": {
+    "title": "Theme Editor",
+    "apply": "Apply"
+  },
+  "labels": {
+    "primary": "Primary color",
+    "secondary": "Secondary color",
+    "info": "Info color",
+    "success": "Success color",
+    "warning": "Warning color",
+    "error": "Error color",
+    "debug": "Debug color",
+    "brandName": "Brand name",
+    "borderRadius": "Border radius"
+  }
+}
