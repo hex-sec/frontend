@@ -1,4 +1,5 @@
 import { format, startOfMonth, endOfMonth } from 'date-fns'
+import { getCurrentLanguage } from '@i18n/i18n'
 
 export type BillingSummaryRow = {
   label: string
@@ -27,13 +28,23 @@ export type ReportSnapshot = {
   insights: string[]
 }
 
-import { useI18nStore } from '../../i18n/i18nStore'
-
 export const formatCurrency = (value: number, locale?: string, currency?: string) => {
-  // Use i18n store if locale/currency not provided
-  const i18n = useI18nStore?.()
-  const resolvedLocale = locale || i18n?.locale || 'en-US'
-  const resolvedCurrency = currency || i18n?.currency || 'USD'
+  // Determine defaults from current language when locale/currency not provided
+  const lang =
+    (typeof getCurrentLanguage === 'function' ? (getCurrentLanguage() as string) : 'en') || 'en'
+  const defaults: Record<string, { locale: string; currency: string }> = {
+    en: { locale: 'en-US', currency: 'USD' },
+    es: { locale: 'es-ES', currency: 'EUR' },
+    fr: { locale: 'fr-FR', currency: 'EUR' },
+    de: { locale: 'de-DE', currency: 'EUR' },
+    it: { locale: 'it-IT', currency: 'EUR' },
+    ru: { locale: 'ru-RU', currency: 'RUB' },
+    zh: { locale: 'zh-CN', currency: 'CNY' },
+    ja: { locale: 'ja-JP', currency: 'JPY' },
+  }
+
+  const resolvedLocale = locale || defaults[lang]?.locale || 'en-US'
+  const resolvedCurrency = currency || defaults[lang]?.currency || 'USD'
   const formatter = new Intl.NumberFormat(resolvedLocale, {
     style: 'currency',
     currency: resolvedCurrency,

@@ -18,76 +18,27 @@ export type UserRecord = {
   notes?: string
 }
 
-export const USERS: UserRecord[] = [
-  {
-    id: 'u1',
-    name: 'Carla Jenkins',
-    email: 'carla@vistaazul.com',
-    role: 'admin',
-    status: 'active',
-    sites: [
-      { name: 'Vista Azul', slug: 'vista-azul' },
-      { name: 'Los Olivos', slug: 'los-olivos' },
-    ],
-    lastActive: '5m ago',
-    phone: '+52 55 1234 5678',
-    position: 'Regional Operations',
-    joinedOn: 'Feb 12, 2022',
-    notes: 'Leads onboarding for new sites and handles escalations.',
-  },
-  {
-    id: 'u2',
-    name: 'Miguel Serrano',
-    email: 'miguel@vistaazul.com',
-    role: 'guard',
-    status: 'active',
-    sites: [{ name: 'Vista Azul', slug: 'vista-azul' }],
-    lastActive: 'On shift',
-    phone: '+52 55 4321 9876',
-    position: 'Day shift lead',
-    joinedOn: 'Sep 5, 2021',
-    notes: 'Certified in incident de-escalation. Prefers radio channel 3.',
-  },
-  {
-    id: 'u3',
-    name: 'Rhea Patel',
-    email: 'rhea@losolivos.com',
-    role: 'resident',
-    status: 'pending',
-    sites: [{ name: 'Los Olivos', slug: 'los-olivos' }],
-    lastActive: 'Invited 2d ago',
-    phone: '+1 (415) 555-0102',
-    position: 'Homeowner',
-    joinedOn: 'Pending activation',
-    notes: 'Requested parking permits for two vehicles.',
-  },
-  {
-    id: 'u4',
-    name: 'Alex Mendez',
-    email: 'alex@vistaazul.com',
-    role: 'guard',
-    status: 'suspended',
-    sites: [{ name: 'Vista Azul', slug: 'vista-azul' }],
-    lastActive: 'Suspended 3d ago',
-    phone: '+52 55 9988 7766',
-    position: 'Night shift',
-    joinedOn: 'Jun 17, 2020',
-    notes: 'Suspended pending badge audit. Needs supervisor review.',
-  },
-  {
-    id: 'u5',
-    name: 'Zoe Ramirez',
-    email: 'zoe@skyview.com',
-    role: 'admin',
-    status: 'active',
-    sites: [{ name: 'Los Olivos', slug: 'los-olivos' }],
-    lastActive: '12h ago',
-    phone: '+52 55 2233 4455',
-    position: 'Finance liaison',
-    joinedOn: 'Apr 8, 2023',
-    notes: 'Coordinates billing notices and delinquency follow-ups.',
-  },
-]
+import usersSeed from '../../../mocks/users.json'
+
+export const USERS: UserRecord[] = (usersSeed as Array<Record<string, unknown>>).map((u) => ({
+  id: String(u.id),
+  name: String(u.name),
+  email: String(u.email),
+  role: u.role as UserRecord['role'],
+  status: u.status as UserRecord['status'],
+  avatar: u.avatar as string | undefined,
+  sites:
+    (u.sites as Array<Record<string, unknown>>)?.map((s) => ({
+      name: String(s.name),
+      slug: String(s.slug),
+    })) || [],
+  lastActive: String(u.lastActive),
+  phone: u.phone as string | undefined,
+  position: u.position as string | undefined,
+  joinedOn: u.joinedOn as string | undefined,
+  address: u.address as string | undefined,
+  notes: u.notes as string | undefined,
+}))
 
 export type RoleFilter = 'all' | RoleKey
 

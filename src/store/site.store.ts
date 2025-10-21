@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import sitesSeed from '../mocks/sites.json'
 
 export type Site = { id: string; name: string; slug: string }
 
@@ -13,11 +14,6 @@ type SiteState = {
   hydrate: () => void
 }
 
-const MOCK_SITES: Site[] = [
-  { id: 's1', name: 'Vista Azul', slug: 'vista-azul' },
-  { id: 's2', name: 'Los Olivos', slug: 'los-olivos' },
-]
-
 export const useSiteStore = create<SiteState>((set, get) => ({
   sites: [],
   current: undefined,
@@ -26,7 +22,12 @@ export const useSiteStore = create<SiteState>((set, get) => ({
   setMode: (mode) => set({ mode }),
   hydrate: () => {
     if (get().sites.length === 0) {
-      const nextSites = [...MOCK_SITES]
+      const seed = sitesSeed as Array<Record<string, unknown>>
+      const nextSites = seed.map((s) => ({
+        id: String(s.id),
+        name: String(s.name),
+        slug: String(s.slug),
+      }))
       set({ sites: nextSites, current: nextSites[0] })
     }
   },

@@ -30,6 +30,7 @@ import LaunchIcon from '@mui/icons-material/Launch'
 import type { SxProps, Theme } from '@mui/material/styles'
 import { useTranslate } from '../../i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
+import { useSiteStore } from '@store/site.store'
 
 const surfaceCard: SxProps<Theme> = {
   p: 3,
@@ -42,6 +43,8 @@ const surfaceCard: SxProps<Theme> = {
 export default function DashboardPage() {
   const { t } = useTranslate()
   const language = useI18nStore((s) => s.language)
+  const { mode, current } = useSiteStore()
+  const siteBase = mode === 'site' && current ? `/site/${current.slug}` : '/admin'
 
   const financialSnapshot = {
     mrr: '$18,450',
@@ -144,14 +147,14 @@ export default function DashboardPage() {
         label: t('admin.dashboard.quickActions.createVisit.label', { lng: language }),
         description: t('admin.dashboard.quickActions.createVisit.description', { lng: language }),
         icon: <AddIcon />,
-        href: '/admin/visits',
+        href: `${siteBase}/visits`,
       },
       {
         key: 'logIncident',
         label: t('admin.dashboard.quickActions.logIncident.label', { lng: language }),
         description: t('admin.dashboard.quickActions.logIncident.description', { lng: language }),
         icon: <AlarmOnOutlinedIcon />,
-        href: '/admin/incidents',
+        href: `${siteBase}/incidents`,
       },
       {
         key: 'inviteResident',
@@ -160,7 +163,7 @@ export default function DashboardPage() {
           lng: language,
         }),
         icon: <PeopleOutlineIcon />,
-        href: '/admin/users',
+        href: `${siteBase}/users`,
       },
     ],
     [language, t],
@@ -172,19 +175,19 @@ export default function DashboardPage() {
         key: 'sites',
         label: t('layout.breadcrumbs.sites', { lng: language }),
         caption: t('admin.dashboard.navigation.sites.caption', { count: 3, lng: language }),
-        href: '/admin/sites',
+        href: `${siteBase}/sites`,
       },
       {
         key: 'users',
         label: t('layout.breadcrumbs.users', { lng: language }),
         caption: t('admin.dashboard.navigation.users.caption', { count: 42, lng: language }),
-        href: '/admin/users',
+        href: `${siteBase}/users`,
       },
       {
         key: 'reports',
         label: t('layout.breadcrumbs.reports', { lng: language }),
         caption: t('admin.dashboard.navigation.reports.caption', { lng: language }),
-        href: '/admin/reports',
+        href: `${siteBase}/reports`,
       },
       {
         key: 'policies',

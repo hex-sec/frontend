@@ -469,8 +469,8 @@ export default function TopNav() {
         position="static"
         sx={(theme) => {
           const bg = appBarBackground
-          const bgImage = undefined
-          const bgSize = undefined
+          let bgImage: string | undefined = undefined
+          let bgSize: string | undefined = undefined
           if (patternEnabled && patternKind !== 'none') {
             const alphaVal = Math.max(0, Math.min(1, patternOpacity))
             if (patternKind === 'subtle-diagonal') {

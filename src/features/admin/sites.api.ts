@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { v4 as uuid } from 'uuid'
 import type { CreateSiteInput, InviteInput, Site, UpdateSiteInput, Member } from './sites.types'
+import sitesSeed from '../../mocks/sites.json'
 
 const MOCK_API_DELAY_MS = 200
 
@@ -8,7 +9,23 @@ const SITES_QUERY_KEY = ['sites'] as const
 
 function readSites(): Site[] {
   const raw = localStorage.getItem('mock.sites')
-  if (!raw) return []
+  if (!raw) {
+    // Load default seed from mocks/sites.json compiled into the bundle
+    try {
+      const seed = sitesSeed as Array<Record<string, unknown>>
+      return seed.map((s) => ({
+        id: String(s.id),
+        name: String(s.name),
+        slug: String(s.slug),
+        plan: (s.plan as Site['plan']) ?? undefined,
+        status: (s.status as Site['status']) ?? 'active',
+        createdAt: String(s.createdAt),
+        updatedAt: String(s.updatedAt),
+      }))
+    } catch {
+      return []
+    }
+  }
   try {
     return JSON.parse(raw) as Site[]
   } catch {
@@ -23,37 +40,30 @@ function writeSites(sites: Site[]): void {
 function seedIfEmpty() {
   const existing = readSites()
   if (existing.length > 0) return
-  const now = new Date().toISOString()
-  const seed: Site[] = [
-    {
-      id: uuid(),
-      name: 'Vista Azul',
-      slug: 'vista-azul',
-      plan: 'basic',
-      status: 'active',
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: uuid(),
-      name: 'Los Olivos',
-      slug: 'los-olivos',
-      plan: 'pro',
-      status: 'trial',
-      createdAt: now,
-      updatedAt: now,
-    },
-  ]
-  writeSites(seed)
-  seed.forEach((s) => {
-    localStorage.setItem(
-      `mock.members.${s.id}`,
-      JSON.stringify([
-        { id: uuid(), email: 'admin@example.com', role: 'admin', createdAt: now },
-        { id: uuid(), email: 'guard@example.com', role: 'guard', createdAt: now },
-      ] as Member[]),
-    )
-  })
+  // When no data is present in localStorage, populate from mocks/sites.json and write to localStorage
+  try {
+    const seed = sitesSeed as Array<Record<string, unknown>>
+    const now = new Date().toISOString()
+    const mapped = seed.map((s) => ({
+      id: String(s.id) || uuid(),
+      name: String(s.name),
+      slug: String(s.slug),
+      plan: (s.plan as Site['plan']) ?? 'free',
+      status: (s.status as Site['status']) ?? 'active',
+      createdAt: String(s.createdAt) || now,
+      updatedAt: String(s.updatedAt) || now,
+    })) as Site[]
+    writeSites(mapped)
+    mapped.forEach((s, idx) => {
+      const members = (seed[idx]?.members as Member[] | undefined) ?? []
+      writeMembers(
+        s.id,
+        members.map((m) => ({ ...m })),
+      )
+    })
+  } catch {
+    // fallback: do nothing
+  }
 }
 
 function readMembers(siteId: string): Member[] {

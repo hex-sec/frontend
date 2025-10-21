@@ -49,6 +49,7 @@ import {
   type UserRecord,
   parseRoleFilter,
 } from '@features/admin/users/userData'
+import buildEntityUrl from '@app/utils/contextPaths'
 
 export default function UsersPage() {
   const { sites, hydrate } = useSiteStore()
@@ -194,9 +195,12 @@ export default function UsersPage() {
         params.set('site', siteFilter)
       }
       const searchSuffix = params.toString()
-      const base = derivedSiteSlug
-        ? `/site/${derivedSiteSlug}/users/${user.id}`
-        : `/admin/users/${user.id}`
+      const base = buildEntityUrl('users', user.id, {
+        mode: derivedSiteSlug ? 'site' : 'enterprise',
+        currentSlug: derivedSiteSlug ?? null,
+        routeParamSlug: derivedSiteSlug ?? null,
+        preferSiteWhenPossible: true,
+      })
       return searchSuffix ? `${base}?${searchSuffix}` : base
     },
     [derivedSiteSlug, effectiveFilter, isSiteContext, lockedSiteFilter, siteFilter],

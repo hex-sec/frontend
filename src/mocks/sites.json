@@ -1,0 +1,27 @@
+[
+  {
+    "id": "site-1",
+    "name": "Vista Azul",
+    "slug": "vista-azul",
+    "plan": "basic",
+    "status": "active",
+    "createdAt": "2025-10-01T12:00:00.000Z",
+    "updatedAt": "2025-10-10T12:00:00.000Z",
+    "members": [
+      { "id": "m-1", "email": "admin@vista.example", "role": "admin", "createdAt": "2025-10-01T12:00:00.000Z" },
+      { "id": "m-2", "email": "guard@vista.example", "role": "guard", "createdAt": "2025-10-01T12:00:00.000Z" }
+    ]
+  },
+  {
+    "id": "site-2",
+    "name": "Los Olivos",
+    "slug": "los-olivos",
+    "plan": "pro",
+    "status": "trial",
+    "createdAt": "2025-09-15T08:00:00.000Z",
+    "updatedAt": "2025-10-05T09:30:00.000Z",
+    "members": [
+      { "id": "m-3", "email": "admin@olivos.example", "role": "admin", "createdAt": "2025-09-15T08:00:00.000Z" }
+    ]
+  }
+]

@@ -35,6 +35,7 @@ import {
 } from './userData'
 import { useSiteStore } from '@store/site.store'
 import { useBreadcrumbBackAction } from '@app/layout/useBreadcrumbBackAction'
+import buildEntityUrl from '@app/utils/contextPaths'
 
 const ROLE_SEGMENT: Record<Exclude<RoleFilter, 'all'>, string> = {
   admin: 'admins',
@@ -61,7 +62,11 @@ export default function UserProfilePage() {
   }, [userId])
 
   const returnPath = useMemo(() => {
-    const base = siteScoped && current ? `/site/${current.slug}/users` : '/admin/users'
+    const base = buildEntityUrl('users', undefined, {
+      mode: siteScoped ? 'site' : 'enterprise',
+      currentSlug: current?.slug ?? null,
+      routeParamSlug: current?.slug ?? null,
+    })
     if (resolvedFilter === 'all') return base
     const segment = ROLE_SEGMENT[resolvedFilter as Exclude<RoleFilter, 'all'>]
     return `${base}/${segment}`

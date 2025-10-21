@@ -74,80 +74,22 @@ const STATUS_META: Record<
   maintenance: { label: 'Maintenance', color: 'warning', Icon: BuildCircleIcon },
 }
 
-const MOCK_RESIDENCES: ResidenceRecord[] = [
-  {
-    id: 'UNIT-TA-1408',
-    label: 'Tower A · 1408',
-    type: 'tower',
-    status: 'occupied',
-    residents: ['Carla Jenkins', 'Luis Jenkins'],
-    bedrooms: 3,
-    areaSqFt: 1820,
-    siteSlug: 'vista-azul',
-    siteName: 'Vista Azul',
-    lastInspection: '2025-09-22',
-  },
-  {
-    id: 'UNIT-TA-PH3',
-    label: 'Tower A · Penthouse 3',
-    type: 'tower',
-    status: 'vacant',
-    residents: [],
-    bedrooms: 4,
-    areaSqFt: 2450,
-    siteSlug: 'vista-azul',
-    siteName: 'Vista Azul',
-    lastInspection: '2025-10-05',
-  },
-  {
-    id: 'VIL-08',
-    label: 'Villa 08',
-    type: 'villa',
-    status: 'maintenance',
-    residents: ['Temporary housing'],
-    bedrooms: 5,
-    areaSqFt: 3210,
-    siteSlug: 'los-olivos',
-    siteName: 'Los Olivos',
-    lastInspection: '2025-10-11',
-  },
-  {
-    id: 'VIL-11',
-    label: 'Villa 11',
-    type: 'villa',
-    status: 'occupied',
-    residents: ['Francisco Mendez'],
-    bedrooms: 4,
-    areaSqFt: 2980,
-    siteSlug: 'los-olivos',
-    siteName: 'Los Olivos',
-    lastInspection: '2025-09-28',
-  },
-  {
-    id: 'AMN-CLB',
-    label: 'Clubhouse',
-    type: 'amenity',
-    status: 'occupied',
-    residents: ['Community events'],
-    bedrooms: 0,
-    areaSqFt: 5400,
-    siteSlug: 'vista-azul',
-    siteName: 'Vista Azul',
-    lastInspection: '2025-09-30',
-  },
-  {
-    id: 'PRC-12',
-    label: 'Parcel · 12',
-    type: 'parcel',
-    status: 'vacant',
-    residents: [],
-    bedrooms: 0,
-    areaSqFt: 4200,
-    siteSlug: 'los-olivos',
-    siteName: 'Los Olivos',
-    lastInspection: '2025-08-19',
-  },
-]
+import residencesSeed from '../../mocks/residences.json'
+
+const MOCK_RESIDENCES: ResidenceRecord[] = (residencesSeed as Array<Record<string, unknown>>).map(
+  (r) => ({
+    id: String(r.id),
+    label: String(r.label),
+    type: r.type as ResidenceRecord['type'],
+    status: r.status as ResidenceRecord['status'],
+    residents: (r.residents as string[]) ?? [],
+    bedrooms: Number(r.bedrooms),
+    areaSqFt: Number(r.areaSqFt),
+    siteSlug: String(r.siteSlug),
+    siteName: String(r.siteName),
+    lastInspection: String(r.lastInspection),
+  }),
+)
 
 type ResidenceFilter = 'all' | ResidenceStatus
 
