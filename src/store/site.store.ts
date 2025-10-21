@@ -2,10 +2,14 @@ import { create } from 'zustand'
 
 export type Site = { id: string; name: string; slug: string }
 
+export type SiteMode = 'enterprise' | 'site'
+
 type SiteState = {
   sites: Site[]
   current?: Site
+  mode: SiteMode
   setCurrent: (site: Site) => void
+  setMode: (mode: SiteMode) => void
   hydrate: () => void
 }
 
@@ -17,10 +21,13 @@ const MOCK_SITES: Site[] = [
 export const useSiteStore = create<SiteState>((set, get) => ({
   sites: [],
   current: undefined,
+  mode: 'enterprise',
   setCurrent: (site) => set({ current: site }),
+  setMode: (mode) => set({ mode }),
   hydrate: () => {
     if (get().sites.length === 0) {
-      set({ sites: MOCK_SITES, current: MOCK_SITES[0] })
+      const nextSites = [...MOCK_SITES]
+      set({ sites: nextSites, current: nextSites[0] })
     }
   },
 }))

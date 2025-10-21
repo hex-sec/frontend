@@ -1,14 +1,335 @@
 {
+  "common": {
+    "close": "Cerrar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "apply": "Aplicar"
+  },
+  "languages": {
+    "en": "Inglés",
+    "es": "Español",
+    "fr": "Francés",
+    "de": "Alemán",
+    "it": "Italiano",
+    "ru": "Ruso",
+    "zh": "Chino",
+    "ja": "Japonés"
+  },
+  "languageSwitcher": {
+    "aria": "Cambiar idioma",
+    "label": "Idioma"
+  },
+  "roles": {
+    "admin": "Administrador",
+    "guard": "Guardia",
+    "resident": "Residente",
+    "guest": "Invitado"
+  },
   "topnav": {
     "title": "HEX",
-    "welcome": "Bienvenido,"
+    "welcome": "Bienvenido,",
+    "workspace": {
+      "focus": "Enfoque de trabajo",
+      "mode": {
+        "enterprise": "Empresa",
+        "site": "Sitio"
+      },
+      "changeMode": "Cambiar modo",
+      "hints": {
+        "enterprise": "Viendo información de todo el portafolio.",
+        "site": "Enfocado en {{siteName}}.",
+        "empty": "Elige un sitio para profundizar en las operaciones."
+      }
+    },
+    "drawer": {
+      "openMenu": "Abrir menú de navegación",
+      "navigation": "Navegación",
+      "workspaceSettings": "Configuración del espacio",
+      "billing": "Facturación",
+      "version": "{{version}} • Última sincronización hace {{minutes}} min"
+    },
+    "accountMenu": {
+      "defaultName": "Cuenta",
+      "profile": "Perfil",
+      "billing": "Facturación",
+      "logout": "Cerrar sesión"
+    },
+    "roleNav": {
+      "admin": {
+        "dashboard": {
+          "label": "Panel empresarial",
+          "description": "Salud del portafolio y métricas de guardias"
+        },
+        "sites": {
+          "label": "Sitios",
+          "description": "Administra propiedades y kioscos"
+        },
+        "visits": {
+          "label": "Visitas",
+          "description": "Historial de visitantes y pases de acceso"
+        },
+        "vehicles": {
+          "label": "Vehículos",
+          "description": "Control de calcomanías y permisos"
+        },
+        "visitors": {
+          "label": "Visitantes",
+          "description": "Directorio de invitados recurrentes"
+        },
+        "users": {
+          "label": "Usuarios",
+          "description": "Invita administradores y asigna roles"
+        },
+        "reports": {
+          "label": "Reportes",
+          "description": "Análisis avanzados y exportaciones"
+        }
+      },
+      "guard": {
+        "kiosk": {
+          "label": "Kiosco de guardia",
+          "description": "Bitácora de control y flujo de visitantes"
+        }
+      },
+      "resident": {
+        "home": {
+          "label": "Inicio residente",
+          "description": "Reservas, pases y cuotas"
+        }
+      }
+    },
+    "siteNav": {
+      "dashboard": {
+        "label": "Panel de {{siteName}}",
+        "description": "Operaciones del sitio, incidentes y residentes"
+      },
+      "allUsers": {
+        "label": "Todos los usuarios",
+        "description": "Gestiona el acceso para {{siteName}}"
+      },
+      "residents": {
+        "label": "Residentes",
+        "description": "Directorio y comunicaciones"
+      },
+      "guards": {
+        "label": "Guardias",
+        "description": "Cobertura de turnos y acceso al kiosco"
+      },
+      "admins": {
+        "label": "Administradores",
+        "description": "Permisos empresariales para este sitio"
+      },
+      "visits": {
+        "label": "Visitas",
+        "description": "Pases de acceso limitados a este sitio"
+      },
+      "residences": {
+        "label": "Residencias",
+        "description": "Inventario de unidades y ocupación"
+      },
+      "vehicles": {
+        "label": "Vehículos",
+        "description": "Placas registradas y calcomanías"
+      },
+      "visitors": {
+        "label": "Visitantes",
+        "description": "Invitados recurrentes de este sitio"
+      },
+      "reports": {
+        "label": "Reportes del sitio",
+        "description": "Información enfocada en {{siteName}}"
+      }
+    },
+    "notifications": {
+      "aria": "Abrir notificaciones",
+      "fallbackSiteName": "portafolio",
+      "menuTitle": "Notificaciones",
+      "markAllRead": "Marcar todo como leído",
+      "empty": "¡Todo al día! Las nuevas alertas aparecerán aquí.",
+      "chip": {
+        "incident": "Incidente",
+        "visitor": "Visitante",
+        "announcement": "Actualización"
+      },
+      "actions": {
+        "reviewIncidentLog": "Revisar registro de incidentes",
+        "markResolved": "Marcar como resuelto",
+        "approveVisitor": "Aprobar visitante",
+        "declineVisitor": "Rechazar",
+        "readUpdate": "Leer actualización"
+      },
+      "timestamps": {
+        "justNow": "Hace un momento",
+        "minutesAgo": "Hace {{count}} min",
+        "hoursAgo": "Hace {{count}} h",
+        "today": "Hoy"
+      },
+      "site": {
+        "incident": {
+          "title": "Puerta forzada detectada",
+          "message": "Un sensor en la puerta este detectó un acceso fuera de horario en {{siteName}}. Los guardias respondieron en 4 minutos."
+        },
+        "visitor": {
+          "title": "Visitante en espera de aprobación",
+          "message": "Tanya Hughes está en el kiosco sin un pase preaprobado. Aprueba o rechaza para que el guardia proceda."
+        },
+        "announcement": {
+          "title": "Actualización de firmware programada",
+          "message": "Se programó un firmware para las 3:00 AM hora local. Habrá una ventana de reinicio de cinco minutos."
+        }
+      },
+      "enterprise": {
+        "incident": {
+          "title": "3 incidentes pendientes entre sitios",
+          "message": "Revisa las escalaciones para asegurar que los equipos regionales dieron seguimiento a las alertas nocturnas."
+        },
+        "visitor": {
+          "title": "Importaciones masivas de visitantes pendientes",
+          "message": "Cuatro archivos CSV requieren validación antes de emitir credenciales."
+        },
+        "announcement": {
+          "title": "Nueva beta de analítica disponible",
+          "message": "Prueba el mapa de calor de incidentes en la sección Labs de reportes."
+        }
+      }
+    },
+    "modeDialog": {
+      "title": "Elige el modo de trabajo",
+      "enterpriseOption": "Panel empresarial",
+      "siteOption": "Panel del sitio",
+      "selectSite": "Seleccionar sitio",
+      "noSites": "No hay sitios disponibles"
+    }
   },
   "settings": {
     "title": "Configuración",
+  "searchPlaceholder": "Buscar en la configuración...",
+    "noResults": "No hay configuraciones que coincidan con tu búsqueda.",
+    "optional": "Opcional",
+    "signInPrompt": "Inicia sesión para ver tu configuración.",
     "openThemeEditor": "Abrir editor de temas",
-    "useSystem": "Usar configuración del sistema",
-    "theme": "Tema",
-    "density": "Densidad"
+    "actions": {
+      "clearSearch": "Limpiar búsqueda"
+    },
+    "categories": {
+      "account": "Cuenta",
+      "accountDescription": "Administra tu perfil y datos de contacto.",
+      "preferences": "Preferencias",
+      "preferencesDescription": "Ajusta idioma, zona horaria y accesibilidad.",
+      "notifications": "Notificaciones",
+      "notificationsDescription": "Controla cómo recibes las alertas.",
+      "security": "Seguridad",
+      "securityDescription": "Gestiona métodos de acceso y protección.",
+      "appearance": "Apariencia",
+      "appearanceDescription": "Configura tema, densidad y estilo de la barra superior.",
+      "integrations": "Integraciones",
+      "integrationsDescription": "Configura webhooks y sistemas externos."
+    },
+    "groups": {
+      "profile": {
+        "title": "Perfil",
+        "description": "Actualiza tu nombre visible e identidad pública."
+      },
+      "contact": {
+        "title": "Contacto",
+        "description": "Datos de contacto principales para comunicaciones."
+      },
+      "regional": {
+        "title": "Regional",
+        "description": "Zona horaria y valores locales."
+      },
+      "accessibility": {
+        "title": "Accesibilidad",
+        "description": "Idioma e indicaciones de asistencia."
+      },
+      "delivery": {
+        "title": "Métodos de entrega",
+        "description": "Canales por donde llegan las notificaciones."
+      },
+      "authentication": {
+        "title": "Autenticación",
+        "description": "Verificación en dos pasos y seguridad."
+      },
+      "appearanceGeneral": {
+        "title": "Apariencia general",
+        "description": "Controles de tema, densidad y editor."
+      },
+      "topbar": {
+        "title": "Barra superior",
+        "description": "Personaliza el patrón detrás de la navegación."
+      },
+      "webhooks": {
+        "title": "Webhooks",
+        "description": "Integraciones salientes y puntos de automatización."
+      }
+    },
+    "fields": {
+      "displayName": {
+        "label": "Nombre visible",
+        "helper": "Se muestra a otros administradores y guardias."
+      },
+      "email": {
+        "label": "Correo electrónico",
+        "description": "Correo principal asociado a tu cuenta."
+      },
+      "language": {
+        "label": "Idioma",
+        "description": "Selecciona el idioma de la interfaz."
+      },
+      "timezone": {
+        "label": "Zona horaria",
+        "helper": "Afecta reportes y programación."
+      },
+      "receiveEmails": {
+        "label": "Notificaciones por correo",
+        "description": "Recibe alertas del sistema por email."
+      },
+      "receiveSms": {
+        "label": "Notificaciones por SMS",
+        "description": "Recibe alertas importantes por mensaje de texto."
+      },
+      "twoFactor": {
+        "label": "Autenticación de dos factores",
+        "description": "Solicita un segundo factor al iniciar sesión."
+      },
+      "themeFollowSystem": {
+        "label": "Usar tema del sistema",
+        "description": "Sigue automáticamente el tema de tu dispositivo."
+      },
+      "themePreference": {
+        "label": "Tema manual",
+        "description": "Elige un tema cuando no sigues el sistema."
+      },
+      "themeEditor": {
+        "label": "Editor de temas",
+        "description": "Abre los controles avanzados para colores de marca."
+      },
+      "density": {
+        "label": "Densidad",
+        "description": "Elige la separación en tablas y listados."
+      },
+      "topbarPattern": {
+        "label": "Patrón de la barra superior",
+        "description": "Patrón de fondo aplicado a la barra de navegación."
+      },
+      "webhookUrl": {
+        "label": "URL del webhook",
+        "helper": "Enviaremos eventos a este endpoint HTTPS."
+      }
+    },
+    "toggles": {
+      "followingSystem": "Siguiendo al sistema",
+      "override": "Personalizar"
+    },
+    "themeOptions": {
+      "light": "Claro",
+      "dark": "Oscuro",
+      "brand": "Marca"
+    },
+    "densityOptions": {
+      "comfortable": "Cómoda",
+      "compact": "Compacta"
+    }
   },
   "themeEditor": {
     "title": "Editor de temas",
@@ -24,5 +345,157 @@
     "debug": "Color debug",
     "brandName": "Nombre de marca",
     "borderRadius": "Radio de borde"
+  },
+  "siteDetails": {
+    "switchToSiteMode": "Cambiar a modo sitio"
+  },
+  "layout": {
+    "breadcrumbs": {
+      "home": "Inicio",
+      "unknown": "{{value}}",
+      "adminDashboard": "Panel administrativo",
+      "siteDashboard": "Panel de {{siteName}}",
+      "sites": "Sitios",
+      "users": "Usuarios",
+      "residents": "Residentes",
+      "residences": "Residencias",
+      "vehicles": "Vehículos",
+      "visitors": "Visitantes",
+      "policies": "Políticas",
+      "reports": "Reportes",
+      "visits": "Visitas",
+      "guards": "Guardias",
+      "admins": "Administradores"
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Panel empresarial",
+      "subtitle": "Monitorea operaciones de guardias y actividad residencial entre sitios.",
+      "sections": {
+        "kpi": "Métricas clave",
+        "operationalStatus": "Estado operativo",
+        "income": "Resumen financiero",
+        "quickAccess": "Accesos rápidos",
+        "navigation": "Navegación",
+        "agenda": "Agenda rápida"
+      },
+      "actions": {
+        "viewLiveMonitoring": "Abrir monitoreo en vivo",
+        "viewBoard": "Abrir tablero de control"
+      },
+      "kpis": {
+        "activeResidents": {
+          "label": "Residentes activos",
+          "sublabel": "Residentes con acceso vigente"
+        },
+        "scheduledVisits": {
+          "label": "Visitas programadas",
+          "sublabel": "Llegadas previstas para hoy"
+        },
+        "openIncidents": {
+          "label": "Incidentes abiertos",
+          "sublabel": "Pendientes de seguimiento del guardia"
+        }
+      },
+      "timeline": {
+        "title": "Actividad reciente",
+        "authorizedEntry": {
+          "primary": "Ingreso autorizado completado",
+          "secondary": "Visitante liberado en el portón norte",
+          "chip": "Visitante"
+        },
+        "incidentResolved": {
+          "primary": "Incidente resuelto",
+          "secondary": "Se cerró ticket por variación eléctrica",
+          "chip": "Resuelto"
+        },
+        "residentRegistered": {
+          "primary": "Nuevo residente registrado",
+          "secondary": "Invitación enviada al portal",
+          "chip": "Directorio"
+        }
+      },
+      "alerts": {
+        "title": "Alertas prioritarias",
+        "guestPasses": {
+          "title": "Pases de invitados por expirar",
+          "description": "12 pases requieren renovación antes del viernes"
+        },
+        "cameraOffline": {
+          "title": "Cámara fuera de línea en portón sur",
+          "description": "El dispositivo HEX-CAM-04 lleva 18 minutos sin conexión"
+        },
+        "renew": "Renovar ahora",
+        "assignGuard": "Asignar guardia"
+      },
+      "quickActions": {
+        "customizeTooltip": "Personalizar accesos directos",
+        "createVisit": {
+          "label": "Programar visitante",
+          "description": "Crea un pase de invitado en segundos"
+        },
+        "logIncident": {
+          "label": "Registrar incidente",
+          "description": "Crea un nuevo reporte de seguridad"
+        },
+        "inviteResident": {
+          "label": "Invitar residente",
+          "description": "Envía acceso al portal a un residente"
+        }
+      },
+      "navigation": {
+        "sites": {
+          "caption": "{{count}} sitios activos"
+        },
+        "users": {
+          "caption": "{{count}} administradores"
+        },
+        "reports": {
+          "caption": "Ver analítica y exportaciones"
+        },
+        "policies": {
+          "caption": "Revisar políticas de acceso y onboarding"
+        }
+      },
+      "income": {
+        "mrr": "Ingresos recurrentes mensuales",
+        "arrProjected": "ARR proyectado",
+        "upcomingRenewals": "Renovaciones próximas",
+        "contractsSuffix": "contratos",
+        "monthlyCollections": "Cobranza mensual",
+        "overdueInvoices": "{{count}} facturas vencidas",
+        "recentBilling": "Facturación reciente",
+        "marginVsLastMonth": "Margen vs mes anterior",
+        "growthNote": "Rendimiento comparado con los últimos 30 días",
+        "billingEntries": {
+          "first": {
+            "title": "Residentes Vista Azul",
+            "subtitle": "$4,200 recaudados esta semana"
+          },
+          "second": {
+            "title": "Los Olivos HOA",
+            "subtitle": "$2,980 procesados"
+          }
+        }
+      },
+      "agenda": {
+        "today": "Hoy",
+        "items": {
+          "securityCommittee": {
+            "primary": "Comité de seguridad",
+            "secondary": "09:30 • Sala de operaciones"
+          },
+          "billingReview": {
+            "primary": "Revisión de cobros",
+            "secondary": "11:00 • Finanzas"
+          },
+          "guardOnboarding": {
+            "primary": "Onboarding de guardia",
+            "secondary": "15:00 • Kiosco norte"
+          }
+        }
+      }
+    }
   }
 }

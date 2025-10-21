@@ -9,27 +9,40 @@ import { appRoutes } from '@app/router/app.router'
 import { authRoutes } from '@app/router/auth.router'
 import { landingRoutes } from '@app/router/landing.router'
 import { settingsRoutes } from '@app/router/settings.router'
+import { siteRoutes } from '@app/router/site.router'
 import { initI18n } from './i18n/i18n'
+import { useI18nStore } from '@store/i18n.store'
 
 const router = createBrowserRouter([
   ...landingRoutes,
   ...authRoutes,
   ...settingsRoutes,
   ...adminRoutes,
+  ...siteRoutes,
   ...guardRoutes,
   ...appRoutes,
 ])
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    {/* initialize i18n before mounting the app */}
-    <AppThemeProvider>
-      <QueryClientProvider client={new QueryClient()}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    </AppThemeProvider>
-  </React.StrictMode>,
-)
+const queryClient = new QueryClient()
 
-// initialize language (async) - default english
-initI18n().catch((err: unknown) => console.error('i18n init failed', err))
+function renderApp() {
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <AppThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </AppThemeProvider>
+    </React.StrictMode>,
+  )
+}
+
+initI18n()
+  .then((language) => {
+    useI18nStore.getState().hydrateLanguage(language)
+    renderApp()
+  })
+  .catch((err: unknown) => {
+    console.error('i18n init failed', err)
+    renderApp()
+  })

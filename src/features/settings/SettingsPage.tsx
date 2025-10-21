@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, startTransition } from 'react'
+import React, { useEffect, useMemo, useState, startTransition, useCallback, useRef } from 'react'
 import { alpha } from '@mui/material/styles'
 import {
   Dialog,
@@ -21,7 +21,6 @@ import {
   IconButton,
   ToggleButton,
   ToggleButtonGroup,
-  Tooltip,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
@@ -31,14 +30,16 @@ import NotificationsIcon from '@mui/icons-material/Notifications'
 import SecurityIcon from '@mui/icons-material/Security'
 import PaletteIcon from '@mui/icons-material/Palette'
 import LinkIcon from '@mui/icons-material/Link'
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { useUserSettings } from '@app/hooks/useUserSettings'
 import { useAuthStore } from '@app/auth/auth.store'
 import { useNavigate } from 'react-router-dom'
 import { useThemeStore } from '@store/theme.store'
 import type { ThemeKind } from '@app/theme.types'
 import { useUIStore } from '@store/ui.store'
+import { useI18nStore } from '@store/i18n.store'
+import type { SupportedLanguage } from '@i18n/i18n'
 import { useTranslate } from '../../i18n/useTranslate'
+import { LanguageMenu } from '../../app/layout/LanguageMenu'
 import PatternSelector from './PatternSelector'
 
 type UserSettingsShape = {
@@ -53,119 +54,322 @@ type UserSettingsShape = {
   webhookUrl?: string
 }
 
-const CATEGORIES = [
-  'Account',
-  'Preferences',
-  'Notifications',
-  'Security',
-  'Appearance',
-  'Integrations',
+type CategoryId =
+  | 'account'
+  | 'preferences'
+  | 'notifications'
+  | 'security'
+  | 'appearance'
+  | 'integrations'
+
+type GroupId =
+  | 'profile'
+  | 'contact'
+  | 'regional'
+  | 'accessibility'
+  | 'delivery'
+  | 'authentication'
+  | 'appearanceGeneral'
+  | 'topbar'
+  | 'webhooks'
+
+type SettingFieldKey =
+  | 'displayName'
+  | 'email'
+  | 'language'
+  | 'timezone'
+  | 'receiveEmails'
+  | 'receiveSms'
+  | 'twoFactor'
+  | 'themeFollowSystem'
+  | 'themePreference'
+  | 'themeEditor'
+  | 'density'
+  | 'topbarPattern'
+  | 'webhookUrl'
+
+type SettingFieldMeta = {
+  label: string
+  description?: string
+  helper?: string
+  optional?: boolean
+}
+
+const CATEGORY_ORDER: CategoryId[] = [
+  'account',
+  'preferences',
+  'notifications',
+  'security',
+  'appearance',
+  'integrations',
 ]
 
-const SETTING_META: Record<string, { short?: string; description?: string; optional?: boolean }> = {
-  'Display name': {
-    short: 'Your public name',
-    description:
-      'This is the display name other users will see. Keep it concise; you can use your full name or a nickname. It helps identify you in the app and on generated messages.',
+const CATEGORY_ICON_MAP: Record<CategoryId, JSX.Element> = {
+  account: <PersonIcon fontSize="small" />,
+  preferences: <LanguageIcon fontSize="small" />,
+  notifications: <NotificationsIcon fontSize="small" />,
+  security: <SecurityIcon fontSize="small" />,
+  appearance: <PaletteIcon fontSize="small" />,
+  integrations: <LinkIcon fontSize="small" />,
+}
+
+const CATEGORY_LABEL_KEYS: Record<CategoryId, string> = {
+  account: 'settings.categories.account',
+  preferences: 'settings.categories.preferences',
+  notifications: 'settings.categories.notifications',
+  security: 'settings.categories.security',
+  appearance: 'settings.categories.appearance',
+  integrations: 'settings.categories.integrations',
+}
+
+const CATEGORY_DESCRIPTION_KEYS: Partial<Record<CategoryId, string>> = {
+  account: 'settings.categories.accountDescription',
+  preferences: 'settings.categories.preferencesDescription',
+  notifications: 'settings.categories.notificationsDescription',
+  security: 'settings.categories.securityDescription',
+  appearance: 'settings.categories.appearanceDescription',
+  integrations: 'settings.categories.integrationsDescription',
+}
+
+const GROUP_LABEL_KEYS: Record<GroupId, { title: string; description?: string }> = {
+  profile: {
+    title: 'settings.groups.profile.title',
+    description: 'settings.groups.profile.description',
   },
-  Email: {
-    short: 'Your account email',
-    description:
-      'Primary email used for account communication, password resets, and notifications. You may not be able to change this frequently for security reasons.',
+  contact: {
+    title: 'settings.groups.contact.title',
+    description: 'settings.groups.contact.description',
   },
-  Locale: {
-    short: 'Language',
-    description: 'Select the language used for UI strings, dates and localized content.',
+  regional: {
+    title: 'settings.groups.regional.title',
+    description: 'settings.groups.regional.description',
   },
-  Timezone: {
-    short: 'Time zone',
-    description:
-      'Choose the timezone used to display timestamps. This affects how dates and times are shown across the app.',
+  accessibility: {
+    title: 'settings.groups.accessibility.title',
+    description: 'settings.groups.accessibility.description',
   },
-  'Email notifications': {
-    short: 'Email alerts',
-    description:
-      'Toggle whether you receive important event notifications by email. Critical system messages will still be delivered.',
+  delivery: {
+    title: 'settings.groups.delivery.title',
+    description: 'settings.groups.delivery.description',
   },
-  'SMS notifications': {
-    short: 'SMS alerts',
-    description:
-      'Receive short-text alerts on your phone. Use this for urgent, time-sensitive notifications. Carrier fees may apply.',
+  authentication: {
+    title: 'settings.groups.authentication.title',
+    description: 'settings.groups.authentication.description',
+  },
+  appearanceGeneral: {
+    title: 'settings.groups.appearanceGeneral.title',
+    description: 'settings.groups.appearanceGeneral.description',
+  },
+  topbar: {
+    title: 'settings.groups.topbar.title',
+    description: 'settings.groups.topbar.description',
+  },
+  webhooks: {
+    title: 'settings.groups.webhooks.title',
+    description: 'settings.groups.webhooks.description',
+  },
+}
+
+const LEGACY_CATEGORY_MAP: Record<string, CategoryId> = {
+  Account: 'account',
+  Preferences: 'preferences',
+  Accessibility: 'preferences',
+  Notifications: 'notifications',
+  Security: 'security',
+  Appearance: 'appearance',
+  Integrations: 'integrations',
+}
+
+const SETTINGS_STRUCTURE: Array<{
+  id: CategoryId
+  groups: Array<{ id: GroupId; fields: SettingFieldKey[] }>
+}> = [
+  {
+    id: 'account',
+    groups: [
+      { id: 'profile', fields: ['displayName'] },
+      { id: 'contact', fields: ['email'] },
+    ],
+  },
+  {
+    id: 'preferences',
+    groups: [
+      { id: 'regional', fields: ['timezone'] },
+      { id: 'accessibility', fields: ['language'] },
+    ],
+  },
+  {
+    id: 'notifications',
+    groups: [{ id: 'delivery', fields: ['receiveEmails', 'receiveSms'] }],
+  },
+  {
+    id: 'security',
+    groups: [{ id: 'authentication', fields: ['twoFactor'] }],
+  },
+  {
+    id: 'appearance',
+    groups: [
+      {
+        id: 'appearanceGeneral',
+        fields: ['themeFollowSystem', 'themePreference', 'themeEditor', 'density'],
+      },
+      { id: 'topbar', fields: ['topbarPattern'] },
+    ],
+  },
+  {
+    id: 'integrations',
+    groups: [{ id: 'webhooks', fields: ['webhookUrl'] }],
+  },
+]
+
+const FIELD_META: Record<SettingFieldKey, SettingFieldMeta> = {
+  displayName: {
+    label: 'settings.fields.displayName.label',
+    helper: 'settings.fields.displayName.helper',
+  },
+  email: {
+    label: 'settings.fields.email.label',
+    description: 'settings.fields.email.description',
+  },
+  language: {
+    label: 'settings.fields.language.label',
+    description: 'settings.fields.language.description',
+    helper: 'languageSwitcher.aria',
+  },
+  timezone: {
+    label: 'settings.fields.timezone.label',
+    helper: 'settings.fields.timezone.helper',
+  },
+  receiveEmails: {
+    label: 'settings.fields.receiveEmails.label',
+    description: 'settings.fields.receiveEmails.description',
+  },
+  receiveSms: {
+    label: 'settings.fields.receiveSms.label',
+    description: 'settings.fields.receiveSms.description',
+  },
+  twoFactor: {
+    label: 'settings.fields.twoFactor.label',
+    description: 'settings.fields.twoFactor.description',
+  },
+  themeFollowSystem: {
+    label: 'settings.fields.themeFollowSystem.label',
+    description: 'settings.fields.themeFollowSystem.description',
+  },
+  themePreference: {
+    label: 'settings.fields.themePreference.label',
+    description: 'settings.fields.themePreference.description',
+  },
+  themeEditor: {
+    label: 'settings.fields.themeEditor.label',
+    description: 'settings.fields.themeEditor.description',
+  },
+  density: {
+    label: 'settings.fields.density.label',
+    description: 'settings.fields.density.description',
+  },
+  topbarPattern: {
+    label: 'settings.fields.topbarPattern.label',
+    description: 'settings.fields.topbarPattern.description',
+  },
+  webhookUrl: {
+    label: 'settings.fields.webhookUrl.label',
+    helper: 'settings.fields.webhookUrl.helper',
     optional: true,
   },
-  'Two-factor authentication': {
-    short: '2FA',
-    description:
-      'Adds an extra step when signing in (time-based codes or SMS). Strongly recommended to protect your account from unauthorized access.',
-  },
-  Theme: {
-    short: 'Color theme',
-    description: 'Switch between light, dark, or follow system preference for the app appearance.',
-  },
-  Density: {
-    short: 'UI density',
-    description:
-      'Controls spacing and compactness of list items and controls. Choose compact to see more content at once.',
-  },
-  'Webhook URL': {
-    short: 'Outgoing webhook',
-    description:
-      'When set, the app will POST events to this URL to integrate with external systems. Keep this URL private and secure.',
-    optional: true,
-  },
 }
 
-const CATEGORY_ICONS: Record<string, JSX.Element> = {
-  Account: <PersonIcon fontSize="small" />,
-  Preferences: <LanguageIcon fontSize="small" />,
-  Notifications: <NotificationsIcon fontSize="small" />,
-  Security: <SecurityIcon fontSize="small" />,
-  Appearance: <PaletteIcon fontSize="small" />,
-  Integrations: <LinkIcon fontSize="small" />,
+const CATEGORY_FIELD_MAP = SETTINGS_STRUCTURE.reduce<Record<CategoryId, SettingFieldKey[]>>(
+  (acc, category) => {
+    acc[category.id] = category.groups.flatMap((group) => group.fields)
+    return acc
+  },
+  {
+    account: [],
+    preferences: [],
+    notifications: [],
+    security: [],
+    appearance: [],
+    integrations: [],
+  },
+)
+
+const GROUP_ORDER_MAP = SETTINGS_STRUCTURE.reduce<Record<CategoryId, GroupId[]>>(
+  (acc, category) => {
+    acc[category.id] = category.groups.map((group) => group.id)
+    return acc
+  },
+  {
+    account: [],
+    preferences: [],
+    notifications: [],
+    security: [],
+    appearance: [],
+    integrations: [],
+  },
+)
+
+const FIELD_ROUTE_MAP = SETTINGS_STRUCTURE.reduce<
+  Record<SettingFieldKey, { categoryId: CategoryId; groupId: GroupId }>
+>(
+  (acc, category) => {
+    for (const group of category.groups) {
+      for (const field of group.fields) {
+        acc[field] = { categoryId: category.id, groupId: group.id }
+      }
+    }
+    return acc
+  },
+  {} as Record<SettingFieldKey, { categoryId: CategoryId; groupId: GroupId }>,
+)
+
+function normalizeCategoryId(value?: string | null): CategoryId | undefined {
+  if (!value) return undefined
+  if ((CATEGORY_ORDER as ReadonlyArray<string>).includes(value)) {
+    return value as CategoryId
+  }
+  return LEGACY_CATEGORY_MAP[value] ?? undefined
 }
 
-const CATEGORY_META: Record<string, { description: string }> = {
-  Account: { description: 'Manage your profile information and primary email.' },
-  Preferences: { description: 'Set language, timezone and display preferences.' },
-  Notifications: { description: 'Control how you receive alerts from the system.' },
-  Security: { description: 'Manage sign-in methods and account protection.' },
-  Appearance: { description: '' },
-  Integrations: { description: 'Connect external systems and webhooks.' },
+function coerceNonSystemPreference(
+  kind: ThemeKind,
+): Exclude<UserSettingsShape['themePreference'], 'system'> {
+  if (kind === 'brand') return 'brand'
+  if (kind === 'dark' || kind === 'high-contrast') return 'dark'
+  return 'light'
 }
 
-function SettingRow({ label, children }: { label: string; children: React.ReactNode }) {
-  const meta = SETTING_META[label]
+function resolveEffectivePreference(
+  stored: UserSettingsShape['themePreference'] | undefined,
+  themeKind: ThemeKind,
+): UserSettingsShape['themePreference'] {
+  if (stored) return stored
+  if (themeKind === 'system') return 'system'
+  return coerceNonSystemPreference(themeKind)
+}
+
+function SettingRow({
+  description,
+  helper,
+  children,
+}: {
+  description?: string
+  helper?: string
+  children: React.ReactNode
+}) {
   return (
-    <Box sx={{ mb: 2 }}>
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 2,
-          alignItems: 'flex-start',
-          flexDirection: { xs: 'column', sm: 'row' },
-        }}
-      >
-        <Box sx={{ flex: 1 }}>
-          <Box sx={{ mt: 0 }}>{children}</Box>
-        </Box>
-        {meta?.description ? (
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Tooltip
-              title={
-                <span style={{ whiteSpace: 'pre-line' }}>
-                  {meta.description}
-                  {meta.optional ? '\n\nOptional' : ''}
-                </span>
-              }
-              placement="right"
-            >
-              <IconButton size="small" aria-label={`${label} info`}>
-                <InfoOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        ) : null}
-      </Box>
+    <Box sx={{ mb: 3 }}>
+      <Box>{children}</Box>
+      {description ? (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          {description}
+        </Typography>
+      ) : null}
+      {helper ? (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+          {helper}
+        </Typography>
+      ) : null}
     </Box>
   )
 }
@@ -215,65 +419,105 @@ export default function SettingsPage({
 }) {
   const { load, save } = useUserSettings()
   const user = useAuthStore((s) => s.user)
+  const { t } = useTranslate()
+  const navigate = useNavigate()
+  const themeKind = useThemeStore((s) => s.kind)
+  const setKind = useThemeStore((s) => s.setKind)
+  const language = useI18nStore((s) => s.language)
+  const languageLabel = t(`languages.${language}`)
   const [settings, setSettings] = useState<UserSettingsShape>({})
-  const activeSaved = useUIStore((s) => s.activeSettingsCategory)
+  const [search, setSearch] = useState('')
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
+
+  const activeSavedRaw = useUIStore((s) => s.activeSettingsCategory)
   const setActiveSaved = useUIStore((s) => s.setActiveSettingsCategory)
   const commitPatternDraft = useUIStore((s) => s.commitPatternDraft)
   const resetPatternDraft = useUIStore((s) => s.resetPatternDraft)
-  const [active, setActive] = useState<string>(activeSaved ?? CATEGORIES[0])
-  const [search, setSearch] = useState<string>('')
-  const themeKind = useThemeStore((s) => s.kind)
-  const setKind = useThemeStore((s) => s.setKind)
-  const { t } = useTranslate()
+
+  const normalizedActiveSaved = useMemo(() => normalizeCategoryId(activeSavedRaw), [activeSavedRaw])
+  const [active, setActive] = useState<CategoryId>(() => normalizedActiveSaved ?? CATEGORY_ORDER[0])
 
   useEffect(() => {
-    const s = load()
-    if (s) setSettings(s)
+    const stored = load()
+    if (stored) setSettings(stored)
   }, [load, user?.id])
 
-  // keep local active in sync with the UI store so it survives unmounts
   useEffect(() => {
-    if (activeSaved && activeSaved !== active) setActive(activeSaved)
-  }, [activeSaved])
+    setSettings((prev) => (prev.locale === language ? prev : { ...prev, locale: language }))
+  }, [language])
 
-  const locales = useMemo(
-    () => [
-      { value: 'en', label: 'English' },
-      { value: 'es', label: 'Español' },
-    ],
-    [],
+  useEffect(() => {
+    if (normalizedActiveSaved && normalizedActiveSaved !== active) {
+      setActive(normalizedActiveSaved)
+    }
+  }, [normalizedActiveSaved, active])
+
+  const persistLanguageSelection = useCallback(
+    (nextLanguage: SupportedLanguage) => setSettings((prev) => ({ ...prev, locale: nextLanguage })),
+    [setSettings],
   )
 
-  const searchInputRef = React.useRef<HTMLInputElement | null>(null)
+  const fieldMatchesQuery = useCallback(
+    (field: SettingFieldKey, query: string) => {
+      if (!query) return true
+      const meta = FIELD_META[field]
+      const label = t(meta.label).toLowerCase()
+      if (label.includes(query)) return true
+      if (meta.description && t(meta.description).toLowerCase().includes(query)) return true
+      if (meta.helper && t(meta.helper).toLowerCase().includes(query)) return true
+      return false
+    },
+    [t],
+  )
 
-  // mapping of fields per category for counting matches
-  const categoryFields: Record<string, string[]> = {
-    Account: ['Display name', 'Email'],
-    Preferences: ['Locale', 'Timezone'],
-    Notifications: ['Email notifications', 'SMS notifications'],
-    Security: ['Two-factor authentication'],
-    Appearance: ['Theme', 'Density'],
-    Integrations: ['Webhook URL'],
-  }
-
-  const counts = React.useMemo(() => {
-    const q = search.trim().toLowerCase()
-    const out: Record<string, number> = {}
-    for (const c of CATEGORIES) {
-      const fields = categoryFields[c] ?? []
-      if (!q) out[c] = fields.length
-      else out[c] = fields.filter((f) => f.toLowerCase().includes(q)).length
+  const categoryCounts = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    const result: Record<CategoryId, number> = {
+      account: 0,
+      preferences: 0,
+      notifications: 0,
+      security: 0,
+      appearance: 0,
+      integrations: 0,
     }
-    return out
-  }, [search])
+    CATEGORY_ORDER.forEach((categoryId) => {
+      const fields = CATEGORY_FIELD_MAP[categoryId]
+      result[categoryId] = query
+        ? fields.filter((field) => fieldMatchesQuery(field, query)).length
+        : fields.length
+    })
+    return result
+  }, [search, fieldMatchesQuery])
 
-  function clearSearch() {
-    setSearch('')
-    // focus the input after clearing
-    setTimeout(() => searchInputRef.current?.focus(), 0)
-  }
+  const searchResults = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    if (!query) return []
+    const results: Array<{ fieldKey: SettingFieldKey; categoryId: CategoryId; groupId: GroupId }> =
+      []
+    ;(Object.keys(FIELD_ROUTE_MAP) as SettingFieldKey[]).forEach((fieldKey) => {
+      if (fieldMatchesQuery(fieldKey, query)) {
+        results.push({ fieldKey, ...FIELD_ROUTE_MAP[fieldKey] })
+      }
+    })
+    results.sort((a, b) => {
+      const categoryDiff =
+        CATEGORY_ORDER.indexOf(a.categoryId) - CATEGORY_ORDER.indexOf(b.categoryId)
+      if (categoryDiff !== 0) return categoryDiff
+      const groupDiff =
+        GROUP_ORDER_MAP[a.categoryId].indexOf(a.groupId) -
+        GROUP_ORDER_MAP[b.categoryId].indexOf(b.groupId)
+      if (groupDiff !== 0) return groupDiff
+      const fieldOrder = CATEGORY_FIELD_MAP[a.categoryId]
+      return fieldOrder.indexOf(a.fieldKey) - fieldOrder.indexOf(b.fieldKey)
+    })
+    return results
+  }, [search, fieldMatchesQuery])
 
-  const navigate = useNavigate()
+  const activeCategory = useMemo(
+    () => SETTINGS_STRUCTURE.find((item) => item.id === active),
+    [active],
+  )
+
   const open = openProp ?? true
   const onClose = onCloseProp ?? (() => navigate(-1))
   const handleClose = () => {
@@ -281,23 +525,207 @@ export default function SettingsPage({
     onClose()
   }
 
-  if (!user)
-    return (
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Settings</DialogTitle>
-        <DialogContent>
-          <Typography>Please sign in to view your settings.</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Close</Button>
-        </DialogActions>
-      </Dialog>
-    )
+  const clearSearch = () => {
+    setSearch('')
+    setTimeout(() => searchInputRef.current?.focus(), 0)
+  }
+  const effectivePreference = resolveEffectivePreference(settings.themePreference, themeKind)
+  const followsSystem = effectivePreference === 'system'
+  const activeNonSystemPreference =
+    effectivePreference === 'system' ? coerceNonSystemPreference(themeKind) : effectivePreference
 
-  function onSave() {
+  const onSave = () => {
     commitPatternDraft()
     save(settings)
   }
+
+  const renderField = (fieldKey: SettingFieldKey, label: string) => {
+    switch (fieldKey) {
+      case 'displayName':
+        return (
+          <TextField
+            label={label}
+            value={settings.displayName ?? ''}
+            onChange={(e) => setSettings((prev) => ({ ...prev, displayName: e.target.value }))}
+            fullWidth
+          />
+        )
+      case 'email':
+        return <TextField label={label} value={user?.email ?? ''} fullWidth disabled />
+      case 'language':
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, maxWidth: 320 }}>
+            <LanguageMenu
+              variant="button"
+              buttonLabel={`${label}: ${languageLabel}`}
+              onLanguageSelect={persistLanguageSelection}
+              fullWidth
+              size="medium"
+            />
+          </Box>
+        )
+      case 'timezone':
+        return (
+          <TextField
+            label={label}
+            value={settings.timezone ?? 'UTC'}
+            onChange={(e) => setSettings((prev) => ({ ...prev, timezone: e.target.value }))}
+            fullWidth
+          />
+        )
+      case 'receiveEmails':
+        return (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={!!settings.receiveEmails}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, receiveEmails: e.target.checked }))
+                }
+              />
+            }
+            label={label}
+          />
+        )
+      case 'receiveSms':
+        return (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={!!settings.receiveSms}
+                onChange={(e) => setSettings((prev) => ({ ...prev, receiveSms: e.target.checked }))}
+              />
+            }
+            label={label}
+          />
+        )
+      case 'twoFactor':
+        return (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={!!settings.twoFactorEnabled}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, twoFactorEnabled: e.target.checked }))
+                }
+              />
+            }
+            label={label}
+          />
+        )
+      case 'themeFollowSystem':
+        return (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={followsSystem}
+                onChange={(e) => {
+                  const checked = e.target.checked
+                  if (checked) {
+                    setSettings((prev) => ({ ...prev, themePreference: 'system' }))
+                    setKind('system')
+                    return
+                  }
+                  const fallback =
+                    settings.themePreference && settings.themePreference !== 'system'
+                      ? settings.themePreference
+                      : coerceNonSystemPreference(themeKind)
+                  setSettings((prev) => ({ ...prev, themePreference: fallback }))
+                  setKind(fallback as ThemeKind)
+                }}
+              />
+            }
+            label={
+              followsSystem ? t('settings.toggles.followingSystem') : t('settings.toggles.override')
+            }
+          />
+        )
+      case 'themePreference': {
+        const current = activeNonSystemPreference
+        return (
+          <ToggleButtonGroup
+            exclusive
+            value={current}
+            onChange={(_, value: string | null) => {
+              if (!value) return
+              setSettings((prev) => ({
+                ...prev,
+                themePreference: value as UserSettingsShape['themePreference'],
+              }))
+              setKind(value as ThemeKind)
+            }}
+            size="small"
+            disabled={followsSystem}
+          >
+            <ToggleButton value="light">{t('settings.themeOptions.light')}</ToggleButton>
+            <ToggleButton value="dark">{t('settings.themeOptions.dark')}</ToggleButton>
+            <ToggleButton value="brand">{t('settings.themeOptions.brand')}</ToggleButton>
+          </ToggleButtonGroup>
+        )
+      }
+      case 'themeEditor':
+        return (
+          <Button
+            variant="outlined"
+            disabled={followsSystem}
+            onClick={() =>
+              startTransition(() => {
+                setActiveSaved(active)
+                save(settings)
+                navigate('/settings/theme')
+              })
+            }
+          >
+            {t('settings.openThemeEditor')}
+          </Button>
+        )
+      case 'density':
+        return (
+          <TextField
+            select
+            label={label}
+            value={settings.density ?? 'comfortable'}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setSettings((prev) => ({
+                ...prev,
+                density: e.target.value as UserSettingsShape['density'],
+              }))
+            }
+            sx={{ minWidth: 240 }}
+          >
+            <MenuItem value="comfortable">{t('settings.densityOptions.comfortable')}</MenuItem>
+            <MenuItem value="compact">{t('settings.densityOptions.compact')}</MenuItem>
+          </TextField>
+        )
+      case 'topbarPattern':
+        return <PatternSelector embedded />
+      case 'webhookUrl':
+        return (
+          <TextField
+            type="url"
+            label={label}
+            value={settings.webhookUrl ?? ''}
+            onChange={(e) => setSettings((prev) => ({ ...prev, webhookUrl: e.target.value }))}
+            fullWidth
+          />
+        )
+      default:
+        return null
+    }
+  }
+
+  if (!user)
+    return (
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>{t('settings.title')}</DialogTitle>
+        <DialogContent>
+          <Typography>{t('settings.signInPrompt')}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>{t('common.close')}</Button>
+        </DialogActions>
+      </Dialog>
+    )
 
   return (
     <Dialog
@@ -308,16 +736,14 @@ export default function SettingsPage({
       PaperProps={{
         sx: (theme) => ({
           borderRadius: 2,
-          boxShadow: 'none', // remove elevation overlay so dark theme color stays consistent
+          boxShadow: 'none',
           m: 2,
-          // ensure dialog background uses the surface color so panels read consistently
           backgroundColor: theme.palette.background.paper,
           border: `1px solid ${theme.palette.divider}`,
         }),
       }}
     >
-      <DialogTitle>Settings</DialogTitle>
-      {/* remove default padding so we can control scroll regions inside the paper; keep outer content from scrolling */}
+      <DialogTitle>{t('settings.title')}</DialogTitle>
       <DialogContent
         dividers
         sx={{ p: 0, display: 'flex', overflow: 'hidden', maxHeight: 'calc(100vh - 160px)' }}
@@ -342,10 +768,9 @@ export default function SettingsPage({
               height: '100%',
             })}
           >
-            {/* left panel header removed; dialog-level title used so the modal reads as a single panel */}
             <TextField
-              inputRef={(el) => (searchInputRef.current = el)}
-              placeholder="Search settings..."
+              inputRef={searchInputRef}
+              placeholder={t('settings.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               fullWidth
@@ -355,7 +780,11 @@ export default function SettingsPage({
                 endAdornment: (
                   <InputAdornment position="end">
                     {search ? (
-                      <IconButton size="small" onClick={clearSearch} aria-label="clear search">
+                      <IconButton
+                        size="small"
+                        onClick={clearSearch}
+                        aria-label={t('settings.actions.clearSearch')}
+                      >
                         <ClearIcon fontSize="small" />
                       </IconButton>
                     ) : (
@@ -369,57 +798,69 @@ export default function SettingsPage({
             />
             <Box sx={{ overflowY: 'auto', flexGrow: 1, minHeight: 0 }}>
               <List>
-                {CATEGORIES.map((c) => (
-                  <ListItemButton
-                    key={c}
-                    selected={active === c}
-                    onClick={() => {
-                      setActive(c)
-                      setActiveSaved(c)
-                    }}
-                    sx={(theme) => ({
-                      borderRadius: 2,
-                      mb: 0.5,
-                      '&.Mui-selected': {
-                        backgroundColor:
-                          theme.palette.mode === 'dark'
-                            ? alpha(
-                                theme.palette.getContrastText(theme.palette.background.paper),
-                                0.06,
-                              )
-                            : alpha(
-                                theme.palette.getContrastText(theme.palette.background.paper),
-                                0.04,
-                              ),
-                        color: theme.palette.text.primary,
-                        borderRadius: 2,
-                      },
-                    })}
-                  >
-                    <ListItemIcon sx={{ minWidth: 36 }}>{CATEGORY_ICONS[c]}</ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <Box component="span">{c}</Box>
-                          {search ? (
-                            <Typography
-                              variant="caption"
-                              color={counts[c] === 0 ? 'text.disabled' : 'text.secondary'}
-                            >
-                              {counts[c] ?? 0}
-                            </Typography>
-                          ) : null}
-                        </Box>
-                      }
-                    />
-                  </ListItemButton>
-                ))}
+                {CATEGORY_ORDER.map((categoryId) => {
+                  const label = t(CATEGORY_LABEL_KEYS[categoryId])
+                  return (
+                    <ListItemButton
+                      key={categoryId}
+                      selected={active === categoryId}
+                      onClick={() => {
+                        setActive(categoryId)
+                        setActiveSaved(categoryId)
+                      }}
+                      sx={(theme) => {
+                        const selectAlpha = theme.palette.mode === 'dark' ? 0.22 : 0.12
+                        const hoverAlpha =
+                          theme.palette.mode === 'dark' ? selectAlpha + 0.08 : selectAlpha + 0.04
+                        return {
+                          borderRadius: 2,
+                          mb: 0.5,
+                          color: theme.palette.text.secondary,
+                          '&:hover': {
+                            backgroundColor: alpha(theme.palette.primary.main, hoverAlpha),
+                            color: theme.palette.getContrastText(theme.palette.primary.main),
+                          },
+                          '&.Mui-selected': {
+                            backgroundColor: alpha(theme.palette.primary.main, selectAlpha),
+                            color: theme.palette.getContrastText(theme.palette.primary.main),
+                            '&:hover': {
+                              backgroundColor: alpha(theme.palette.primary.main, hoverAlpha + 0.04),
+                            },
+                          },
+                        }
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        {CATEGORY_ICON_MAP[categoryId]}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <Box component="span">{label}</Box>
+                            {search ? (
+                              <Typography
+                                variant="caption"
+                                color={
+                                  categoryCounts[categoryId] === 0
+                                    ? 'text.disabled'
+                                    : 'text.secondary'
+                                }
+                              >
+                                {categoryCounts[categoryId] ?? 0}
+                              </Typography>
+                            ) : null}
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
+                  )
+                })}
               </List>
             </Box>
           </Box>
@@ -433,472 +874,91 @@ export default function SettingsPage({
               minHeight: 0,
             }}
           >
-            {/* fixed header/title area */}
             <Box sx={{ mb: 1 }}>
               <Typography variant="h6" gutterBottom>
-                {active}
+                {t(CATEGORY_LABEL_KEYS[active])}
               </Typography>
-              {CATEGORY_META[active]?.description ? (
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  {CATEGORY_META[active].description}
-                </Typography>
-              ) : null}
+              {(() => {
+                const descriptionKey = CATEGORY_DESCRIPTION_KEYS[active]
+                if (!descriptionKey) return null
+                return (
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {t(descriptionKey)}
+                  </Typography>
+                )
+              })()}
             </Box>
 
-            {/* scrollable content area - only this will scroll when content is long */}
             <Box sx={{ overflowY: 'auto', flex: 1, pr: 1 }}>
-              {/* If there's a search term, filter fields across categories */}
               {search ? (
                 <Box>
-                  {[
-                    'Display name',
-                    'Email',
-                    'Locale',
-                    'Timezone',
-                    'Email notifications',
-                    'SMS notifications',
-                    'Two-factor authentication',
-                    'Theme',
-                    'Density',
-                    'Webhook URL',
-                  ]
-                    .filter((label) => label.toLowerCase().includes(search.toLowerCase()))
-                    .map((label) => (
-                      <SettingRow key={label} label={label}>
-                        {/* Render a simple representation of the control to allow editing where practical */}
-                        {label === 'Display name' && (
-                          <TextField
-                            value={settings.displayName ?? ''}
-                            onChange={(e) =>
-                              setSettings((p) => ({ ...p, displayName: e.target.value }))
-                            }
-                            fullWidth
-                            helperText={SETTING_META['Display name']?.short}
-                          />
-                        )}
-                        {label === 'Email' && (
-                          <TextField value={user?.email ?? ''} disabled fullWidth />
-                        )}
-                        {label === 'Locale' && (
-                          <TextField
-                            select
-                            value={settings.locale ?? 'en'}
-                            onChange={(e) => setSettings((p) => ({ ...p, locale: e.target.value }))}
-                            fullWidth
-                            helperText={SETTING_META['Locale']?.short}
-                          >
-                            {locales.map((l) => (
-                              <MenuItem value={l.value} key={l.value}>
-                                {l.label}
-                              </MenuItem>
-                            ))}
-                          </TextField>
-                        )}
-                        {label === 'Timezone' && (
-                          <TextField
-                            value={settings.timezone ?? 'UTC'}
-                            onChange={(e) =>
-                              setSettings((p) => ({ ...p, timezone: e.target.value }))
-                            }
-                            fullWidth
-                            helperText={SETTING_META['Timezone']?.short}
-                          />
-                        )}
-                        {label === 'Email notifications' && (
-                          <div>
-                            <FormControlLabel
-                              control={
-                                <Switch
-                                  checked={!!settings.receiveEmails}
-                                  onChange={(e) =>
-                                    setSettings((p) => ({ ...p, receiveEmails: e.target.checked }))
-                                  }
-                                />
-                              }
-                              label=""
-                            />
-                            {SETTING_META['Email notifications']?.short ? (
-                              <Typography variant="caption" color="text.secondary">
-                                {SETTING_META['Email notifications']?.short}
-                              </Typography>
-                            ) : null}
-                          </div>
-                        )}
-                        {label === 'SMS notifications' && (
-                          <div>
-                            <FormControlLabel
-                              control={
-                                <Switch
-                                  checked={!!settings.receiveSms}
-                                  onChange={(e) =>
-                                    setSettings((p) => ({ ...p, receiveSms: e.target.checked }))
-                                  }
-                                />
-                              }
-                              label=""
-                            />
-                            {SETTING_META['SMS notifications']?.short ? (
-                              <Typography variant="caption" color="text.secondary">
-                                {SETTING_META['SMS notifications']?.short}
-                              </Typography>
-                            ) : null}
-                          </div>
-                        )}
-                        {label === 'Two-factor authentication' && (
-                          <div>
-                            <FormControlLabel
-                              control={
-                                <Switch
-                                  checked={!!settings.twoFactorEnabled}
-                                  onChange={(e) =>
-                                    setSettings((p) => ({
-                                      ...p,
-                                      twoFactorEnabled: e.target.checked,
-                                    }))
-                                  }
-                                />
-                              }
-                              label=""
-                            />
-                            {SETTING_META['Two-factor authentication']?.short ? (
-                              <Typography variant="caption" color="text.secondary">
-                                {SETTING_META['Two-factor authentication']?.short}
-                              </Typography>
-                            ) : null}
-                          </div>
-                        )}
-                        {label === 'Theme' && (
-                          <TextField
-                            select
-                            value={settings.themePreference ?? 'system'}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                              setSettings((p) => ({
-                                ...p,
-                                themePreference: e.target
-                                  .value as UserSettingsShape['themePreference'],
-                              }))
-                            }
-                            fullWidth
-                            helperText={SETTING_META['Theme']?.short}
-                          >
-                            <MenuItem value="system">Follow system</MenuItem>
-                            <MenuItem value="light">Light</MenuItem>
-                            <MenuItem value="dark">Dark</MenuItem>
-                            <MenuItem value="brand">Brand</MenuItem>
-                          </TextField>
-                        )}
-                        {label === 'Density' && (
-                          <TextField
-                            select
-                            value={settings.density ?? 'comfortable'}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                              setSettings((p) => ({
-                                ...p,
-                                density: e.target.value as UserSettingsShape['density'],
-                              }))
-                            }
-                            fullWidth
-                            helperText={SETTING_META['Density']?.short}
-                          >
-                            <MenuItem value="comfortable">Comfortable</MenuItem>
-                            <MenuItem value="compact">Compact</MenuItem>
-                          </TextField>
-                        )}
-                        {label === 'Webhook URL' && (
-                          <TextField
-                            value={settings.webhookUrl ?? ''}
-                            onChange={(e) =>
-                              setSettings((p) => ({ ...p, webhookUrl: e.target.value }))
-                            }
-                            fullWidth
-                            helperText={SETTING_META['Webhook URL']?.short}
-                          />
-                        )}
-                      </SettingRow>
-                    ))}
+                  {searchResults.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      {t('settings.noResults')}
+                    </Typography>
+                  ) : (
+                    searchResults.map(({ fieldKey, categoryId, groupId }) => {
+                      const meta = FIELD_META[fieldKey]
+                      const label = t(meta.label)
+                      const description = meta.description ? t(meta.description) : undefined
+                      const helperPieces = [
+                        meta.helper ? t(meta.helper) : undefined,
+                        meta.optional ? t('settings.optional') : undefined,
+                      ].filter(Boolean)
+                      const helper = helperPieces.length ? helperPieces.join(' · ') : undefined
+                      const control = renderField(fieldKey, label)
+                      if (!control) return null
+                      return (
+                        <Box key={`${categoryId}-${groupId}-${fieldKey}`} sx={{ mb: 3 }}>
+                          <Typography variant="overline" color="text.secondary">
+                            {t(CATEGORY_LABEL_KEYS[categoryId])} ·{' '}
+                            {t(GROUP_LABEL_KEYS[groupId].title)}
+                          </Typography>
+                          <SettingRow description={description} helper={helper}>
+                            {control}
+                          </SettingRow>
+                        </Box>
+                      )
+                    })
+                  )}
                 </Box>
-              ) : null}
+              ) : (
+                activeCategory?.groups.map((group) => {
+                  const groupMeta = GROUP_LABEL_KEYS[group.id]
+                  const groupTitle = t(groupMeta.title)
+                  const groupDescription = groupMeta.description
+                    ? t(groupMeta.description)
+                    : undefined
 
-              {!search && (
-                <>
-                  {active === 'Account' && (
-                    <CategoryGroup title="Account" description={CATEGORY_META.Account.description}>
-                      <CategoryGroup
-                        title="Profile"
-                        description="Your public profile information."
-                        noBorder
-                      >
-                        <SettingRow label="Display name">
-                          <TextField
-                            label="Display name"
-                            value={settings.displayName ?? ''}
-                            onChange={(e) =>
-                              setSettings((p) => ({ ...p, displayName: e.target.value }))
-                            }
-                            sx={{ mb: 2 }}
-                            fullWidth
-                            helperText={SETTING_META['Display name']?.short}
-                          />
-                        </SettingRow>
-                      </CategoryGroup>
-
-                      <CategoryGroup
-                        title="Contact"
-                        description="Primary contact details for account communication."
-                        noBorder
-                      >
-                        <SettingRow label="Email">
-                          <TextField
-                            label="Email"
-                            value={user?.email ?? ''}
-                            disabled
-                            sx={{ mb: 2 }}
-                            fullWidth
-                          />
-                        </SettingRow>
-                      </CategoryGroup>
+                  return (
+                    <CategoryGroup key={group.id} title={groupTitle} description={groupDescription}>
+                      {group.fields.map((fieldKey) => {
+                        const meta = FIELD_META[fieldKey]
+                        const label = t(meta.label)
+                        const description = meta.description ? t(meta.description) : undefined
+                        const helperPieces = [
+                          meta.helper ? t(meta.helper) : undefined,
+                          meta.optional ? t('settings.optional') : undefined,
+                        ].filter(Boolean)
+                        const helper = helperPieces.length ? helperPieces.join(' · ') : undefined
+                        const control = renderField(fieldKey, label)
+                        if (!control) return null
+                        return (
+                          <SettingRow key={fieldKey} description={description} helper={helper}>
+                            {control}
+                          </SettingRow>
+                        )
+                      })}
                     </CategoryGroup>
-                  )}
-
-                  {active === 'Preferences' && (
-                    <CategoryGroup
-                      title="Preferences"
-                      description={CATEGORY_META.Preferences.description}
-                    >
-                      <CategoryGroup
-                        title="Locale & Time"
-                        description="Choose language and timezone settings."
-                        noBorder
-                      >
-                        <SettingRow label="Locale">
-                          <TextField
-                            select
-                            label="Locale"
-                            value={settings.locale ?? 'en'}
-                            onChange={(e) => setSettings((p) => ({ ...p, locale: e.target.value }))}
-                            sx={{ minWidth: 240 }}
-                          >
-                            {locales.map((l) => (
-                              <MenuItem value={l.value} key={l.value}>
-                                {l.label}
-                              </MenuItem>
-                            ))}
-                          </TextField>
-                        </SettingRow>
-                        <SettingRow label="Timezone">
-                          <TextField
-                            label="Timezone"
-                            value={settings.timezone ?? 'UTC'}
-                            onChange={(e) =>
-                              setSettings((p) => ({ ...p, timezone: e.target.value }))
-                            }
-                            sx={{ minWidth: 240 }}
-                          />
-                        </SettingRow>
-                      </CategoryGroup>
-                    </CategoryGroup>
-                  )}
-
-                  {active === 'Notifications' && (
-                    <CategoryGroup
-                      title="Notifications"
-                      description={CATEGORY_META.Notifications.description}
-                    >
-                      <CategoryGroup
-                        title="Delivery methods"
-                        description="Control how you receive alerts (email, SMS)"
-                        noBorder
-                      >
-                        <SettingRow label="Email notifications">
-                          <FormControlLabel
-                            control={
-                              <Switch
-                                checked={!!settings.receiveEmails}
-                                onChange={(e) =>
-                                  setSettings((p) => ({ ...p, receiveEmails: e.target.checked }))
-                                }
-                              />
-                            }
-                            label="Email notifications"
-                          />
-                        </SettingRow>
-                        <SettingRow label="SMS notifications">
-                          <FormControlLabel
-                            control={
-                              <Switch
-                                checked={!!settings.receiveSms}
-                                onChange={(e) =>
-                                  setSettings((p) => ({ ...p, receiveSms: e.target.checked }))
-                                }
-                              />
-                            }
-                            label="SMS notifications"
-                          />
-                        </SettingRow>
-                      </CategoryGroup>
-                    </CategoryGroup>
-                  )}
-
-                  {active === 'Security' && (
-                    <CategoryGroup
-                      title="Security"
-                      description={CATEGORY_META.Security.description}
-                    >
-                      <CategoryGroup
-                        title="Authentication"
-                        description="Sign-in methods and extra protections."
-                        noBorder
-                      >
-                        <SettingRow label="Two-factor authentication">
-                          <FormControlLabel
-                            control={
-                              <Switch
-                                checked={!!settings.twoFactorEnabled}
-                                onChange={(e) =>
-                                  setSettings((p) => ({ ...p, twoFactorEnabled: e.target.checked }))
-                                }
-                              />
-                            }
-                            label="Two-factor authentication"
-                          />
-                        </SettingRow>
-                      </CategoryGroup>
-                    </CategoryGroup>
-                  )}
-
-                  {active === 'Appearance' && (
-                    <>
-                      {/* General Appearance subgroup */}
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle1">General appearance</Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                          Theme, density and editor settings.
-                        </Typography>
-                        <SettingRow label="Use system settings">
-                          <FormControlLabel
-                            control={
-                              <Switch
-                                checked={
-                                  settings.themePreference === 'system' || themeKind === 'system'
-                                }
-                                onChange={(e) => {
-                                  const val = e.target.checked ? 'system' : 'light'
-                                  setSettings((p) => ({ ...p, themePreference: val }))
-                                  setKind(val as ThemeKind)
-                                }}
-                              />
-                            }
-                            label={
-                              settings.themePreference === 'system' || themeKind === 'system'
-                                ? 'Following system'
-                                : 'Override'
-                            }
-                          />
-                        </SettingRow>
-
-                        {!(settings.themePreference === 'system' || themeKind === 'system') && (
-                          <>
-                            <SettingRow label="Theme">
-                              <ToggleButtonGroup
-                                exclusive
-                                value={settings.themePreference ?? themeKind ?? 'light'}
-                                onChange={(e: React.MouseEvent<HTMLElement>, v: string | null) => {
-                                  if (!v) return
-                                  setSettings((p) => ({
-                                    ...p,
-                                    themePreference: v as UserSettingsShape['themePreference'],
-                                  }))
-                                  setKind(v as ThemeKind)
-                                }}
-                                size="small"
-                              >
-                                <ToggleButton value="light">Light</ToggleButton>
-                                <ToggleButton value="dark">Dark</ToggleButton>
-                                <ToggleButton value="brand">Brand</ToggleButton>
-                              </ToggleButtonGroup>
-                            </SettingRow>
-
-                            <SettingRow label="Theme editor">
-                              <Button
-                                variant="outlined"
-                                onClick={() =>
-                                  startTransition(() => {
-                                    setActiveSaved(active)
-                                    save(settings)
-                                    navigate('/settings/theme')
-                                  })
-                                }
-                              >
-                                {t('settings.openThemeEditor')}
-                              </Button>
-                            </SettingRow>
-                          </>
-                        )}
-
-                        <SettingRow label="Density">
-                          <TextField
-                            select
-                            label="Density"
-                            value={settings.density ?? 'comfortable'}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                              setSettings((p) => ({
-                                ...p,
-                                density: e.target.value as UserSettingsShape['density'],
-                              }))
-                            }
-                            sx={{ minWidth: 240 }}
-                          >
-                            <MenuItem value="comfortable">Comfortable</MenuItem>
-                            <MenuItem value="compact">Compact</MenuItem>
-                          </TextField>
-                        </SettingRow>
-                      </Box>
-
-                      {/* Topbar Appearance subgroup */}
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle1">Topbar appearance</Typography>
-                        <SettingRow label="Topbar pattern">
-                          <PatternSelector embedded />
-                        </SettingRow>
-                      </Box>
-                    </>
-                  )}
-
-                  {active === 'Integrations' && (
-                    <CategoryGroup
-                      title="Integrations"
-                      description={CATEGORY_META.Integrations.description}
-                    >
-                      <CategoryGroup
-                        title="Webhooks"
-                        description="Outgoing webhooks and integration endpoints."
-                        noBorder
-                      >
-                        <SettingRow label="Webhook URL">
-                          <TextField
-                            label="Webhook URL"
-                            value={settings.webhookUrl ?? ''}
-                            onChange={(e) =>
-                              setSettings((p) => ({ ...p, webhookUrl: e.target.value }))
-                            }
-                            sx={{ mb: 2 }}
-                            fullWidth
-                            helperText={SETTING_META['Webhook URL']?.short}
-                          />
-                        </SettingRow>
-                      </CategoryGroup>
-                    </CategoryGroup>
-                  )}
-                </>
+                  )
+                })
               )}
             </Box>
-
-            {/* footer removed from inner panel; actions live on the dialog level */}
           </Box>
         </Paper>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Close</Button>
+        <Button onClick={handleClose}>{t('common.close')}</Button>
         <Button
           variant="contained"
           onClick={() => {
@@ -906,7 +966,7 @@ export default function SettingsPage({
             handleClose()
           }}
         >
-          Save
+          {t('common.save')}
         </Button>
       </DialogActions>
     </Dialog>

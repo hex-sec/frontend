@@ -39,7 +39,7 @@ export const useUIStore = create<UIState>()(
     (set, get) => ({
       openSettings: false,
       setOpenSettings: (v: boolean) => set({ openSettings: v }),
-      activeSettingsCategory: 'Account',
+      activeSettingsCategory: 'account',
       setActiveSettingsCategory: (v: string) => set({ activeSettingsCategory: v }),
       patternEnabled: true,
       setPatternEnabled: (v: boolean) => set({ patternEnabled: v }),

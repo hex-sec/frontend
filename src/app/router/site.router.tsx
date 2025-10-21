@@ -1,24 +1,20 @@
+import { lazy, Suspense } from 'react'
 import { RouteObject } from 'react-router-dom'
 import AdminLayout from '@app/layout/AdminLayout'
 import { RoleGate } from '@app/auth/RoleGate'
-import { Suspense, lazy } from 'react'
 
-const Dashboard = lazy(() => import('@features/admin/DashboardPage'))
-const Sites = lazy(() => import('@features/admin/SitesPage'))
 const SiteDetails = lazy(() => import('@features/admin/site-details/SiteDetailsPage'))
-const Visits = lazy(() => import('@features/admin/VisitsPage'))
-const Visitors = lazy(() => import('@features/admin/VisitorsPage'))
-const Residents = lazy(() => import('@features/admin/ResidentsPage'))
-const Residences = lazy(() => import('@features/admin/ResidencesPage'))
-const Vehicles = lazy(() => import('@features/admin/VehiclesPage'))
-const Policies = lazy(() => import('@features/admin/PoliciesPage'))
-const Reports = lazy(() => import('@features/admin/ReportsPage'))
 const Users = lazy(() => import('@features/admin/UsersPage'))
 const UserProfile = lazy(() => import('@features/admin/users/UserProfilePage'))
+const Visits = lazy(() => import('@features/admin/VisitsPage'))
+const Visitors = lazy(() => import('@features/admin/VisitorsPage'))
+const Vehicles = lazy(() => import('@features/admin/VehiclesPage'))
+const Reports = lazy(() => import('@features/admin/ReportsPage'))
+const Residences = lazy(() => import('@features/admin/ResidencesPage'))
 
-export const adminRoutes: RouteObject[] = [
+export const siteRoutes: RouteObject[] = [
   {
-    path: '/admin',
+    path: '/site/:slug',
     element: (
       <RoleGate roles={['admin']}>
         <AdminLayout />
@@ -29,28 +25,12 @@ export const adminRoutes: RouteObject[] = [
         index: true,
         element: (
           <Suspense fallback={null}>
-            <Dashboard />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'sites',
-        element: (
-          <Suspense fallback={null}>
-            <Sites />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'sites/:slug',
-        element: (
-          <Suspense fallback={null}>
             <SiteDetails />
           </Suspense>
         ),
       },
       {
-        path: 'sites/:slug/users',
+        path: 'users',
         element: (
           <Suspense fallback={null}>
             <Users />
@@ -58,7 +38,7 @@ export const adminRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'sites/:slug/users/residents',
+        path: 'users/residents',
         element: (
           <Suspense fallback={null}>
             <Users />
@@ -66,7 +46,7 @@ export const adminRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'sites/:slug/users/guards',
+        path: 'users/guards',
         element: (
           <Suspense fallback={null}>
             <Users />
@@ -74,7 +54,7 @@ export const adminRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'sites/:slug/users/admins',
+        path: 'users/admins',
         element: (
           <Suspense fallback={null}>
             <Users />
@@ -82,42 +62,34 @@ export const adminRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'sites/:slug/visits',
+        path: 'users/:userId',
         element: (
           <Suspense fallback={null}>
-            <Visits />
+            <UserProfile />
           </Suspense>
         ),
       },
       {
-        path: 'sites/:slug/visitors',
+        path: 'users/residents/:userId',
         element: (
           <Suspense fallback={null}>
-            <Visitors />
+            <UserProfile />
           </Suspense>
         ),
       },
       {
-        path: 'sites/:slug/residences',
+        path: 'users/guards/:userId',
         element: (
           <Suspense fallback={null}>
-            <Residences />
+            <UserProfile />
           </Suspense>
         ),
       },
       {
-        path: 'sites/:slug/vehicles',
+        path: 'users/admins/:userId',
         element: (
           <Suspense fallback={null}>
-            <Vehicles />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'sites/:slug/reports',
-        element: (
-          <Suspense fallback={null}>
-            <Reports />
+            <UserProfile />
           </Suspense>
         ),
       },
@@ -138,14 +110,6 @@ export const adminRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'residents',
-        element: (
-          <Suspense fallback={null}>
-            <Residents />
-          </Suspense>
-        ),
-      },
-      {
         path: 'vehicles',
         element: (
           <Suspense fallback={null}>
@@ -154,10 +118,10 @@ export const adminRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'policies',
+        path: 'residences',
         element: (
           <Suspense fallback={null}>
-            <Policies />
+            <Residences />
           </Suspense>
         ),
       },
@@ -166,22 +130,6 @@ export const adminRoutes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <Reports />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'users',
-        element: (
-          <Suspense fallback={null}>
-            <Users />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'users/:userId',
-        element: (
-          <Suspense fallback={null}>
-            <UserProfile />
           </Suspense>
         ),
       },

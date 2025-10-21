@@ -1,14 +1,335 @@
 {
+  "common": {
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "apply": "Apply"
+  },
+  "languages": {
+    "en": "English",
+    "es": "Spanish",
+    "fr": "French",
+    "de": "German",
+    "it": "Italian",
+    "ru": "Russian",
+    "zh": "Chinese",
+    "ja": "Japanese"
+  },
+  "languageSwitcher": {
+    "aria": "Change language",
+    "label": "Language"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "guard": "Guard",
+    "resident": "Resident",
+    "guest": "Guest"
+  },
   "topnav": {
     "title": "HEX",
-    "welcome": "Welcome,"
+    "welcome": "Welcome,",
+    "workspace": {
+      "focus": "Workspace focus",
+      "mode": {
+        "enterprise": "Enterprise",
+        "site": "Site"
+      },
+      "changeMode": "Change mode",
+      "hints": {
+        "enterprise": "Viewing portfolio-wide insights.",
+        "site": "Focused on {{siteName}}.",
+        "empty": "Pick a site to dive into operations."
+      }
+    },
+    "drawer": {
+      "openMenu": "Open navigation menu",
+      "navigation": "Navigation",
+      "workspaceSettings": "Workspace settings",
+      "billing": "Billing",
+      "version": "{{version}} • Last sync {{minutes}}m ago"
+    },
+    "accountMenu": {
+      "defaultName": "Account",
+      "profile": "Profile",
+      "billing": "Billing",
+      "logout": "Logout"
+    },
+    "roleNav": {
+      "admin": {
+        "dashboard": {
+          "label": "Enterprise dashboard",
+          "description": "Portfolio health and guard metrics"
+        },
+        "sites": {
+          "label": "Sites",
+          "description": "Manage properties and kiosks"
+        },
+        "visits": {
+          "label": "Visits",
+          "description": "Gate passes and visitor history"
+        },
+        "vehicles": {
+          "label": "Vehicles",
+          "description": "Track decals and vehicle permits"
+        },
+        "visitors": {
+          "label": "Visitors",
+          "description": "Recurring guest directory"
+        },
+        "users": {
+          "label": "Users",
+          "description": "Invite admins and assign roles"
+        },
+        "reports": {
+          "label": "Reports",
+          "description": "Deep dives and exports"
+        }
+      },
+      "guard": {
+        "kiosk": {
+          "label": "Guard kiosk",
+          "description": "Gate log and visitor flow"
+        }
+      },
+      "resident": {
+        "home": {
+          "label": "Resident home",
+          "description": "Bookings, passes and dues"
+        }
+      }
+    },
+    "siteNav": {
+      "dashboard": {
+        "label": "{{siteName}} dashboard",
+        "description": "Site operations, incidents and residents"
+      },
+      "allUsers": {
+        "label": "All users",
+        "description": "Manage access for {{siteName}}"
+      },
+      "residents": {
+        "label": "Residents",
+        "description": "Directory and communications"
+      },
+      "guards": {
+        "label": "Guards",
+        "description": "Shift coverage and kiosk access"
+      },
+      "admins": {
+        "label": "Admins",
+        "description": "Enterprise permissions for this site"
+      },
+      "visits": {
+        "label": "Visits",
+        "description": "Gate passes scoped to this site"
+      },
+      "residences": {
+        "label": "Residences",
+        "description": "Unit roster and occupancy"
+      },
+      "vehicles": {
+        "label": "Vehicles",
+        "description": "Registered plates and decals"
+      },
+      "visitors": {
+        "label": "Visitors",
+        "description": "Recurring guests for this site"
+      },
+      "reports": {
+        "label": "Site reports",
+        "description": "Insights tailored to {{siteName}}"
+      }
+    },
+    "notifications": {
+      "aria": "Open notifications",
+      "fallbackSiteName": "portfolio",
+      "menuTitle": "Notifications",
+      "markAllRead": "Mark all read",
+      "empty": "You're all caught up! New alerts will appear here.",
+      "chip": {
+        "incident": "Incident",
+        "visitor": "Visitor",
+        "announcement": "Update"
+      },
+      "actions": {
+        "reviewIncidentLog": "Review incident log",
+        "markResolved": "Mark resolved",
+        "approveVisitor": "Approve visitor",
+        "declineVisitor": "Decline",
+        "readUpdate": "Read update"
+      },
+      "timestamps": {
+        "justNow": "Just now",
+        "minutesAgo": "{{count}}m ago",
+        "hoursAgo": "{{count}}h ago",
+        "today": "Today"
+      },
+      "site": {
+        "incident": {
+          "title": "Gate forced open detected",
+          "message": "Sensor on the east gate flagged an after-hours entry at {{siteName}}. Guards responded in 4 minutes."
+        },
+        "visitor": {
+          "title": "Visitor awaiting approval",
+          "message": "Tanya Hughes is at the kiosk without a pre-approved pass. Approve or deny to let the guard proceed."
+        },
+        "announcement": {
+          "title": "Kiosk firmware update scheduled",
+          "message": "A firmware push is queued for 3:00 AM local time. Expect a five minute reboot window."
+        }
+      },
+      "enterprise": {
+        "incident": {
+          "title": "3 unresolved incidents across sites",
+          "message": "Review site escalations to ensure regional teams have followed up on overnight alerts."
+        },
+        "visitor": {
+          "title": "Bulk visitor imports pending",
+          "message": "Four bulk CSV imports need validation before badges are issued."
+        },
+        "announcement": {
+          "title": "New analytics beta available",
+          "message": "Try the incident density heat map in the Labs section of reports."
+        }
+      }
+    },
+    "modeDialog": {
+      "title": "Choose workspace mode",
+      "enterpriseOption": "Enterprise dashboard",
+      "siteOption": "Site dashboard",
+      "selectSite": "Select site",
+      "noSites": "No sites available"
+    }
   },
   "settings": {
     "title": "Settings",
+  "searchPlaceholder": "Search settings...",
+    "noResults": "No settings match your search.",
+    "optional": "Optional",
+    "signInPrompt": "Please sign in to view your settings.",
     "openThemeEditor": "Open theme editor",
-    "useSystem": "Use system settings",
-    "theme": "Theme",
-    "density": "Density"
+    "actions": {
+      "clearSearch": "Clear search"
+    },
+    "categories": {
+      "account": "Account",
+      "accountDescription": "Manage your profile and contact details.",
+      "preferences": "Preferences",
+      "preferencesDescription": "Adjust regional settings and accessibility preferences.",
+      "notifications": "Notifications",
+      "notificationsDescription": "Control how alerts reach you.",
+      "security": "Security",
+      "securityDescription": "Manage sign-in methods and account protection.",
+      "appearance": "Appearance",
+      "appearanceDescription": "Tune theme, density and top bar styling.",
+      "integrations": "Integrations",
+      "integrationsDescription": "Configure webhooks and external systems."
+    },
+    "groups": {
+      "profile": {
+        "title": "Profile",
+        "description": "Update your display name and public identity."
+      },
+      "contact": {
+        "title": "Contact",
+        "description": "Primary contact details for account communication."
+      },
+      "regional": {
+        "title": "Regional",
+        "description": "Timezone and locale defaults."
+      },
+      "accessibility": {
+        "title": "Accessibility",
+        "description": "Language and assistive preferences."
+      },
+      "delivery": {
+        "title": "Delivery methods",
+        "description": "Where notifications are delivered."
+      },
+      "authentication": {
+        "title": "Authentication",
+        "description": "Two-factor verification and account security."
+      },
+      "appearanceGeneral": {
+        "title": "General appearance",
+        "description": "Theme, density and editor controls."
+      },
+      "topbar": {
+        "title": "Top bar appearance",
+        "description": "Customize the pattern behind the navigation bar."
+      },
+      "webhooks": {
+        "title": "Webhooks",
+        "description": "Outbound integrations and automation endpoints."
+      }
+    },
+    "fields": {
+      "displayName": {
+        "label": "Display name",
+        "helper": "Shown to other administrators and guards."
+      },
+      "email": {
+        "label": "Email",
+        "description": "Primary email associated with your account."
+      },
+      "language": {
+        "label": "Language",
+        "description": "Select the language used across the interface."
+      },
+      "timezone": {
+        "label": "Timezone",
+        "helper": "Applies to reports and scheduling features."
+      },
+      "receiveEmails": {
+        "label": "Email notifications",
+        "description": "Receive system alerts via email."
+      },
+      "receiveSms": {
+        "label": "SMS notifications",
+        "description": "Deliver important alerts by text message."
+      },
+      "twoFactor": {
+        "label": "Two-factor authentication",
+        "description": "Require a secondary verification when signing in."
+      },
+      "themeFollowSystem": {
+        "label": "Use system theme",
+        "description": "Follow your device theme automatically."
+      },
+      "themePreference": {
+        "label": "Manual theme",
+        "description": "Pick a theme when not following the system."
+      },
+      "themeEditor": {
+        "label": "Theme editor",
+        "description": "Open advanced styling controls for brand colors."
+      },
+      "density": {
+        "label": "Density",
+        "description": "Choose spacing density for tables and layouts."
+      },
+      "topbarPattern": {
+        "label": "Top bar pattern",
+        "description": "Background pattern applied to the navigation bar."
+      },
+      "webhookUrl": {
+        "label": "Webhook URL",
+        "helper": "We'll send event payloads to this HTTPS endpoint."
+      }
+    },
+    "toggles": {
+      "followingSystem": "Following system",
+      "override": "Override"
+    },
+    "themeOptions": {
+      "light": "Light",
+      "dark": "Dark",
+      "brand": "Brand"
+    },
+    "densityOptions": {
+      "comfortable": "Comfortable",
+      "compact": "Compact"
+    }
   },
   "themeEditor": {
     "title": "Theme Editor",
@@ -24,5 +345,157 @@
     "debug": "Debug color",
     "brandName": "Brand name",
     "borderRadius": "Border radius"
+  },
+  "siteDetails": {
+    "switchToSiteMode": "Switch to site mode"
+  },
+  "layout": {
+    "breadcrumbs": {
+      "home": "Home",
+      "unknown": "{{value}}",
+      "adminDashboard": "Admin dashboard",
+      "siteDashboard": "{{siteName}} dashboard",
+      "sites": "Sites",
+      "users": "Users",
+      "residents": "Residents",
+      "residences": "Residences",
+      "vehicles": "Vehicles",
+      "visitors": "Visitors",
+      "policies": "Policies",
+      "reports": "Reports",
+      "visits": "Visits",
+      "guards": "Guards",
+      "admins": "Admins"
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Enterprise dashboard",
+      "subtitle": "Monitor guard operations and resident activity across sites.",
+      "sections": {
+        "kpi": "Key metrics",
+        "operationalStatus": "Operational status",
+        "income": "Revenue snapshot",
+        "quickAccess": "Quick access",
+        "navigation": "Navigation",
+        "agenda": "Quick agenda"
+      },
+      "actions": {
+        "viewLiveMonitoring": "Open live monitoring",
+        "viewBoard": "Open control board"
+      },
+      "kpis": {
+        "activeResidents": {
+          "label": "Active residents",
+          "sublabel": "Residents with current access"
+        },
+        "scheduledVisits": {
+          "label": "Scheduled visits",
+          "sublabel": "Arrivals expected today"
+        },
+        "openIncidents": {
+          "label": "Open incidents",
+          "sublabel": "Items pending guard follow-up"
+        }
+      },
+      "timeline": {
+        "title": "Recent activity",
+        "authorizedEntry": {
+          "primary": "Authorized entry completed",
+          "secondary": "Visitor cleared at north gate",
+          "chip": "Visitor"
+        },
+        "incidentResolved": {
+          "primary": "Incident resolved",
+          "secondary": "Power fluctuation ticket closed",
+          "chip": "Resolved"
+        },
+        "residentRegistered": {
+          "primary": "New resident registered",
+          "secondary": "Invite sent to resident portal",
+          "chip": "Directory"
+        }
+      },
+      "alerts": {
+        "title": "Priority alerts",
+        "guestPasses": {
+          "title": "Guest passes expiring soon",
+          "description": "12 guest passes need renewal before Friday"
+        },
+        "cameraOffline": {
+          "title": "Camera offline at south gate",
+          "description": "Device HEX-CAM-04 has been unreachable for 18 minutes"
+        },
+        "renew": "Renew now",
+        "assignGuard": "Assign guard"
+      },
+      "quickActions": {
+        "customizeTooltip": "Customize shortcuts",
+        "createVisit": {
+          "label": "Schedule visitor",
+          "description": "Create a guest pass in seconds"
+        },
+        "logIncident": {
+          "label": "Log incident",
+          "description": "Record a new security incident"
+        },
+        "inviteResident": {
+          "label": "Invite resident",
+          "description": "Send portal access to a resident"
+        }
+      },
+      "navigation": {
+        "sites": {
+          "caption": "{{count}} active sites"
+        },
+        "users": {
+          "caption": "{{count}} administrators"
+        },
+        "reports": {
+          "caption": "View analytics and exports"
+        },
+        "policies": {
+          "caption": "Review onboarding and access policies"
+        }
+      },
+      "income": {
+        "mrr": "Monthly recurring revenue",
+        "arrProjected": "Projected ARR",
+        "upcomingRenewals": "Upcoming renewals",
+        "contractsSuffix": "contracts",
+        "monthlyCollections": "Monthly collections",
+        "overdueInvoices": "{{count}} overdue invoices",
+        "recentBilling": "Recent billing",
+        "marginVsLastMonth": "Margin vs last month",
+        "growthNote": "Performance compared to prior 30 days",
+        "billingEntries": {
+          "first": {
+            "title": "Vista Azul residents",
+            "subtitle": "$4,200 collected this week"
+          },
+          "second": {
+            "title": "Los Olivos HOA",
+            "subtitle": "$2,980 processed"
+          }
+        }
+      },
+      "agenda": {
+        "today": "Today",
+        "items": {
+          "securityCommittee": {
+            "primary": "Security committee sync",
+            "secondary": "09:30 • Ops war room"
+          },
+          "billingReview": {
+            "primary": "Billing review",
+            "secondary": "11:00 • Finance hub"
+          },
+          "guardOnboarding": {
+            "primary": "Guard onboarding session",
+            "secondary": "15:00 • North kiosk"
+          }
+        }
+      }
+    }
   }
 }

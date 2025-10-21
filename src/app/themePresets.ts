@@ -59,7 +59,7 @@ export const darkTheme = createTheme({
     mode: 'dark',
     primary: { main: '#90caf9' },
     secondary: { main: '#ce93d8' },
-    background: { default: '#061225', paper: '#071428' },
+    background: { default: '#061225', paper: '#061225' },
     text: { primary: '#e6f0fb', secondary: 'rgba(230,240,251,0.7)' },
     divider: 'rgba(230,240,251,0.06)',
   },

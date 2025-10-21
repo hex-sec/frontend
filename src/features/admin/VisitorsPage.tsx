@@ -20,17 +20,17 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
-import SearchIcon from '@mui/icons-material/Search'
-import HomeIcon from '@mui/icons-material/Home'
+import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1'
+import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom'
 import HandshakeIcon from '@mui/icons-material/Handshake'
-import BuildCircleIcon from '@mui/icons-material/BuildCircle'
+import BusinessCenterIcon from '@mui/icons-material/BusinessCenter'
+import SearchIcon from '@mui/icons-material/Search'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import ReportIcon from '@mui/icons-material/Report'
-import UpdateIcon from '@mui/icons-material/Update'
-import DownloadIcon from '@mui/icons-material/Download'
+import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred'
+import HourglassTopIcon from '@mui/icons-material/HourglassTop'
+import BadgeIcon from '@mui/icons-material/Badge'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
 import {
   useColumnPreferences,
@@ -38,134 +38,133 @@ import {
 } from '../../components/table/useColumnPreferences'
 import { ColumnPreferencesButton } from '../../components/table/ColumnPreferencesButton'
 
-type VehicleUsage = 'resident' | 'visitor' | 'service'
-type VehicleStatus = 'active' | 'expired' | 'flagged'
+type VisitorCategory = 'family' | 'vendor' | 'staff'
+type VisitorStatus = 'active' | 'blocked' | 'pending'
 
-type VehicleRecord = {
+type VisitorRecord = {
   id: string
-  plate: string
-  makeModel: string
-  color: string
-  usage: VehicleUsage
-  assignedTo: string
-  contactName: string
-  contactPhone?: string
+  name: string
+  email: string
+  phone?: string
   siteSlug: string
   siteName: string
-  permitId: string
-  passesIssued: number
-  lastSeen: string
-  status: VehicleStatus
+  primaryHost: string
+  preferredNotes?: string
+  lastVisit: string
+  totalVisits: number
+  category: VisitorCategory
+  status: VisitorStatus
 }
 
-const MOCK_VEHICLES: VehicleRecord[] = [
+const MOCK_VISITORS: VisitorRecord[] = [
   {
-    id: 'VEH-2201',
-    plate: 'HXN-234',
-    makeModel: 'Tesla Model Y',
-    color: 'Midnight Silver',
-    usage: 'resident',
-    assignedTo: 'Tower A · 1408',
-    contactName: 'Carla Jenkins',
-    contactPhone: '+52 55 7001 1099',
+    id: 'VIS-3301',
+    name: 'Hannah Lee',
+    email: 'hannah.lee@example.com',
+    phone: '+52 55 7001 1001',
     siteSlug: 'vista-azul',
     siteName: 'Vista Azul',
-    permitId: 'PRM-0091',
-    passesIssued: 12,
-    lastSeen: '2025-10-20T07:32:00-06:00',
+    primaryHost: 'Carla Jenkins · Tower A 1408',
+    preferredNotes: 'Approved for express kiosk check-in.',
+    lastVisit: '2025-10-18T10:15:00-06:00',
+    totalVisits: 16,
+    category: 'family',
     status: 'active',
   },
   {
-    id: 'VEH-2202',
-    plate: 'LOG-992',
-    makeModel: 'Ford Transit',
-    color: 'White',
-    usage: 'service',
-    assignedTo: 'Weekly landscaping',
-    contactName: 'Paco & Sons Services',
-    contactPhone: '+52 55 4455 8899',
+    id: 'VIS-3302',
+    name: 'Paco & Sons Delivery',
+    email: 'dispatch@paco-delivery.mx',
+    phone: '+52 55 4455 8899',
     siteSlug: 'vista-azul',
     siteName: 'Vista Azul',
-    permitId: 'SRV-2014',
-    passesIssued: 48,
-    lastSeen: '2025-10-18T11:05:00-06:00',
-    status: 'expired',
-  },
-  {
-    id: 'VEH-2203',
-    plate: 'EVT-8801',
-    makeModel: 'Chevrolet Suburban',
-    color: 'Black',
-    usage: 'visitor',
-    assignedTo: 'Resident Social Committee',
-    contactName: 'Michelle Ortega',
-    contactPhone: '+52 55 6400 8821',
-    siteSlug: 'los-olivos',
-    siteName: 'Los Olivos',
-    permitId: 'GUEST-3311',
-    passesIssued: 5,
-    lastSeen: '2025-10-19T18:40:00-06:00',
+    primaryHost: 'Loading Dock · Service Gate',
+    preferredNotes: 'Requires dock clearance for oversize packages.',
+    lastVisit: '2025-10-19T08:50:00-06:00',
+    totalVisits: 42,
+    category: 'vendor',
     status: 'active',
   },
   {
-    id: 'VEH-2204',
-    plate: 'PEN-3920',
-    makeModel: 'Nissan Sentra',
-    color: 'Navy',
-    usage: 'visitor',
-    assignedTo: 'Tower B · 907',
-    contactName: 'Maria Gutierrez',
-    contactPhone: '+52 55 3388 2201',
+    id: 'VIS-3303',
+    name: 'Michelle Ortega',
+    email: 'michelle.o@events.mx',
+    phone: '+52 55 6400 8821',
     siteSlug: 'los-olivos',
     siteName: 'Los Olivos',
-    permitId: 'TEMP-1422',
-    passesIssued: 3,
-    lastSeen: '2025-10-20T09:05:00-06:00',
-    status: 'flagged',
+    primaryHost: 'Events · Clubhouse',
+    preferredNotes: 'Event organizer credential expires Dec 2025.',
+    lastVisit: '2025-10-16T12:10:00-06:00',
+    totalVisits: 9,
+    category: 'vendor',
+    status: 'pending',
   },
   {
-    id: 'VEH-2205',
-    plate: 'SRV-554',
-    makeModel: 'Isuzu NPR',
-    color: 'Silver',
-    usage: 'service',
-    assignedTo: 'Fire suppression maintenance',
-    contactName: 'Shield Systems Co.',
+    id: 'VIS-3304',
+    name: 'Cesar Ramirez',
+    email: 'cesar.ramirez@unknown.mx',
     siteSlug: 'los-olivos',
     siteName: 'Los Olivos',
-    permitId: 'SRV-7780',
-    passesIssued: 20,
-    lastSeen: '2025-10-17T14:15:00-06:00',
-    status: 'active',
+    primaryHost: 'Guard Services',
+    preferredNotes: 'Flagged for manual review after denied attempt.',
+    lastVisit: '2025-10-20T06:30:00-06:00',
+    totalVisits: 2,
+    category: 'staff',
+    status: 'blocked',
+  },
+  {
+    id: 'VIS-3305',
+    name: 'Maria Gutierrez',
+    email: 'mgutie@visitors.mx',
+    phone: '+52 55 3388 2201',
+    siteSlug: 'los-olivos',
+    siteName: 'Los Olivos',
+    primaryHost: 'Zoe Ramirez · Tower B 907',
+    lastVisit: '2025-10-19T09:45:00-06:00',
+    totalVisits: 6,
+    category: 'family',
+    status: 'pending',
   },
 ]
 
-const USAGE_META: Record<
-  VehicleUsage,
-  { label: string; Icon: typeof HomeIcon; color: 'default' | 'primary' | 'secondary' | 'info' }
+const CATEGORY_META: Record<
+  VisitorCategory,
+  { label: string; Icon: typeof FamilyRestroomIcon; color: 'primary' | 'secondary' | 'info' }
 > = {
-  resident: { label: 'Resident', Icon: HomeIcon, color: 'primary' },
-  visitor: { label: 'Visitor', Icon: HandshakeIcon, color: 'secondary' },
-  service: { label: 'Service', Icon: BuildCircleIcon, color: 'info' },
+  family: { label: 'Family & friends', Icon: FamilyRestroomIcon, color: 'secondary' },
+  vendor: { label: 'Vendor', Icon: HandshakeIcon, color: 'primary' },
+  staff: { label: 'Staff', Icon: BusinessCenterIcon, color: 'info' },
 }
 
 const STATUS_META: Record<
-  VehicleStatus,
-  { label: string; color: 'success' | 'warning' | 'error'; Icon: typeof CheckCircleOutlineIcon }
+  VisitorStatus,
+  {
+    label: string
+    color: 'success' | 'warning' | 'error'
+    Icon: typeof CheckCircleOutlineIcon
+    variant?: 'outlined' | 'filled'
+  }
 > = {
   active: { label: 'Active', color: 'success', Icon: CheckCircleOutlineIcon },
-  expired: { label: 'Expired permit', color: 'warning', Icon: UpdateIcon },
-  flagged: { label: 'Flagged', color: 'error', Icon: ReportIcon },
+  blocked: { label: 'Blocked', color: 'error', Icon: ReportGmailerrorredIcon },
+  pending: {
+    label: 'Pending review',
+    color: 'warning',
+    Icon: HourglassTopIcon,
+    variant: 'outlined',
+  },
 }
 
-type VehicleFilter = 'all' | VehicleUsage | 'flagged'
+type VisitorFilter = 'all' | VisitorStatus | VisitorCategory
 
-const FILTER_OPTIONS: Array<{ value: VehicleFilter; label: string }> = [
-  { value: 'all', label: 'All vehicles' },
-  { value: 'resident', label: 'Resident vehicles' },
-  { value: 'visitor', label: 'Visitor vehicles' },
-  { value: 'service', label: 'Service vendors' },
-  { value: 'flagged', label: 'Flagged for review' },
+const FILTER_OPTIONS: Array<{ value: VisitorFilter; label: string }> = [
+  { value: 'all', label: 'All visitors' },
+  { value: 'active', label: 'Active' },
+  { value: 'pending', label: 'Pending review' },
+  { value: 'blocked', label: 'Blocked' },
+  { value: 'family', label: 'Family & friends' },
+  { value: 'vendor', label: 'Vendors' },
+  { value: 'staff', label: 'Staff & contractors' },
 ]
 
 const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
@@ -175,35 +174,34 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
 })
 const TIME_FORMATTER = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' })
 
-export default function VehiclesPage() {
+export default function VisitorsPage() {
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
   const isSiteContext = Boolean(derivedSiteSlug)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<VehicleFilter>('all')
+  const [filter, setFilter] = useState<VisitorFilter>('all')
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
-  const [rowMenu, setRowMenu] = useState<{ anchor: HTMLElement | null; vehicle?: VehicleRecord }>({
+  const [rowMenu, setRowMenu] = useState<{ anchor: HTMLElement | null; visitor?: VisitorRecord }>({
     anchor: null,
-    vehicle: undefined,
+    visitor: undefined,
   })
 
-  const filteredVehicles = useMemo(() => {
+  const filteredVisitors = useMemo(() => {
     const lower = search.trim().toLowerCase()
-    return MOCK_VEHICLES.filter((vehicle) => {
-      if (derivedSiteSlug && vehicle.siteSlug !== derivedSiteSlug) {
+    return MOCK_VISITORS.filter((visitor) => {
+      if (derivedSiteSlug && visitor.siteSlug !== derivedSiteSlug) {
         return false
       }
-      if (filter === 'flagged') {
-        if (vehicle.status !== 'flagged') return false
-      } else if (filter !== 'all') {
-        if (vehicle.usage !== filter) return false
+      if (filter === 'active' || filter === 'pending' || filter === 'blocked') {
+        if (visitor.status !== filter) return false
+      } else if (filter === 'family' || filter === 'vendor' || filter === 'staff') {
+        if (visitor.category !== filter) return false
       }
       if (!lower) return true
       return (
-        vehicle.plate.toLowerCase().includes(lower) ||
-        vehicle.makeModel.toLowerCase().includes(lower) ||
-        vehicle.assignedTo.toLowerCase().includes(lower) ||
-        vehicle.contactName.toLowerCase().includes(lower) ||
-        vehicle.permitId.toLowerCase().includes(lower)
+        visitor.name.toLowerCase().includes(lower) ||
+        visitor.email.toLowerCase().includes(lower) ||
+        visitor.primaryHost.toLowerCase().includes(lower) ||
+        visitor.siteName.toLowerCase().includes(lower)
       )
     })
   }, [derivedSiteSlug, filter, search])
@@ -212,68 +210,61 @@ export default function VehiclesPage() {
     setFilterAnchor(event.currentTarget)
   }, [])
 
-  const handleCloseFilterMenu = useCallback(() => {
-    setFilterAnchor(null)
-  }, [])
+  const handleCloseFilterMenu = useCallback(() => setFilterAnchor(null), [])
 
-  const handleSelectFilter = useCallback((value: VehicleFilter) => {
+  const handleSelectFilter = useCallback((value: VisitorFilter) => {
     setFilter(value)
     setFilterAnchor(null)
   }, [])
 
   const handleOpenRowMenu = useCallback(
-    (event: MouseEvent<HTMLButtonElement>, vehicle: VehicleRecord) => {
+    (event: MouseEvent<HTMLButtonElement>, visitor: VisitorRecord) => {
       event.stopPropagation()
-      setRowMenu({ anchor: event.currentTarget, vehicle })
+      setRowMenu({ anchor: event.currentTarget, visitor })
     },
     [],
   )
 
-  const handleCloseRowMenu = useCallback(() => setRowMenu({ anchor: null, vehicle: undefined }), [])
+  const handleCloseRowMenu = useCallback(() => setRowMenu({ anchor: null, visitor: undefined }), [])
 
-  const handleDownloadPermit = useCallback(() => {
+  const handlePromoteToPass = useCallback(() => {
     handleCloseRowMenu()
   }, [handleCloseRowMenu])
 
-  const handleFlagVehicle = useCallback(() => {
+  const handleBlockVisitor = useCallback(() => {
     handleCloseRowMenu()
   }, [handleCloseRowMenu])
 
-  const columnDefs = useMemo<ColumnDefinition<VehicleRecord>[]>(() => {
+  const columnDefs = useMemo<ColumnDefinition<VisitorRecord>[]>(() => {
     const currentSlug = derivedSiteSlug ?? null
     return [
       {
-        id: 'plate',
-        label: 'Plate',
+        id: 'visitor',
+        label: 'Visitor',
+        minWidth: 220,
         disableToggle: true,
-        minWidth: 120,
-        render: (vehicle) => (
-          <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-            {vehicle.plate}
-          </Typography>
-        ),
-      },
-      {
-        id: 'vehicle',
-        label: 'Vehicle',
-        minWidth: 210,
-        render: (vehicle) => (
-          <Stack spacing={0.3}>
+        render: (visitor) => (
+          <Stack spacing={0.2}>
             <Typography variant="subtitle2" fontWeight={600}>
-              {vehicle.makeModel}
+              {visitor.name}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {vehicle.color}
+              {visitor.email}
             </Typography>
+            {visitor.phone ? (
+              <Typography variant="caption" color="text.secondary">
+                {visitor.phone}
+              </Typography>
+            ) : null}
           </Stack>
         ),
       },
       {
-        id: 'usage',
-        label: 'Usage',
+        id: 'category',
+        label: 'Category',
         minWidth: 160,
-        render: (vehicle) => {
-          const meta = USAGE_META[vehicle.usage]
+        render: (visitor) => {
+          const meta = CATEGORY_META[visitor.category]
           return (
             <Chip
               size="small"
@@ -285,16 +276,17 @@ export default function VehiclesPage() {
         },
       },
       {
-        id: 'assignedTo',
-        label: 'Assigned to',
-        minWidth: 200,
-        render: (vehicle) => (
+        id: 'host',
+        label: 'Primary host',
+        minWidth: 220,
+        render: (visitor) => (
           <Stack spacing={0.2}>
-            <Typography variant="subtitle2">{vehicle.assignedTo}</Typography>
-            <Typography variant="caption" color="text.secondary">
-              {vehicle.contactName}
-              {vehicle.contactPhone ? ` • ${vehicle.contactPhone}` : ''}
-            </Typography>
+            <Typography variant="subtitle2">{visitor.primaryHost}</Typography>
+            {visitor.preferredNotes ? (
+              <Typography variant="caption" color="text.secondary">
+                {visitor.preferredNotes}
+              </Typography>
+            ) : null}
           </Stack>
         ),
       },
@@ -302,57 +294,50 @@ export default function VehiclesPage() {
         id: 'site',
         label: 'Site',
         minWidth: 150,
-        render: (vehicle) => (
+        render: (visitor) => (
           <Chip
-            label={vehicle.siteName}
+            label={visitor.siteName}
             size="small"
-            color={currentSlug && vehicle.siteSlug === currentSlug ? 'secondary' : 'default'}
+            color={currentSlug && visitor.siteSlug === currentSlug ? 'secondary' : 'default'}
           />
         ),
       },
       {
-        id: 'permit',
-        label: 'Permit',
-        minWidth: 140,
-        render: (vehicle) => (
+        id: 'lastVisit',
+        label: 'Last visit',
+        minWidth: 160,
+        render: (visitor) => (
           <Stack spacing={0.2}>
-            <Typography variant="body2" fontWeight={600}>
-              {vehicle.permitId}
+            <Typography variant="body2">
+              {DATE_FORMATTER.format(new Date(visitor.lastVisit))}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {vehicle.passesIssued} passes issued
+              {TIME_FORMATTER.format(new Date(visitor.lastVisit))}
             </Typography>
           </Stack>
         ),
       },
       {
-        id: 'lastSeen',
-        label: 'Last seen',
-        minWidth: 160,
-        render: (vehicle) => (
-          <Stack spacing={0.2}>
-            <Typography variant="body2">
-              {DATE_FORMATTER.format(new Date(vehicle.lastSeen))}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {TIME_FORMATTER.format(new Date(vehicle.lastSeen))}
-            </Typography>
-          </Stack>
+        id: 'totalVisits',
+        label: 'Visits logged',
+        minWidth: 140,
+        render: (visitor) => (
+          <Chip size="small" label={`${visitor.totalVisits} visits`} color="default" />
         ),
       },
       {
         id: 'status',
         label: 'Status',
-        minWidth: 150,
-        render: (vehicle) => {
-          const meta = STATUS_META[vehicle.status]
+        minWidth: 140,
+        render: (visitor) => {
+          const meta = STATUS_META[visitor.status]
           return (
             <Chip
               size="small"
               color={meta.color}
               icon={<meta.Icon fontSize="small" />}
               label={meta.label}
-              variant={vehicle.status === 'expired' ? 'outlined' : 'filled'}
+              variant={meta.variant ?? 'filled'}
             />
           )
         },
@@ -363,15 +348,15 @@ export default function VehiclesPage() {
         disableToggle: true,
         align: 'right',
         minWidth: 160,
-        render: (vehicle) => (
+        render: (visitor) => (
           <Stack direction="row" spacing={1} justifyContent="flex-end">
-            <Tooltip title="Download permit">
-              <IconButton size="small" onClick={handleDownloadPermit}>
-                <DownloadIcon fontSize="small" />
-              </IconButton>
+            <Tooltip title="Issue visit pass">
+              <Button size="small" variant="outlined" onClick={handlePromoteToPass}>
+                Create pass
+              </Button>
             </Tooltip>
             <Tooltip title="More actions">
-              <IconButton size="small" onClick={(event) => handleOpenRowMenu(event, vehicle)}>
+              <IconButton size="small" onClick={(event) => handleOpenRowMenu(event, visitor)}>
                 <MoreVertIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -379,7 +364,7 @@ export default function VehiclesPage() {
         ),
       },
     ]
-  }, [derivedSiteSlug, handleDownloadPermit, handleOpenRowMenu])
+  }, [derivedSiteSlug, handleOpenRowMenu, handlePromoteToPass])
 
   const {
     orderedColumns,
@@ -388,7 +373,7 @@ export default function VehiclesPage() {
     toggleColumnVisibility,
     moveColumn,
     resetColumns,
-  } = useColumnPreferences<VehicleRecord>('hex:columns:vehicles', columnDefs)
+  } = useColumnPreferences<VisitorRecord>('hex:columns:visitors', columnDefs)
 
   const visibleColumnCount = visibleColumns.length || 1
 
@@ -399,20 +384,20 @@ export default function VehiclesPage() {
       {isSiteContext && activeSiteName ? (
         <Alert
           severity="info"
-          icon={<DirectionsCarFilledIcon fontSize="inherit" />}
+          icon={<BadgeIcon fontSize="inherit" />}
           sx={{ alignItems: 'center', borderRadius: 2 }}
         >
-          Showing vehicles scoped to <strong>{activeSiteName}</strong>. Registration flows will
-          prefill permits and contact info for this property.
+          Visitors scoped to <strong>{activeSiteName}</strong>. Recurring approvals, notes, and
+          expedited kiosk settings will stay in sync for this property.
         </Alert>
       ) : (
         <Alert
           severity="info"
-          icon={<DirectionsCarFilledIcon fontSize="inherit" />}
+          icon={<BadgeIcon fontSize="inherit" />}
           sx={{ alignItems: 'center', borderRadius: 2 }}
         >
-          Switch to a site to manage permits at the property level or stay in enterprise mode to
-          audit all registered vehicles.
+          Track frequent guests across the portfolio and move to site mode to tune access rules for
+          a single community.
         </Alert>
       )}
 
@@ -428,7 +413,7 @@ export default function VehiclesPage() {
             <Box>
               <Stack direction="row" alignItems="center" spacing={1.5}>
                 <Typography variant="h5" fontWeight={600}>
-                  Vehicle registry
+                  Recurring visitors
                 </Typography>
                 {isSiteContext && activeSiteName ? (
                   <Chip label={activeSiteName} size="small" color="secondary" />
@@ -437,7 +422,7 @@ export default function VehiclesPage() {
                 )}
               </Stack>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                Register resident, visitor, and service vehicles to keep guard kiosks synced.
+                Store frequent visitor profiles for faster gate processing and audit trails.
               </Typography>
             </Box>
             <Stack direction="row" spacing={1} alignItems="center">
@@ -454,10 +439,10 @@ export default function VehiclesPage() {
                 onClick={handleOpenFilterMenu}
                 color={filter === 'all' ? 'inherit' : 'primary'}
               >
-                {FILTER_OPTIONS.find((option) => option.value === filter)?.label ?? 'All vehicles'}
+                {FILTER_OPTIONS.find((option) => option.value === filter)?.label ?? 'All visitors'}
               </Button>
-              <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
-                Register vehicle
+              <Button variant="contained" startIcon={<PersonAddAlt1Icon />}>
+                Add recurring visitor
               </Button>
             </Stack>
           </Stack>
@@ -465,7 +450,7 @@ export default function VehiclesPage() {
           <TextField
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by plate, permit, or contact"
+            placeholder="Search by visitor, email, or host"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -491,30 +476,30 @@ export default function VehiclesPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredVehicles.length === 0 ? (
+                {filteredVisitors.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={visibleColumnCount}>
                       <Stack spacing={1} alignItems="center" sx={{ py: 5 }}>
-                        <Typography variant="subtitle1">No vehicles found</Typography>
+                        <Typography variant="subtitle1">No visitors found</Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Adjust filters or register a vehicle to populate this list.
+                          Adjust filters or add a recurring visitor profile.
                         </Typography>
-                        <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
-                          Register vehicle
+                        <Button variant="contained" startIcon={<PersonAddAlt1Icon />}>
+                          Add recurring visitor
                         </Button>
                       </Stack>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredVehicles.map((vehicle) => (
-                    <TableRow key={vehicle.id} hover>
+                  filteredVisitors.map((visitor) => (
+                    <TableRow key={visitor.id} hover>
                       {visibleColumns.map((column) => (
                         <TableCell
                           key={column.id}
                           align={column.align}
                           sx={{ minWidth: column.minWidth }}
                         >
-                          {column.render(vehicle)}
+                          {column.render(visitor)}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -546,19 +531,19 @@ export default function VehiclesPage() {
 
       <Menu
         anchorEl={rowMenu.anchor}
-        open={Boolean(rowMenu.anchor && rowMenu.vehicle)}
+        open={Boolean(rowMenu.anchor && rowMenu.visitor)}
         onClose={handleCloseRowMenu}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MenuItem onClick={handleDownloadPermit}>Download permit</MenuItem>
-        <MenuItem onClick={handleFlagVehicle}>Flag for review</MenuItem>
+        <MenuItem onClick={handlePromoteToPass}>Issue visit pass</MenuItem>
+        <MenuItem onClick={handleBlockVisitor}>Block visitor</MenuItem>
         <MenuItem
           onClick={() => {
             handleCloseRowMenu()
           }}
         >
-          Remove from registry
+          Delete profile
         </MenuItem>
       </Menu>
     </Stack>
