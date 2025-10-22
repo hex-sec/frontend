@@ -1,3 +1,6 @@
+import dayjs from 'dayjs'
+import usersSeed from '../../../mocks/users.json'
+
 export type RoleKey = 'admin' | 'guard' | 'resident'
 
 export type UserStatus = 'active' | 'pending' | 'suspended'
@@ -10,7 +13,7 @@ export type UserRecord = {
   status: UserStatus
   avatar?: string
   sites: { name: string; slug: string }[]
-  lastActive: string
+  lastActive: number | null
   phone?: string
   position?: string
   joinedOn?: string
@@ -18,27 +21,52 @@ export type UserRecord = {
   notes?: string
 }
 
-import usersSeed from '../../../mocks/users.json'
+type RawUser = {
+  id: unknown
+  name: unknown
+  email: unknown
+  role: unknown
+  status: unknown
+  avatar?: unknown
+  sites?: Array<Record<string, unknown>>
+  lastActive?: unknown
+  phone?: unknown
+  position?: unknown
+  joinedOn?: unknown
+  address?: unknown
+  notes?: unknown
+}
 
-export const USERS: UserRecord[] = (usersSeed as Array<Record<string, unknown>>).map((u) => ({
-  id: String(u.id),
-  name: String(u.name),
-  email: String(u.email),
-  role: u.role as UserRecord['role'],
-  status: u.status as UserRecord['status'],
-  avatar: u.avatar as string | undefined,
-  sites:
-    (u.sites as Array<Record<string, unknown>>)?.map((s) => ({
-      name: String(s.name),
-      slug: String(s.slug),
-    })) || [],
-  lastActive: String(u.lastActive),
-  phone: u.phone as string | undefined,
-  position: u.position as string | undefined,
-  joinedOn: u.joinedOn as string | undefined,
-  address: u.address as string | undefined,
-  notes: u.notes as string | undefined,
-}))
+export const USERS: UserRecord[] = (usersSeed as RawUser[]).map((rawUser) => {
+  const rawLastActive = rawUser.lastActive
+  const parsedLastActive =
+    typeof rawLastActive === 'number'
+      ? rawLastActive
+      : dayjs(String(rawLastActive)).isValid()
+        ? dayjs(String(rawLastActive)).valueOf()
+        : null
+  const normalizedLastActive = Number.isFinite(parsedLastActive) ? parsedLastActive : null
+
+  return {
+    id: String(rawUser.id),
+    name: String(rawUser.name),
+    email: String(rawUser.email),
+    role: rawUser.role as UserRecord['role'],
+    status: rawUser.status as UserRecord['status'],
+    avatar: rawUser.avatar as string | undefined,
+    sites:
+      rawUser.sites?.map((site) => ({
+        name: String(site.name),
+        slug: String(site.slug),
+      })) ?? [],
+    lastActive: normalizedLastActive,
+    phone: rawUser.phone as string | undefined,
+    position: rawUser.position as string | undefined,
+    joinedOn: rawUser.joinedOn as string | undefined,
+    address: rawUser.address as string | undefined,
+    notes: rawUser.notes as string | undefined,
+  }
+})
 
 export type RoleFilter = 'all' | RoleKey
 

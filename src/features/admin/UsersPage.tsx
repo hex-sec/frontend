@@ -50,14 +50,15 @@ import {
   type UserRecord,
   parseRoleFilter,
 } from '@features/admin/users/userData'
+import { useLastActiveFormatter } from '@features/admin/users/useLastActiveFormatter'
 import buildEntityUrl from '@app/utils/contextPaths'
 import { useI18nStore } from '@store/i18n.store'
 
 const ROLE_META_KEYS: Record<RoleFilter, string> = {
-  all: 'admin.usersPage.meta.all',
-  admin: 'admin.usersPage.meta.admin',
-  guard: 'admin.usersPage.meta.guard',
-  resident: 'admin.usersPage.meta.resident',
+  all: 'usersPage.meta.all',
+  admin: 'usersPage.meta.admin',
+  guard: 'usersPage.meta.guard',
+  resident: 'usersPage.meta.resident',
 }
 
 type LocalizedRoleViewMeta = {
@@ -79,6 +80,7 @@ type LocalizedRoleViewMeta = {
 export default function UsersPage(): JSX.Element {
   const { t } = useTranslate()
   const language = useI18nStore((state) => state.language)
+  const formatLastActive = useLastActiveFormatter()
   const { sites, hydrate } = useSiteStore()
   const location = useLocation()
   const navigate = useNavigate()
@@ -177,16 +179,16 @@ export default function UsersPage(): JSX.Element {
 
   const filterLabels = useMemo<Record<RoleFilter, string>>(
     () => ({
-      all: t('admin.usersPage.filters.all', { lng: language, defaultValue: 'All roles' }),
-      admin: t('admin.usersPage.filters.admin', {
+      all: t('usersPage.filters.all', { lng: language, defaultValue: 'All roles' }),
+      admin: t('usersPage.filters.admin', {
         lng: language,
         defaultValue: ROLE_LABEL.admin,
       }),
-      guard: t('admin.usersPage.filters.guard', {
+      guard: t('usersPage.filters.guard', {
         lng: language,
         defaultValue: ROLE_LABEL.guard,
       }),
-      resident: t('admin.usersPage.filters.resident', {
+      resident: t('usersPage.filters.resident', {
         lng: language,
         defaultValue: ROLE_LABEL.resident,
       }),
@@ -196,15 +198,15 @@ export default function UsersPage(): JSX.Element {
 
   const roleChipLabels = useMemo<Record<RoleKey, string>>(
     () => ({
-      admin: t('admin.usersPage.roleLabels.admin', {
+      admin: t('usersPage.roleLabels.admin', {
         lng: language,
         defaultValue: ROLE_LABEL.admin,
       }),
-      guard: t('admin.usersPage.roleLabels.guard', {
+      guard: t('usersPage.roleLabels.guard', {
         lng: language,
         defaultValue: ROLE_LABEL.guard,
       }),
-      resident: t('admin.usersPage.roleLabels.resident', {
+      resident: t('usersPage.roleLabels.resident', {
         lng: language,
         defaultValue: ROLE_LABEL.resident,
       }),
@@ -214,9 +216,9 @@ export default function UsersPage(): JSX.Element {
 
   const statusLabels = useMemo(
     () => ({
-      active: t('admin.usersPage.status.active', { lng: language, defaultValue: 'Active' }),
-      pending: t('admin.usersPage.status.pending', { lng: language, defaultValue: 'Invited' }),
-      suspended: t('admin.usersPage.status.suspended', {
+      active: t('usersPage.status.active', { lng: language, defaultValue: 'Active' }),
+      pending: t('usersPage.status.pending', { lng: language, defaultValue: 'Invited' }),
+      suspended: t('usersPage.status.suspended', {
         lng: language,
         defaultValue: 'Suspended',
       }),
@@ -350,7 +352,7 @@ export default function UsersPage(): JSX.Element {
     return [
       {
         id: 'id',
-        label: t('admin.usersPage.table.columns.userId', {
+        label: t('usersPage.table.columns.userId', {
           lng: language,
           defaultValue: 'User ID',
         }),
@@ -369,7 +371,7 @@ export default function UsersPage(): JSX.Element {
       },
       {
         id: 'name',
-        label: t('admin.usersPage.table.columns.name', { lng: language, defaultValue: 'Name' }),
+        label: t('usersPage.table.columns.name', { lng: language, defaultValue: 'Name' }),
         minWidth: 220,
         render: (user) => (
           <Stack direction="row" spacing={1.5} alignItems="center">
@@ -396,7 +398,7 @@ export default function UsersPage(): JSX.Element {
       },
       {
         id: 'email',
-        label: t('admin.usersPage.table.columns.email', {
+        label: t('usersPage.table.columns.email', {
           lng: language,
           defaultValue: 'Email',
         }),
@@ -409,13 +411,13 @@ export default function UsersPage(): JSX.Element {
       },
       {
         id: 'role',
-        label: t('admin.usersPage.table.columns.role', { lng: language, defaultValue: 'Role' }),
+        label: t('usersPage.table.columns.role', { lng: language, defaultValue: 'Role' }),
         minWidth: 120,
         render: (user) => <Chip size="small" label={roleChipLabels[user.role]} color="default" />,
       },
       {
         id: 'sites',
-        label: t('admin.usersPage.table.columns.sites', { lng: language, defaultValue: 'Sites' }),
+        label: t('usersPage.table.columns.sites', { lng: language, defaultValue: 'Sites' }),
         minWidth: 200,
         render: (user) => (
           <Stack direction="row" spacing={0.75} flexWrap="wrap">
@@ -432,7 +434,7 @@ export default function UsersPage(): JSX.Element {
       },
       {
         id: 'status',
-        label: t('admin.usersPage.table.columns.status', {
+        label: t('usersPage.table.columns.status', {
           lng: language,
           defaultValue: 'Status',
         }),
@@ -448,20 +450,20 @@ export default function UsersPage(): JSX.Element {
       },
       {
         id: 'lastActive',
-        label: t('admin.usersPage.table.columns.lastActive', {
+        label: t('usersPage.table.columns.lastActive', {
           lng: language,
           defaultValue: 'Last activity',
         }),
         minWidth: 140,
         render: (user) => (
           <Typography variant="body2" color="text.secondary">
-            {user.lastActive}
+            {formatLastActive(user.lastActive)}
           </Typography>
         ),
       },
       {
         id: 'actions',
-        label: t('admin.usersPage.table.columns.actions', {
+        label: t('usersPage.table.columns.actions', {
           lng: language,
           defaultValue: 'Actions',
         }),
@@ -472,13 +474,13 @@ export default function UsersPage(): JSX.Element {
           <Stack direction="row" spacing={1} justifyContent="flex-end">
             {isSiteContext ? (
               <Tooltip
-                title={t('admin.usersPage.tooltips.restrictSite', {
+                title={t('usersPage.tooltips.restrictSite', {
                   lng: language,
                   defaultValue: 'Restrict to this site',
                 })}
               >
                 <Button size="small" variant="outlined">
-                  {t('admin.usersPage.actions.adjustRoles', {
+                  {t('usersPage.actions.adjustRoles', {
                     lng: language,
                     defaultValue: 'Adjust roles',
                   })}
@@ -486,7 +488,7 @@ export default function UsersPage(): JSX.Element {
               </Tooltip>
             ) : (
               <Tooltip
-                title={t('admin.usersPage.tooltips.manageWorkspace', {
+                title={t('usersPage.tooltips.manageWorkspace', {
                   lng: language,
                   defaultValue: 'Manage workspace access',
                 })}
@@ -496,7 +498,7 @@ export default function UsersPage(): JSX.Element {
                   variant="outlined"
                   startIcon={<ManageAccountsIcon fontSize="small" />}
                 >
-                  {t('admin.usersPage.actions.manage', {
+                  {t('usersPage.actions.manage', {
                     lng: language,
                     defaultValue: 'Manage',
                   })}
@@ -504,7 +506,7 @@ export default function UsersPage(): JSX.Element {
               </Tooltip>
             )}
             <Tooltip
-              title={t('admin.usersPage.tooltips.moreActions', {
+              title={t('usersPage.tooltips.moreActions', {
                 lng: language,
                 defaultValue: 'More actions',
               })}
@@ -520,6 +522,7 @@ export default function UsersPage(): JSX.Element {
   }, [
     activeSiteSlug,
     buildDetailUrl,
+    formatLastActive,
     isSiteContext,
     language,
     openRowMenu,
@@ -556,12 +559,12 @@ export default function UsersPage(): JSX.Element {
           icon={<DomainIcon fontSize="inherit" />}
           sx={{ alignItems: 'center', borderRadius: 2 }}
         >
-          {t('admin.usersPage.alerts.siteFilter.prefix', {
+          {t('usersPage.alerts.siteFilter.prefix', {
             lng: language,
             defaultValue: 'Filtered to users associated with',
           })}{' '}
           <strong>{filteredSiteName ?? siteFilter}</strong>{' '}
-          {t('admin.usersPage.alerts.siteFilter.suffix', {
+          {t('usersPage.alerts.siteFilter.suffix', {
             lng: language,
             defaultValue: 'Clear the site selector to see the entire portfolio.',
           })}
@@ -585,7 +588,7 @@ export default function UsersPage(): JSX.Element {
                 <Chip
                   label={
                     filteredSiteName ??
-                    t('admin.usersPage.chip.enterprise', {
+                    t('usersPage.chip.enterprise', {
                       lng: language,
                       defaultValue: 'Enterprise',
                     })
@@ -603,7 +606,7 @@ export default function UsersPage(): JSX.Element {
                 <TextField
                   select
                   size="small"
-                  label={t('admin.usersPage.siteSelector.label', {
+                  label={t('usersPage.siteSelector.label', {
                     lng: language,
                     defaultValue: 'Site',
                   })}
@@ -613,7 +616,7 @@ export default function UsersPage(): JSX.Element {
                   sx={{ minWidth: 200 }}
                 >
                   <MenuItem value="all">
-                    {t('admin.usersPage.siteSelector.all', {
+                    {t('usersPage.siteSelector.all', {
                       lng: language,
                       defaultValue: 'All sites',
                     })}
@@ -650,7 +653,7 @@ export default function UsersPage(): JSX.Element {
           <TextField
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder={t('admin.usersPage.search.placeholder', {
+            placeholder={t('usersPage.search.placeholder', {
               lng: language,
               defaultValue: 'Search by name, email, or site',
             })}
@@ -722,7 +725,7 @@ export default function UsersPage(): JSX.Element {
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <MenuItem onClick={handleRowMenuViewProfile}>
-          {t('admin.usersPage.rowMenu.viewProfile', {
+          {t('usersPage.rowMenu.viewProfile', {
             lng: language,
             defaultValue: 'View profile',
           })}

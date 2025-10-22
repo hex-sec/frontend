@@ -269,9 +269,9 @@ export default function SiteDetailsPage() {
       HERO_METRICS.map(({ key, Icon }) => ({
         key,
         Icon,
-        label: translate(`admin.siteDetails.hero.metrics.${key}.label`),
-        value: translate(`admin.siteDetails.hero.metrics.${key}.value`),
-        delta: translate(`admin.siteDetails.hero.metrics.${key}.delta`),
+        label: translate(`siteDetails.hero.metrics.${key}.label`),
+        value: translate(`siteDetails.hero.metrics.${key}.value`),
+        delta: translate(`siteDetails.hero.metrics.${key}.delta`),
       })),
     [translate],
   )
@@ -282,8 +282,8 @@ export default function SiteDetailsPage() {
         key,
         value,
         color,
-        label: translate(`admin.siteDetails.residentEngagement.metrics.${key}.label`),
-        helper: translate(`admin.siteDetails.residentEngagement.metrics.${key}.helper`),
+        label: translate(`siteDetails.residentEngagement.metrics.${key}.label`),
+        helper: translate(`siteDetails.residentEngagement.metrics.${key}.helper`),
       })),
     [translate],
   )
@@ -292,8 +292,8 @@ export default function SiteDetailsPage() {
     () =>
       QUICK_LINKS.map((link) => ({
         ...link,
-        label: translate(`admin.siteDetails.quickLinks.${link.key}.label`),
-        description: translate(`admin.siteDetails.quickLinks.${link.key}.description`),
+        label: translate(`siteDetails.quickLinks.${link.key}.label`),
+        description: translate(`siteDetails.quickLinks.${link.key}.description`),
       })),
     [translate],
   )
@@ -302,8 +302,8 @@ export default function SiteDetailsPage() {
     () =>
       PANEL_SHORTCUTS.map((shortcut) => ({
         ...shortcut,
-        label: translate(`admin.siteDetails.panelShortcuts.${shortcut.key}.label`),
-        description: translate(`admin.siteDetails.panelShortcuts.${shortcut.key}.description`),
+        label: translate(`siteDetails.panelShortcuts.${shortcut.key}.label`),
+        description: translate(`siteDetails.panelShortcuts.${shortcut.key}.description`),
       })),
     [translate],
   )
@@ -313,9 +313,9 @@ export default function SiteDetailsPage() {
       INCIDENT_CARDS.map(({ key, severity }) => ({
         key,
         severity,
-        title: translate(`admin.siteDetails.incidents.cards.${key}.title`),
-        value: translate(`admin.siteDetails.incidents.cards.${key}.value`),
-        helper: translate(`admin.siteDetails.incidents.cards.${key}.helper`),
+        title: translate(`siteDetails.incidents.cards.${key}.title`),
+        value: translate(`siteDetails.incidents.cards.${key}.value`),
+        helper: translate(`siteDetails.incidents.cards.${key}.helper`),
       })),
     [translate],
   )
@@ -324,8 +324,8 @@ export default function SiteDetailsPage() {
     () =>
       INCIDENT_BREAKDOWN_KEYS.map((key) => ({
         key,
-        label: translate(`admin.siteDetails.incidents.breakdown.segments.${key}.label`),
-        value: translate(`admin.siteDetails.incidents.breakdown.segments.${key}.value`),
+        label: translate(`siteDetails.incidents.breakdown.segments.${key}.label`),
+        value: translate(`siteDetails.incidents.breakdown.segments.${key}.value`),
       })),
     [translate],
   )
@@ -335,9 +335,9 @@ export default function SiteDetailsPage() {
       FINANCIALS.map(({ key, accent }) => ({
         key,
         accent,
-        label: translate(`admin.siteDetails.financials.items.${key}.label`),
-        value: translate(`admin.siteDetails.financials.items.${key}.value`),
-        delta: translate(`admin.siteDetails.financials.items.${key}.delta`),
+        label: translate(`siteDetails.financials.items.${key}.label`),
+        value: translate(`siteDetails.financials.items.${key}.value`),
+        delta: translate(`siteDetails.financials.items.${key}.delta`),
       })),
     [translate],
   )
@@ -346,7 +346,7 @@ export default function SiteDetailsPage() {
     () =>
       GUARDS.map((guard) => ({
         ...guard,
-        status: translate(`admin.siteDetails.guardRoster.status.${guard.statusKey}`),
+        status: translate(`siteDetails.guardRoster.status.${guard.statusKey}`),
       })),
     [translate],
   )
@@ -355,8 +355,8 @@ export default function SiteDetailsPage() {
     () =>
       TIMELINE.map(({ time, key }) => ({
         time,
-        title: translate(`admin.siteDetails.timeline.${key}.title`),
-        subtitle: translate(`admin.siteDetails.timeline.${key}.subtitle`),
+        title: translate(`siteDetails.timeline.${key}.title`),
+        subtitle: translate(`siteDetails.timeline.${key}.subtitle`),
       })),
     [translate],
   )
@@ -366,8 +366,8 @@ export default function SiteDetailsPage() {
       SITE_CONTEXT_ITEMS.map(({ key, Icon }) => ({
         key,
         Icon,
-        label: translate(`admin.siteDetails.context.items.${key}.label`),
-        value: translate(`admin.siteDetails.context.items.${key}.value`),
+        label: translate(`siteDetails.context.items.${key}.label`),
+        value: translate(`siteDetails.context.items.${key}.value`),
       })),
     [translate],
   )
@@ -382,7 +382,7 @@ export default function SiteDetailsPage() {
       ].map(({ key, Icon }) => ({
         key,
         Icon,
-        tooltip: translate(`admin.siteDetails.speedDial.actions.${key}`),
+        tooltip: translate(`siteDetails.speedDial.actions.${key}`),
       })),
     [translate],
   )
@@ -420,7 +420,7 @@ export default function SiteDetailsPage() {
   }, [isSiteMode, panelShortcutsWithCopy, siteSlug])
 
   useBreadcrumbBackAction({
-    label: translate('admin.siteDetails.actions.backToSites'),
+    label: translate('siteDetails.actions.backToSites'),
     to: buildEntityUrl('sites'),
     variant: 'outlined',
     color: 'inherit',
@@ -443,12 +443,12 @@ export default function SiteDetailsPage() {
   }
 
   if (!site) {
-    return <Typography>{translate('admin.siteDetails.state.notFound')}</Typography>
+    return <Typography>{translate('siteDetails.state.notFound')}</Typography>
   }
 
-  const planLabel = site.plan?.toUpperCase() ?? translate('admin.siteDetails.header.planFallback')
+  const planLabel = site.plan?.toUpperCase() ?? translate('siteDetails.header.planFallback')
   const statusKey = site.status?.toLowerCase() ?? 'unknown'
-  const statusLabel = translate(`admin.siteDetails.status.${statusKey}`, {
+  const statusLabel = translate(`siteDetails.status.${statusKey}`, {
     defaultValue: site.status ?? statusKey,
   })
   const statusColorMap: Record<string, ChipProps['color']> = {
@@ -459,11 +459,11 @@ export default function SiteDetailsPage() {
     trial: 'info',
   }
   const statusColor: ChipProps['color'] = statusColorMap[statusKey] ?? 'default'
-  const headerSubtitle = translate('admin.siteDetails.header.subtitle', { slug: site.slug })
-  const siteSettingsLabel = translate('admin.siteDetails.actions.siteSettings')
-  const inviteUserLabel = translate('admin.siteDetails.actions.inviteUser')
-  const switchToSiteModeLabel = translate('admin.siteDetails.actions.switchToSiteMode')
-  const speedDialLabel = translate('admin.siteDetails.speedDial.ariaLabel')
+  const headerSubtitle = translate('siteDetails.header.subtitle', { slug: site.slug })
+  const siteSettingsLabel = translate('siteDetails.actions.siteSettings')
+  const inviteUserLabel = translate('siteDetails.actions.inviteUser')
+  const switchToSiteModeLabel = translate('siteDetails.actions.switchToSiteMode')
+  const speedDialLabel = translate('siteDetails.speedDial.ariaLabel')
 
   return (
     <Box sx={{ position: 'relative', pb: 8 }}>
@@ -515,7 +515,7 @@ export default function SiteDetailsPage() {
           <Stack spacing={2} position="sticky" top={88}>
             <Paper sx={{ p: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                {translate('admin.siteDetails.hero.title')}
+                {translate('siteDetails.hero.title')}
               </Typography>
               <Stack spacing={1.5}>
                 {heroMetrics.map(({ key, label, value, delta, Icon }) => (
@@ -552,7 +552,7 @@ export default function SiteDetailsPage() {
 
             <Paper sx={{ p: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                {translate('admin.siteDetails.context.title')}
+                {translate('siteDetails.context.title')}
               </Typography>
               <Stack spacing={1.2}>
                 {siteContextItems.map(({ key, Icon, label, value }) => (
@@ -565,7 +565,7 @@ export default function SiteDetailsPage() {
                 ))}
                 <Divider flexItem sx={{ my: 1 }} />
                 <Typography variant="caption" color="text.secondary">
-                  {translate('admin.siteDetails.context.shortcuts')}
+                  {translate('siteDetails.context.shortcuts')}
                 </Typography>
                 <Stack spacing={1}>
                   {quickLinksWithCopy.slice(0, 2).map((link, idx) => {
@@ -595,8 +595,8 @@ export default function SiteDetailsPage() {
           <Stack spacing={2}>
             <Paper sx={{ p: 2 }}>
               <SectionHeader
-                title={translate('admin.siteDetails.sections.timeline.title')}
-                actionLabel={translate('admin.siteDetails.sections.timeline.action')}
+                title={translate('siteDetails.sections.timeline.title')}
+                actionLabel={translate('siteDetails.sections.timeline.action')}
               />
               <Stack spacing={1.5}>
                 {timelineEntries.map((activity) => (
@@ -607,8 +607,8 @@ export default function SiteDetailsPage() {
 
             <Paper sx={{ p: 2 }}>
               <SectionHeader
-                title={translate('admin.siteDetails.sections.residentEngagement.title')}
-                actionLabel={translate('admin.siteDetails.sections.residentEngagement.action')}
+                title={translate('siteDetails.sections.residentEngagement.title')}
+                actionLabel={translate('siteDetails.sections.residentEngagement.action')}
               />
               <Stack spacing={1.5}>
                 {residentMetrics.map(({ key, label, value, helper, color }) => (
@@ -625,8 +625,8 @@ export default function SiteDetailsPage() {
 
             <Paper sx={{ p: 2 }}>
               <SectionHeader
-                title={translate('admin.siteDetails.sections.incidents.title')}
-                actionLabel={translate('admin.siteDetails.sections.incidents.action')}
+                title={translate('siteDetails.sections.incidents.title')}
+                actionLabel={translate('siteDetails.sections.incidents.action')}
               />
               <Stack spacing={1.5}>
                 <Grid container spacing={2}>
@@ -678,9 +678,7 @@ export default function SiteDetailsPage() {
         <Grid item xs={12} lg={3}>
           <Stack spacing={2}>
             <Paper sx={{ p: 2 }}>
-              <SectionHeader
-                title={translate('admin.siteDetails.sections.quickNavigation.title')}
-              />
+              <SectionHeader title={translate('siteDetails.sections.quickNavigation.title')} />
               <Stack spacing={1}>
                 {quickLinksWithCopy.map(({ key, label, description, Icon }, idx) => (
                   <QuickLink
@@ -695,7 +693,7 @@ export default function SiteDetailsPage() {
             </Paper>
 
             <Paper sx={{ p: 2 }}>
-              <SectionHeader title={translate('admin.siteDetails.sections.panelShortcuts.title')} />
+              <SectionHeader title={translate('siteDetails.sections.panelShortcuts.title')} />
               <Stack spacing={1.25}>
                 {panelShortcutsWithCopy.map(({ key, label, description, Icon }, idx) => (
                   <PanelShortcut
@@ -711,8 +709,8 @@ export default function SiteDetailsPage() {
 
             <Paper sx={{ p: 2 }}>
               <SectionHeader
-                title={translate('admin.siteDetails.sections.financial.title')}
-                actionLabel={translate('admin.siteDetails.sections.financial.action')}
+                title={translate('siteDetails.sections.financial.title')}
+                actionLabel={translate('siteDetails.sections.financial.action')}
               />
               <Stack spacing={1.5}>
                 {financialSnapshot.map(({ key, label, value, delta, accent }) => (
@@ -726,15 +724,15 @@ export default function SiteDetailsPage() {
                 ))}
                 <Divider sx={{ my: 1 }} />
                 <Typography variant="caption" color="text.secondary">
-                  {translate('admin.siteDetails.sections.financial.nextBilling')}
+                  {translate('siteDetails.sections.financial.nextBilling')}
                 </Typography>
               </Stack>
             </Paper>
 
             <Paper sx={{ p: 2 }}>
               <SectionHeader
-                title={translate('admin.siteDetails.sections.guardRoster.title')}
-                actionLabel={translate('admin.siteDetails.sections.guardRoster.action')}
+                title={translate('siteDetails.sections.guardRoster.title')}
+                actionLabel={translate('siteDetails.sections.guardRoster.action')}
               />
               <Stack spacing={1}>
                 {guardRoster.map((guard) => (

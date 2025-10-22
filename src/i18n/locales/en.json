@@ -346,9 +346,6 @@
     "brandName": "Brand name",
     "borderRadius": "Border radius"
   },
-  "siteDetails": {
-    "switchToSiteMode": "Switch to site mode"
-  },
   "layout": {
     "breadcrumbs": {
       "home": "Home",
@@ -366,6 +363,12 @@
       "visits": "Visits",
       "guards": "Guards",
       "admins": "Admins"
+    },
+    "backNavigation": {
+      "prefix": "Back to",
+      "backTo": "Back to {{label}}",
+      "backToSite": "Back to {{siteName}}",
+      "backToSites": "Back to Sites"
     }
   },
   "admin": {
@@ -526,100 +529,476 @@
         "suspended": "Suspended"
       }
     },
-    "usersPage": {
-      "filters": {
-        "all": "All roles",
-        "admin": "Admins",
-        "guard": "Guards",
-        "resident": "Residents"
+    "userProfile": {
+      "notFound": {
+        "title": "User not found",
+        "description": "The requested user profile could not be located. Try refreshing or return to the roster to select another member."
       },
-      "roleLabels": {
-        "admin": "Admin",
-        "guard": "Guard",
-        "resident": "Resident"
-      },
-      "status": {
-        "active": "Active",
-        "pending": "Invited",
-        "suspended": "Suspended"
-      },
-      "table": {
-        "columns": {
-          "userId": "User ID",
-          "name": "Name",
-          "email": "Email",
-          "role": "Role",
-          "sites": "Sites",
-          "status": "Status",
-          "lastActive": "Last activity",
-          "actions": "Actions"
-        }
-      },
-      "search": {
-        "placeholder": "Search by name, email, or site"
-      },
-      "siteSelector": {
-        "label": "Site",
-        "all": "All sites"
-      },
-      "chip": {
-        "enterprise": "Enterprise"
-      },
-      "alerts": {
-        "siteFilter": {
-          "prefix": "Filtered to users associated with",
-          "suffix": "Clear the site selector to see the entire portfolio."
-        }
-      },
-      "tooltips": {
-        "restrictSite": "Restrict to this site",
-        "manageWorkspace": "Manage workspace access",
-        "moreActions": "More actions"
+      "statusTag": {
+        "active": "Active access",
+        "pending": "Pending invite",
+        "suspended": "Access suspended"
       },
       "actions": {
-        "adjustRoles": "Adjust roles",
-        "manage": "Manage"
+        "impersonate": "Impersonate",
+        "launchKiosk": "Launch kiosk view",
+        "manageAccess": "Manage access",
+        "reviewRoster": "Review roster"
       },
-      "rowMenu": {
-        "viewProfile": "View profile"
+      "sections": {
+        "profileSummary": {
+          "title": "Profile summary",
+          "emptyNotes": "No internal notes recorded yet."
+        },
+        "activity": {
+          "title": "Activity highlights"
+        },
+        "assignments": {
+          "title": "Site assignments",
+          "empty": "No site assignments yet. Use {{action}} to add this member to a property."
+        },
+        "related": {
+          "title": "Related team",
+          "empty": "No other {{role}} members yet."
+        },
+        "quickTips": {
+          "title": "{{role}} quick tips",
+          "body": "Keep member data accurate by reviewing assignments and reset credentials after shifts or ownership changes."
+        }
       },
-      "meta": {
-        "all": {
-          "title": "Users",
-          "description": "View and manage admins, guards, and residents across your workspace.",
-          "inviteCta": "Invite user",
-          "inviteCtaForSite": "Invite user for {{siteName}}",
-          "emptyTitle": "No users found",
-          "emptyDescription": "Adjust your filters or invite someone new to get started.",
-          "siteHint": "Managing members scoped to {{siteName}}. Removing access keeps their enterprise account but revokes permissions for this property."
+      "details": {
+        "labels": {
+          "email": "Email",
+          "phone": "Phone",
+          "lastActive": "Last activity",
+          "joined": "Joined"
         },
-        "admin": {
-          "title": "Admins",
-          "description": "Control administrator and staff permissions for this property.",
-          "inviteCta": "Invite admin",
-          "inviteCtaForSite": "Invite admin for {{siteName}}",
-          "emptyTitle": "No admins assigned",
-          "emptyDescription": "Invite site admins to help run daily operations.",
-          "siteHint": "Showing admins with permissions for {{siteName}}. Removing access keeps enterprise credentials but removes this site role."
-        },
+        "phoneMissing": "No phone on file",
+        "joinedFallback": "Not recorded",
+        "positionFallback": "Role details coming soon."
+      },
+      "timeline": {
         "guard": {
-          "title": "Guards",
-          "description": "Track guard staffing, shifts, and certifications for the gate team.",
-          "inviteCta": "Add guard",
-          "inviteCtaForSite": "Add guard for {{siteName}}",
-          "emptyTitle": "No guards assigned",
-          "emptyDescription": "Invite your security team or sync from your staffing partner.",
-          "siteHint": "Only guards assigned to {{siteName}} appear here. Update shifts from this view to adjust coverage."
+          "clockedIn": {
+            "time": "06:00",
+            "title": "Clocked in",
+            "subtitle": "Gatehouse kiosk • Shift start"
+          },
+          "visitorApproved": {
+            "time": "07:15",
+            "title": "Visitor approved",
+            "subtitle": "Bautista Family • QR scanned"
+          },
+          "incidentLogged": {
+            "time": "08:42",
+            "title": "Incident note added",
+            "subtitle": "Noise complaint logged."
+          }
         },
         "resident": {
-          "title": "Residents",
-          "description": "Directory of households and their portal adoption status.",
-          "inviteCta": "Invite resident",
-          "inviteCtaForSite": "Invite resident for {{siteName}}",
-          "emptyTitle": "No residents yet",
-          "emptyDescription": "Invite households to activate their portal access and start using amenities.",
-          "siteHint": "Only residents for {{siteName}} are shown. Removing them keeps their login but removes portal access for this property."
+          "invitationSent": {
+            "time": "Yesterday",
+            "title": "Portal invitation sent",
+            "subtitle": "Awaiting account activation."
+          },
+          "amenityBooking": {
+            "time": "2d ago",
+            "title": "Amenity booking",
+            "subtitle": "Clubhouse reserved for Oct 28."
+          },
+          "broadcastOpened": {
+            "time": "Last week",
+            "title": "Broadcast opened",
+            "subtitle": "Read hurricane preparedness notice."
+          }
+        },
+        "default": {
+          "scheduleApproved": {
+            "time": "Today",
+            "title": "Approved guard schedule",
+            "subtitle": "Validated Nov 1 roster."
+          },
+          "incidentReviewed": {
+            "time": "Yesterday",
+            "title": "Reviewed incident follow-up",
+            "subtitle": "Marked gate obstruction as resolved."
+          },
+          "exportedResidents": {
+            "time": "3d ago",
+            "title": "Exported residents CSV",
+            "subtitle": "Shared with finance team."
+          }
         }
+      }
+    }
+  },
+  "usersPage": {
+    "filters": {
+      "all": "All roles",
+      "admin": "Admins",
+      "guard": "Guards",
+      "resident": "Residents"
+    },
+    "roleLabels": {
+      "admin": "Admin",
+      "guard": "Guard",
+      "resident": "Resident"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Invited",
+      "suspended": "Suspended"
+    },
+    "table": {
+      "columns": {
+        "userId": "User ID",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "sites": "Sites",
+        "status": "Status",
+        "lastActive": "Last activity",
+        "actions": "Actions"
+      }
+    },
+    "search": {
+      "placeholder": "Search by name, email, or site"
+    },
+    "siteSelector": {
+      "label": "Site",
+      "all": "All sites"
+    },
+    "chip": {
+      "enterprise": "Enterprise"
+    },
+    "alerts": {
+      "siteFilter": {
+        "prefix": "Filtered to users associated with",
+        "suffix": "Clear the site selector to see the entire portfolio."
+      }
+    },
+    "tooltips": {
+      "restrictSite": "Restrict to this site",
+      "manageWorkspace": "Manage workspace access",
+      "moreActions": "More actions"
+    },
+    "actions": {
+      "adjustRoles": "Adjust roles",
+      "manage": "Manage"
+    },
+    "rowMenu": {
+      "viewProfile": "View profile"
+    },
+    "meta": {
+      "all": {
+        "title": "Users",
+        "description": "View and manage admins, guards, and residents across your workspace.",
+        "inviteCta": "Invite user",
+        "inviteCtaForSite": "Invite user for {{siteName}}",
+        "emptyTitle": "No users found",
+        "emptyDescription": "Adjust your filters or invite someone new to get started.",
+        "siteHint": "Managing members scoped to {{siteName}}. Removing access keeps their enterprise account but revokes permissions for this property."
+      },
+      "admin": {
+        "title": "Admins",
+        "description": "Control administrator and staff permissions for this property.",
+        "inviteCta": "Invite admin",
+        "inviteCtaForSite": "Invite admin for {{siteName}}",
+        "emptyTitle": "No admins assigned",
+        "emptyDescription": "Invite site admins to help run daily operations.",
+        "siteHint": "Showing admins with permissions for {{siteName}}. Removing access keeps enterprise credentials but removes this site role."
+      },
+      "guard": {
+        "title": "Guards",
+        "description": "Track guard staffing, shifts, and certifications for the gate team.",
+        "inviteCta": "Add guard",
+        "inviteCtaForSite": "Add guard for {{siteName}}",
+        "emptyTitle": "No guards assigned",
+        "emptyDescription": "Invite your security team or sync from your staffing partner.",
+        "siteHint": "Only guards assigned to {{siteName}} appear here. Update shifts from this view to adjust coverage."
+      },
+      "resident": {
+        "title": "Residents",
+        "description": "Directory of households and their portal adoption status.",
+        "inviteCta": "Invite resident",
+        "inviteCtaForSite": "Invite resident for {{siteName}}",
+        "emptyTitle": "No residents yet",
+        "emptyDescription": "Invite households to activate their portal access and start using amenities.",
+        "siteHint": "Only residents for {{siteName}} are shown. Removing them keeps their login but removes portal access for this property."
+      }
+    },
+    "lastActive": {
+      "relative": {
+        "justNow": "Just now",
+        "minutes_one": "{{count}} minute ago",
+        "minutes_other": "{{count}} minutes ago",
+        "hours_one": "{{count}} hour ago",
+        "hours_other": "{{count}} hours ago",
+        "days_one": "{{count}} day ago",
+        "days_other": "{{count}} days ago",
+        "date": "{{value}}",
+        "unknown": "Not available"
+      }
+    }
+  },
+  "siteDetails": {
+    "header": {
+      "subtitle": "Operations overview for {{slug}}",
+      "planFallback": "No plan assigned"
+    },
+    "actions": {
+      "backToSites": "Back to Sites",
+      "siteSettings": "Site settings",
+      "inviteUser": "Invite user",
+      "switchToSiteMode": "Switch to site mode"
+    },
+    "state": {
+      "notFound": "We couldn't find details for this site."
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "suspended": "Suspended",
+      "inactive": "Inactive",
+      "trial": "Trial",
+      "unknown": "Unknown"
+    },
+    "hero": {
+      "title": "Site snapshot",
+      "metrics": {
+        "activeResidents": {
+          "label": "Active residents",
+          "value": "1,248 residents",
+          "delta": "+4.2% vs last month"
+        },
+        "scheduledVisits": {
+          "label": "Scheduled visits",
+          "value": "86 today",
+          "delta": "+12 pending arrivals"
+        },
+        "openIncidents": {
+          "label": "Open incidents",
+          "value": "5 active",
+          "delta": "2 escalations in review"
+        },
+        "guardCoverage": {
+          "label": "Guard coverage",
+          "value": "96% staffed",
+          "delta": "+1 shift vs target"
+        }
+      }
+    },
+    "residentEngagement": {
+      "metrics": {
+        "portalAdoption": {
+          "label": "Portal adoption",
+          "helper": "Up 5 points vs last month"
+        },
+        "amenityBookings": {
+          "label": "Amenity bookings",
+          "helper": "Community center demand trending up"
+        },
+        "broadcastReach": {
+          "label": "Broadcast reach",
+          "helper": "Residents reached by last announcement"
+        }
+      }
+    },
+    "quickLinks": {
+      "createVisitorPass": {
+        "label": "Create visitor pass",
+        "description": "Issue a single-use gate credential."
+      },
+      "registerVehicle": {
+        "label": "Register vehicle",
+        "description": "Add plates and assign to a residence."
+      },
+      "addRecurringVisitor": {
+        "label": "Add recurring visitor",
+        "description": "Pre-approve frequent guests."
+      },
+      "inviteResident": {
+        "label": "Invite resident",
+        "description": "Send portal access to a household."
+      },
+      "logIncident": {
+        "label": "Log incident",
+        "description": "Capture details for follow-up."
+      },
+      "automations": {
+        "label": "Manage automations",
+        "description": "Review workflows and triggers."
+      }
+    },
+    "panelShortcuts": {
+      "users": {
+        "label": "All users",
+        "description": "Manage site-wide access."
+      },
+      "residents": {
+        "label": "Residents",
+        "description": "Directory and contact info."
+      },
+      "guards": {
+        "label": "Guards",
+        "description": "Shift assignments and coverage."
+      },
+      "admins": {
+        "label": "Admins",
+        "description": "Enterprise permissions for this site."
+      },
+      "visits": {
+        "label": "Visits",
+        "description": "Monitor daily arrivals."
+      },
+      "vehicles": {
+        "label": "Vehicles",
+        "description": "Decals and registered plates."
+      },
+      "visitors": {
+        "label": "Visitors",
+        "description": "Recurring guest list."
+      },
+      "residences": {
+        "label": "Residences",
+        "description": "Units and occupancy."
+      },
+      "reports": {
+        "label": "Reports",
+        "description": "Analytics and exports."
+      }
+    },
+    "incidents": {
+      "cards": {
+        "pastSevenDays": {
+          "title": "Incidents past 7 days",
+          "value": "18 logged",
+          "helper": "Resolved within 3.4 hrs avg"
+        },
+        "critical": {
+          "title": "Critical alerts",
+          "value": "2 open",
+          "helper": "Escalated to command"
+        }
+      },
+      "breakdown": {
+        "segments": {
+          "gateAccess": {
+            "label": "Gate access",
+            "value": "34%"
+          },
+          "noiseDisturbance": {
+            "label": "Noise disturbance",
+            "value": "22%"
+          },
+          "maintenance": {
+            "label": "Maintenance",
+            "value": "18%"
+          },
+          "other": {
+            "label": "Other",
+            "value": "26%"
+          }
+        }
+      }
+    },
+    "financials": {
+      "items": {
+        "monthlyRecurring": {
+          "label": "Monthly recurring revenue",
+          "value": "$86,400",
+          "delta": "+6.4% vs last month"
+        },
+        "outstandingInvoices": {
+          "label": "Outstanding invoices",
+          "value": "$12,300",
+          "delta": "-2 invoices week over week"
+        },
+        "averageDues": {
+          "label": "Average dues collected",
+          "value": "$185 per residence",
+          "delta": "+$8 vs last cycle"
+        }
+      }
+    },
+    "guardRoster": {
+      "status": {
+        "onDuty": "On duty",
+        "scheduled": "Scheduled"
+      }
+    },
+    "timeline": {
+      "delivery": {
+        "title": "Delivery cleared at north gate",
+        "subtitle": "Load-out confirmed by logistics team."
+      },
+      "residentCheckIn": {
+        "title": "Resident check-in completed",
+        "subtitle": "Portal QR code scanned at lobby."
+      },
+      "incidentEscalated": {
+        "title": "Incident escalated to command",
+        "subtitle": "Supervisor reviewing guard report."
+      },
+      "visitorPassCreated": {
+        "title": "Visitor pass created",
+        "subtitle": "SMS credential sent to guest."
+      }
+    },
+    "context": {
+      "title": "Site context",
+      "shortcuts": "Quick shortcuts",
+      "items": {
+        "address": {
+          "label": "Address",
+          "value": "1280 Harbor View Dr, Phoenix AZ"
+        },
+        "accessHours": {
+          "label": "Access hours",
+          "value": "Daily 6:00 AM - 10:00 PM"
+        },
+        "primaryContact": {
+          "label": "Primary contact",
+          "value": "Maria Alvarez, Community manager"
+        }
+      }
+    },
+    "speedDial": {
+      "ariaLabel": "Site quick actions",
+      "actions": {
+        "addVisitor": "Add visitor pass",
+        "logIncident": "Log incident",
+        "sendBroadcast": "Send broadcast",
+        "createInvoice": "Create invoice"
+      }
+    },
+    "sections": {
+      "timeline": {
+        "title": "Timeline",
+        "action": "Open activity log"
+      },
+      "residentEngagement": {
+        "title": "Resident engagement",
+        "action": "View adoption report"
+      },
+      "incidents": {
+        "title": "Incidents overview",
+        "action": "Review incident queue"
+      },
+      "quickNavigation": {
+        "title": "Quick navigation"
+      },
+      "panelShortcuts": {
+        "title": "Control panel shortcuts"
+      },
+      "financial": {
+        "title": "Financial snapshot",
+        "action": "Open billing center",
+        "nextBilling": "Next billing cycle begins on the 1st of the month."
+      },
+      "guardRoster": {
+        "title": "Guard roster",
+        "action": "Assign shifts"
       }
     }
   }

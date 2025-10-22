@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from 'react'
+import { useMemo } from 'react'
 import { Link as RouterLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   Avatar,
@@ -33,9 +33,13 @@ import {
   parseRoleFilter,
   type RoleFilter,
 } from './userData'
+import { useLastActiveFormatter } from './useLastActiveFormatter'
 import { useSiteStore } from '@store/site.store'
 import { useBreadcrumbBackAction } from '@app/layout/useBreadcrumbBackAction'
 import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
+import { useTranslate } from '@i18n/useTranslate'
+import { useI18nStore } from '@store/i18n.store'
+import { formatBackLabel } from '@app/layout/backNavigation'
 
 const ROLE_SEGMENT: Record<Exclude<RoleFilter, 'all'>, string> = {
   admin: 'admins',
@@ -43,11 +47,91 @@ const ROLE_SEGMENT: Record<Exclude<RoleFilter, 'all'>, string> = {
   resident: 'residents',
 }
 
+type UserRoleTimelineGroup = 'guard' | 'resident' | 'default'
+
+type TimelineEntryConfig = {
+  key: string
+  time: string
+  title: string
+  subtitle: string
+}
+
+const TIMELINE_CONFIG: Record<UserRoleTimelineGroup, TimelineEntryConfig[]> = {
+  guard: [
+    {
+      key: 'clockedIn',
+      time: '06:00',
+      title: 'Clocked in',
+      subtitle: 'Gatehouse kiosk • Shift start',
+    },
+    {
+      key: 'visitorApproved',
+      time: '07:15',
+      title: 'Visitor approved',
+      subtitle: 'Bautista Family • QR scanned',
+    },
+    {
+      key: 'incidentLogged',
+      time: '08:42',
+      title: 'Incident note added',
+      subtitle: 'Noise complaint logged.',
+    },
+  ],
+  resident: [
+    {
+      key: 'invitationSent',
+      time: 'Yesterday',
+      title: 'Portal invitation sent',
+      subtitle: 'Awaiting account activation.',
+    },
+    {
+      key: 'amenityBooking',
+      time: '2d ago',
+      title: 'Amenity booking',
+      subtitle: 'Clubhouse reserved for Oct 28.',
+    },
+    {
+      key: 'broadcastOpened',
+      time: 'Last week',
+      title: 'Broadcast opened',
+      subtitle: 'Read hurricane preparedness notice.',
+    },
+  ],
+  default: [
+    {
+      key: 'scheduleApproved',
+      time: 'Today',
+      title: 'Approved guard schedule',
+      subtitle: 'Validated Nov 1 roster.',
+    },
+    {
+      key: 'incidentReviewed',
+      time: 'Yesterday',
+      title: 'Reviewed incident follow-up',
+      subtitle: 'Marked gate obstruction as resolved.',
+    },
+    {
+      key: 'exportedResidents',
+      time: '3d ago',
+      title: 'Exported residents CSV',
+      subtitle: 'Shared with finance team.',
+    },
+  ],
+}
+
 export default function UserProfilePage() {
   const { userId } = useParams()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { mode, current } = useSiteStore()
+  const { t } = useTranslate()
+  const language = useI18nStore((state) => state.language)
+  const formatLastActive = useLastActiveFormatter()
+  const translate = useMemo(
+    () => (key: string, defaultValue: string, options?: Record<string, unknown>) =>
+      t(key, { lng: language, defaultValue, ...options }),
+    [language, t],
+  )
 
   const siteScoped = mode === 'site' && !!current
 
@@ -73,9 +157,15 @@ export default function UserProfilePage() {
   }, [current, resolvedFilter, siteScoped])
 
   const meta = ROLE_VIEW_META[resolvedFilter]
+  const metaTitleKey = useMemo(() => `usersPage.meta.${resolvedFilter}.title`, [resolvedFilter])
+  const translatedMetaTitle = useMemo(
+    () => translate(metaTitleKey, meta.title),
+    [meta.title, metaTitleKey, translate],
+  )
+
   const backLabel = useMemo(
-    () => `Back to ${resolvedFilter === 'all' ? 'Users' : meta.title}`,
-    [meta.title, resolvedFilter],
+    () => formatBackLabel({ baseLabel: translatedMetaTitle, t, language }),
+    [language, t, translatedMetaTitle],
   )
 
   useBreadcrumbBackAction({
@@ -87,14 +177,18 @@ export default function UserProfilePage() {
   })
 
   if (userId && !user) {
+    const notFoundTitle = translate('admin.userProfile.notFound.title', 'User not found')
+    const notFoundDescription = translate(
+      'admin.userProfile.notFound.description',
+      'The requested user profile could not be located. Try refreshing or return to the roster to select another member.',
+    )
     return (
       <Paper sx={{ p: 4, borderRadius: 3 }}>
         <Typography variant="h6" gutterBottom>
-          User not found
+          {notFoundTitle}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          The requested user profile could not be located. Try refreshing or return to the roster to
-          select another member.
+          {notFoundDescription}
         </Typography>
         <Button
           variant="contained"
@@ -114,23 +208,121 @@ export default function UserProfilePage() {
   const activeSites = user.sites
   const statusColor = STATUS_COLOR[user.status]
 
-  const detailItems: Array<{ label: string; value: string; icon: ReactNode }> = [
-    { label: 'Email', value: user.email, icon: <EmailIcon fontSize="small" /> },
-    {
-      label: 'Phone',
-      value: user.phone ?? 'No phone on file',
-      icon: <PhoneIcon fontSize="small" />,
-    },
-    { label: 'Last activity', value: user.lastActive, icon: <AccessTimeIcon fontSize="small" /> },
-    { label: 'Joined', value: user.joinedOn ?? '—', icon: <CalendarMonthIcon fontSize="small" /> },
-  ]
-
-  const statusTag =
-    user.status === 'active'
+  const statusTagKey =
+    user.status === 'active' ? 'active' : user.status === 'pending' ? 'pending' : 'suspended'
+  const statusTag = translate(
+    `admin.userProfile.statusTag.${statusTagKey}`,
+    statusTagKey === 'active'
       ? 'Active access'
-      : user.status === 'pending'
+      : statusTagKey === 'pending'
         ? 'Pending invite'
-        : 'Access suspended'
+        : 'Access suspended',
+  )
+
+  const roleLabel = translate(`usersPage.roleLabels.${user.role}`, ROLE_LABEL[user.role])
+
+  const positionText =
+    user.position ??
+    translate('admin.userProfile.details.positionFallback', 'Role details coming soon.')
+
+  const impersonateLabel = translate('admin.userProfile.actions.impersonate', 'Impersonate')
+  const launchKioskLabel = translate('admin.userProfile.actions.launchKiosk', 'Launch kiosk view')
+  const manageAccessLabel = translate('admin.userProfile.actions.manageAccess', 'Manage access')
+  const reviewRosterLabel = translate('admin.userProfile.actions.reviewRoster', 'Review roster')
+
+  const profileSummaryTitle = translate(
+    'admin.userProfile.sections.profileSummary.title',
+    'Profile summary',
+  )
+  const profileSummaryEmpty = translate(
+    'admin.userProfile.sections.profileSummary.emptyNotes',
+    'No internal notes recorded yet.',
+  )
+  const profileNotes = user.notes ?? profileSummaryEmpty
+  const activityTitle = translate(
+    'admin.userProfile.sections.activity.title',
+    'Activity highlights',
+  )
+  const assignmentsTitle = translate(
+    'admin.userProfile.sections.assignments.title',
+    'Site assignments',
+  )
+  const relatedTitle = translate('admin.userProfile.sections.related.title', 'Related team')
+
+  const quickTipsTitle = translate(
+    'admin.userProfile.sections.quickTips.title',
+    `${translatedMetaTitle} quick tips`,
+    { role: translatedMetaTitle },
+  )
+  const quickTipsBody = translate(
+    'admin.userProfile.sections.quickTips.body',
+    'Keep member data accurate by reviewing assignments and reset credentials after shifts or ownership changes.',
+  )
+
+  const assignmentsEmpty = translate(
+    'admin.userProfile.sections.assignments.empty',
+    'No site assignments yet. Use Manage access to add this member to a property.',
+    { action: manageAccessLabel },
+  )
+  const relatedEmpty = translate(
+    'admin.userProfile.sections.related.empty',
+    'No other members with the same role yet.',
+    { role: roleLabel },
+  )
+
+  const timelineGroup: UserRoleTimelineGroup =
+    user.role === 'guard' ? 'guard' : user.role === 'resident' ? 'resident' : 'default'
+
+  const timelineEntries = useMemo(
+    () =>
+      TIMELINE_CONFIG[timelineGroup].map((entry) => ({
+        time: translate(
+          `admin.userProfile.timeline.${timelineGroup}.${entry.key}.time`,
+          entry.time,
+        ),
+        title: translate(
+          `admin.userProfile.timeline.${timelineGroup}.${entry.key}.title`,
+          entry.title,
+        ),
+        subtitle: translate(
+          `admin.userProfile.timeline.${timelineGroup}.${entry.key}.subtitle`,
+          entry.subtitle,
+        ),
+      })),
+    [timelineGroup, translate],
+  )
+
+  const detailItems = useMemo(
+    () => [
+      {
+        key: 'email',
+        label: translate('admin.userProfile.details.labels.email', 'Email'),
+        value: user.email,
+        icon: <EmailIcon fontSize="small" />,
+      },
+      {
+        key: 'phone',
+        label: translate('admin.userProfile.details.labels.phone', 'Phone'),
+        value:
+          user.phone ?? translate('admin.userProfile.details.phoneMissing', 'No phone on file'),
+        icon: <PhoneIcon fontSize="small" />,
+      },
+      {
+        key: 'lastActive',
+        label: translate('admin.userProfile.details.labels.lastActive', 'Last activity'),
+        value: formatLastActive(user.lastActive),
+        icon: <AccessTimeIcon fontSize="small" />,
+      },
+      {
+        key: 'joined',
+        label: translate('admin.userProfile.details.labels.joined', 'Joined'),
+        value:
+          user.joinedOn ?? translate('admin.userProfile.details.joinedFallback', 'Not recorded'),
+        icon: <CalendarMonthIcon fontSize="small" />,
+      },
+    ],
+    [formatLastActive, translate, user.email, user.joinedOn, user.lastActive, user.phone],
+  )
 
   const relatedUsers = USERS.filter(
     (candidate) => candidate.id !== user.id && candidate.role === user.role,
@@ -161,7 +353,7 @@ export default function UserProfilePage() {
               <Typography variant="h4" fontWeight={600}>
                 {user.name}
               </Typography>
-              <Chip size="small" color="primary" label={ROLE_LABEL[user.role]} />
+              <Chip size="small" color="primary" label={roleLabel} />
               <Chip
                 size="small"
                 color={statusColor}
@@ -170,18 +362,18 @@ export default function UserProfilePage() {
               />
             </Stack>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {user.position ?? 'Role details coming soon.'}
+              {positionText}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} flexWrap="wrap">
-            <Tooltip title="Impersonate">
+            <Tooltip title={impersonateLabel}>
               <span>
                 <Button
                   variant="outlined"
                   startIcon={<ShieldIcon />}
                   disabled={user.status !== 'active'}
                 >
-                  Launch kiosk view
+                  {launchKioskLabel}
                 </Button>
               </span>
             </Tooltip>
@@ -191,7 +383,7 @@ export default function UserProfilePage() {
               component={RouterLink}
               to={returnPath}
             >
-              Manage access
+              {manageAccessLabel}
             </Button>
           </Stack>
         </Stack>
@@ -202,15 +394,15 @@ export default function UserProfilePage() {
           <Stack spacing={3}>
             <Paper sx={{ p: 3, borderRadius: 3 }}>
               <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
-                Profile summary
+                {profileSummaryTitle}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {user.notes ?? 'No internal notes recorded yet.'}
+                {profileNotes}
               </Typography>
               <Divider sx={{ my: 2 }} />
               <Stack spacing={1.5}>
                 {detailItems.map((item) => (
-                  <Stack key={item.label} direction="row" spacing={1.5} alignItems="center">
+                  <Stack key={item.key} direction="row" spacing={1.5} alignItems="center">
                     <Avatar
                       sx={{ width: 32, height: 32, bgcolor: 'action.hover', color: 'text.primary' }}
                     >
@@ -229,10 +421,10 @@ export default function UserProfilePage() {
 
             <Paper sx={{ p: 3, borderRadius: 3 }}>
               <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                Activity highlights
+                {activityTitle}
               </Typography>
               <Stack spacing={1.5}>
-                {buildActivityTimeline(user).map((entry) => (
+                {timelineEntries.map((entry) => (
                   <Stack
                     key={entry.time + entry.title}
                     direction="row"
@@ -260,7 +452,7 @@ export default function UserProfilePage() {
           <Stack spacing={3}>
             <Paper sx={{ p: 3, borderRadius: 3 }}>
               <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
-                Site assignments
+                {assignmentsTitle}
               </Typography>
               <Stack spacing={1}>
                 {activeSites.map((site) => {
@@ -283,19 +475,19 @@ export default function UserProfilePage() {
               </Stack>
               {activeSites.length === 0 ? (
                 <Typography variant="caption" color="text.secondary">
-                  No site assignments yet. Use Manage access to add this member to a property.
+                  {assignmentsEmpty}
                 </Typography>
               ) : null}
             </Paper>
 
             <Paper sx={{ p: 3, borderRadius: 3 }}>
               <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                Related team
+                {relatedTitle}
               </Typography>
               <Stack spacing={1.25}>
                 {relatedUsers.length === 0 ? (
                   <Typography variant="caption" color="text.secondary">
-                    No other members with the same role yet.
+                    {relatedEmpty}
                   </Typography>
                 ) : (
                   relatedUsers.map((member) => (
@@ -346,15 +538,14 @@ export default function UserProfilePage() {
                 <GroupsIcon color="primary" />
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="subtitle1" fontWeight={600}>
-                    {meta.title} quick tips
+                    {quickTipsTitle}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Keep member data accurate by reviewing assignments and reset credentials after
-                    shifts or ownership changes.
+                    {quickTipsBody}
                   </Typography>
                 </Box>
                 <Button variant="contained" component={RouterLink} to={returnPath}>
-                  Review roster
+                  {reviewRosterLabel}
                 </Button>
               </Stack>
             </Paper>
@@ -363,42 +554,6 @@ export default function UserProfilePage() {
       </Grid>
     </Stack>
   )
-}
-
-function buildActivityTimeline(user: { id: string; role: string; name: string }) {
-  if (user.role === 'guard') {
-    return [
-      { time: '06:00', title: 'Clocked in', subtitle: 'Gatehouse kiosk • Shift start' },
-      { time: '07:15', title: 'Visitor approved', subtitle: 'Bautista Family • QR scanned' },
-      { time: '08:42', title: 'Incident note added', subtitle: 'Noise complaint logged.' },
-    ]
-  }
-
-  if (user.role === 'resident') {
-    return [
-      {
-        time: 'Yesterday',
-        title: 'Portal invitation sent',
-        subtitle: 'Awaiting account activation.',
-      },
-      { time: '2d ago', title: 'Amenity booking', subtitle: 'Clubhouse reserved for Oct 28.' },
-      {
-        time: 'Last week',
-        title: 'Broadcast opened',
-        subtitle: 'Read hurricane preparedness notice.',
-      },
-    ]
-  }
-
-  return [
-    { time: 'Today', title: 'Approved guard schedule', subtitle: 'Validated Nov 1 roster.' },
-    {
-      time: 'Yesterday',
-      title: 'Reviewed incident follow-up',
-      subtitle: 'Marked gate obstruction as resolved.',
-    },
-    { time: '3d ago', title: 'Exported residents CSV', subtitle: 'Shared with finance team.' },
-  ]
 }
 
 function buildPeerLink(

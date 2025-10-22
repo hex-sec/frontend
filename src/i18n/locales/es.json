@@ -346,9 +346,6 @@
     "brandName": "Nombre de marca",
     "borderRadius": "Radio de borde"
   },
-  "siteDetails": {
-    "switchToSiteMode": "Cambiar a modo sitio"
-  },
   "layout": {
     "breadcrumbs": {
       "home": "Inicio",
@@ -366,6 +363,12 @@
       "visits": "Visitas",
       "guards": "Guardias",
       "admins": "Administradores"
+    },
+    "backNavigation": {
+      "prefix": "Volver a",
+      "backTo": "Volver a {{label}}",
+      "backToSite": "Volver a {{siteName}}",
+      "backToSites": "Volver a Sitios"
     }
   },
   "admin": {
@@ -526,100 +529,476 @@
         "suspended": "Suspendido"
       }
     },
-    "usersPage": {
-      "filters": {
-        "all": "Todos los roles",
-        "admin": "Administradores",
-        "guard": "Guardias",
-        "resident": "Residentes"
+    "userProfile": {
+      "notFound": {
+        "title": "Usuario no encontrado",
+        "description": "No se pudo localizar el perfil solicitado. Intenta actualizar o regresa a la lista para elegir otro miembro."
       },
-      "roleLabels": {
-        "admin": "Administrador",
-        "guard": "Guardia",
-        "resident": "Residente"
-      },
-      "status": {
-        "active": "Activo",
-        "pending": "Invitado",
-        "suspended": "Suspendido"
-      },
-      "table": {
-        "columns": {
-          "userId": "ID de usuario",
-          "name": "Nombre",
-          "email": "Correo electrónico",
-          "role": "Rol",
-          "sites": "Sitios",
-          "status": "Estado",
-          "lastActive": "Última actividad",
-          "actions": "Acciones"
-        }
-      },
-      "search": {
-        "placeholder": "Buscar por nombre, correo o sitio"
-      },
-      "siteSelector": {
-        "label": "Sitio",
-        "all": "Todos los sitios"
-      },
-      "chip": {
-        "enterprise": "Empresa"
-      },
-      "alerts": {
-        "siteFilter": {
-          "prefix": "Filtrado a usuarios asociados con",
-          "suffix": "Borra el selector de sitios para ver todo el portafolio."
-        }
-      },
-      "tooltips": {
-        "restrictSite": "Restringir a este sitio",
-        "manageWorkspace": "Gestionar acceso del espacio",
-        "moreActions": "Más acciones"
+      "statusTag": {
+        "active": "Acceso activo",
+        "pending": "Invitación pendiente",
+        "suspended": "Acceso suspendido"
       },
       "actions": {
-        "adjustRoles": "Ajustar roles",
-        "manage": "Gestionar"
+        "impersonate": "Suplantar sesión",
+        "launchKiosk": "Abrir vista del kiosco",
+        "manageAccess": "Gestionar acceso",
+        "reviewRoster": "Revisar lista"
       },
-      "rowMenu": {
-        "viewProfile": "Ver perfil"
+      "sections": {
+        "profileSummary": {
+          "title": "Resumen del perfil",
+          "emptyNotes": "Aún no hay notas internas registradas."
+        },
+        "activity": {
+          "title": "Actividad destacada"
+        },
+        "assignments": {
+          "title": "Asignaciones del sitio",
+          "empty": "Sin asignaciones de sitio. Usa {{action}} para agregar este miembro a una propiedad."
+        },
+        "related": {
+          "title": "Equipo relacionado",
+          "empty": "Aún no hay otros miembros con el rol {{role}}."
+        },
+        "quickTips": {
+          "title": "Consejos para {{role}}",
+          "body": "Mantén la información actualizada revisando asignaciones y restablece credenciales después de turnos o cambios de propiedad."
+        }
       },
-      "meta": {
-        "all": {
-          "title": "Usuarios",
-          "description": "Administra administradores, guardias y residentes en todo tu espacio.",
-          "inviteCta": "Invitar usuario",
-          "inviteCtaForSite": "Invitar usuario para {{siteName}}",
-          "emptyTitle": "No se encontraron usuarios",
-          "emptyDescription": "Ajusta los filtros o invita a alguien nuevo para comenzar.",
-          "siteHint": "Gestionando miembros para {{siteName}}. Al quitar acceso conservan su cuenta empresarial pero se revocan permisos para esta propiedad."
+      "details": {
+        "labels": {
+          "email": "Correo",
+          "phone": "Teléfono",
+          "lastActive": "Última actividad",
+          "joined": "Se unió"
         },
-        "admin": {
-          "title": "Administradores",
-          "description": "Controla permisos de administradores y personal para esta propiedad.",
-          "inviteCta": "Invitar administrador",
-          "inviteCtaForSite": "Invitar administrador para {{siteName}}",
-          "emptyTitle": "No hay administradores asignados",
-          "emptyDescription": "Invita administradores del sitio para apoyar las operaciones diarias.",
-          "siteHint": "Mostrando administradores con permisos para {{siteName}}. Al quitar acceso conservan credenciales empresariales pero pierden este rol del sitio."
-        },
+        "phoneMissing": "Sin teléfono registrado",
+        "joinedFallback": "Sin registro",
+        "positionFallback": "Detalles del rol disponibles pronto."
+      },
+      "timeline": {
         "guard": {
-          "title": "Guardias",
-          "description": "Supervisa guardias, turnos y certificaciones del equipo de acceso.",
-          "inviteCta": "Agregar guardia",
-          "inviteCtaForSite": "Agregar guardia para {{siteName}}",
-          "emptyTitle": "No hay guardias asignados",
-          "emptyDescription": "Invita a tu equipo de seguridad o sincroniza desde tu proveedor.",
-          "siteHint": "Solo aparecen guardias asignados a {{siteName}}. Actualiza turnos desde aquí para ajustar la cobertura."
+          "clockedIn": {
+            "time": "06:00",
+            "title": "Marcó entrada",
+            "subtitle": "Kiosco de caseta • Inicio de turno"
+          },
+          "visitorApproved": {
+            "time": "07:15",
+            "title": "Visitante aprobado",
+            "subtitle": "Familia Bautista • QR escaneado"
+          },
+          "incidentLogged": {
+            "time": "08:42",
+            "title": "Nota de incidente agregada",
+            "subtitle": "Queja por ruido registrada."
+          }
         },
         "resident": {
-          "title": "Residentes",
-          "description": "Directorio de hogares y su estado de adopción del portal.",
-          "inviteCta": "Invitar residente",
-          "inviteCtaForSite": "Invitar residente para {{siteName}}",
-          "emptyTitle": "Aún no hay residentes",
-          "emptyDescription": "Invita hogares para activar su acceso al portal y usar amenidades.",
-          "siteHint": "Solo se muestran residentes de {{siteName}}. Al quitarlos conservan su cuenta pero pierden acceso a esta propiedad."
+          "invitationSent": {
+            "time": "Ayer",
+            "title": "Invitación al portal enviada",
+            "subtitle": "En espera de activación de la cuenta."
+          },
+          "amenityBooking": {
+            "time": "Hace 2 días",
+            "title": "Reserva de amenidad",
+            "subtitle": "Club social reservado para el 28 de oct."
+          },
+          "broadcastOpened": {
+            "time": "Semana pasada",
+            "title": "Comunicado abierto",
+            "subtitle": "Leyó aviso de preparación ante huracanes."
+          }
+        },
+        "default": {
+          "scheduleApproved": {
+            "time": "Hoy",
+            "title": "Horario de guardias aprobado",
+            "subtitle": "Validó la rotación del 1 de nov."
+          },
+          "incidentReviewed": {
+            "time": "Ayer",
+            "title": "Seguimiento de incidente revisado",
+            "subtitle": "Marcó obstrucción del portón como resuelta."
+          },
+          "exportedResidents": {
+            "time": "Hace 3 días",
+            "title": "Exportó residentes a CSV",
+            "subtitle": "Compartido con el equipo financiero."
+          }
         }
+      }
+    }
+  },
+  "usersPage": {
+    "filters": {
+      "all": "Todos los roles",
+      "admin": "Administradores",
+      "guard": "Guardias",
+      "resident": "Residentes"
+    },
+    "roleLabels": {
+      "admin": "Administrador",
+      "guard": "Guardia",
+      "resident": "Residente"
+    },
+    "status": {
+      "active": "Activo",
+      "pending": "Invitado",
+      "suspended": "Suspendido"
+    },
+    "table": {
+      "columns": {
+        "userId": "ID de usuario",
+        "name": "Nombre",
+        "email": "Correo electrónico",
+        "role": "Rol",
+        "sites": "Sitios",
+        "status": "Estado",
+        "lastActive": "Última actividad",
+        "actions": "Acciones"
+      }
+    },
+    "search": {
+      "placeholder": "Buscar por nombre, correo o sitio"
+    },
+    "siteSelector": {
+      "label": "Sitio",
+      "all": "Todos los sitios"
+    },
+    "chip": {
+      "enterprise": "Empresa"
+    },
+    "alerts": {
+      "siteFilter": {
+        "prefix": "Filtrado a usuarios asociados con",
+        "suffix": "Borra el selector de sitios para ver todo el portafolio."
+      }
+    },
+    "tooltips": {
+      "restrictSite": "Restringir a este sitio",
+      "manageWorkspace": "Gestionar acceso del espacio",
+      "moreActions": "Más acciones"
+    },
+    "actions": {
+      "adjustRoles": "Ajustar roles",
+      "manage": "Gestionar"
+    },
+    "rowMenu": {
+      "viewProfile": "Ver perfil"
+    },
+    "meta": {
+      "all": {
+        "title": "Usuarios",
+        "description": "Administra administradores, guardias y residentes en todo tu espacio.",
+        "inviteCta": "Invitar usuario",
+        "inviteCtaForSite": "Invitar usuario para {{siteName}}",
+        "emptyTitle": "No se encontraron usuarios",
+        "emptyDescription": "Ajusta los filtros o invita a alguien nuevo para comenzar.",
+        "siteHint": "Gestionando miembros para {{siteName}}. Al quitar acceso conservan su cuenta empresarial pero se revocan permisos para esta propiedad."
+      },
+      "admin": {
+        "title": "Administradores",
+        "description": "Controla permisos de administradores y personal para esta propiedad.",
+        "inviteCta": "Invitar administrador",
+        "inviteCtaForSite": "Invitar administrador para {{siteName}}",
+        "emptyTitle": "No hay administradores asignados",
+        "emptyDescription": "Invita administradores del sitio para apoyar las operaciones diarias.",
+        "siteHint": "Mostrando administradores con permisos para {{siteName}}. Al quitar acceso conservan credenciales empresariales pero pierden este rol del sitio."
+      },
+      "guard": {
+        "title": "Guardias",
+        "description": "Supervisa guardias, turnos y certificaciones del equipo de acceso.",
+        "inviteCta": "Agregar guardia",
+        "inviteCtaForSite": "Agregar guardia para {{siteName}}",
+        "emptyTitle": "No hay guardias asignados",
+        "emptyDescription": "Invita a tu equipo de seguridad o sincroniza desde tu proveedor.",
+        "siteHint": "Solo aparecen guardias asignados a {{siteName}}. Actualiza turnos desde aquí para ajustar la cobertura."
+      },
+      "resident": {
+        "title": "Residentes",
+        "description": "Directorio de hogares y su estado de adopción del portal.",
+        "inviteCta": "Invitar residente",
+        "inviteCtaForSite": "Invitar residente para {{siteName}}",
+        "emptyTitle": "Aún no hay residentes",
+        "emptyDescription": "Invita hogares para activar su acceso al portal y usar amenidades.",
+        "siteHint": "Solo se muestran residentes de {{siteName}}. Al quitarlos conservan su cuenta pero pierden acceso a esta propiedad."
+      }
+    },
+    "lastActive": {
+      "relative": {
+        "justNow": "Hace un momento",
+        "minutes_one": "Hace {{count}} minuto",
+        "minutes_other": "Hace {{count}} minutos",
+        "hours_one": "Hace {{count}} hora",
+        "hours_other": "Hace {{count}} horas",
+        "days_one": "Hace {{count}} día",
+        "days_other": "Hace {{count}} días",
+        "date": "{{value}}",
+        "unknown": "No disponible"
+      }
+    }
+  },
+  "siteDetails": {
+    "header": {
+      "subtitle": "Resumen de operaciones para {{slug}}",
+      "planFallback": "Sin plan asignado"
+    },
+    "actions": {
+      "backToSites": "Volver a Sitios",
+      "siteSettings": "Configuración del sitio",
+      "inviteUser": "Invitar usuario",
+      "switchToSiteMode": "Cambiar a modo sitio"
+    },
+    "state": {
+      "notFound": "No encontramos detalles para este sitio."
+    },
+    "status": {
+      "active": "Activo",
+      "pending": "Pendiente",
+      "suspended": "Suspendido",
+      "inactive": "Inactivo",
+      "trial": "Prueba",
+      "unknown": "Desconocido"
+    },
+    "hero": {
+      "title": "Instantánea del sitio",
+      "metrics": {
+        "activeResidents": {
+          "label": "Residentes activos",
+          "value": "1,248 residentes",
+          "delta": "+4.2% vs mes anterior"
+        },
+        "scheduledVisits": {
+          "label": "Visitas programadas",
+          "value": "86 hoy",
+          "delta": "+12 llegadas pendientes"
+        },
+        "openIncidents": {
+          "label": "Incidentes abiertos",
+          "value": "5 activos",
+          "delta": "2 escalaciones en revisión"
+        },
+        "guardCoverage": {
+          "label": "Cobertura de guardias",
+          "value": "96% con turno",
+          "delta": "+1 turno vs objetivo"
+        }
+      }
+    },
+    "residentEngagement": {
+      "metrics": {
+        "portalAdoption": {
+          "label": "Adopción del portal",
+          "helper": "Subió 5 puntos vs mes anterior"
+        },
+        "amenityBookings": {
+          "label": "Reservas de amenidades",
+          "helper": "Mayor demanda del centro comunitario"
+        },
+        "broadcastReach": {
+          "label": "Alcance de anuncios",
+          "helper": "Residentes alcanzados por el último anuncio"
+        }
+      }
+    },
+    "quickLinks": {
+      "createVisitorPass": {
+        "label": "Crear pase de visitante",
+        "description": "Emite una credencial de acceso única."
+      },
+      "registerVehicle": {
+        "label": "Registrar vehículo",
+        "description": "Agrega placas y asígnalas a una residencia."
+      },
+      "addRecurringVisitor": {
+        "label": "Agregar visitante recurrente",
+        "description": "Preaprueba invitados frecuentes."
+      },
+      "inviteResident": {
+        "label": "Invitar residente",
+        "description": "Envía acceso al portal a un hogar."
+      },
+      "logIncident": {
+        "label": "Registrar incidente",
+        "description": "Captura detalles para seguimiento."
+      },
+      "automations": {
+        "label": "Gestionar automatizaciones",
+        "description": "Revisa flujos de trabajo y disparadores."
+      }
+    },
+    "panelShortcuts": {
+      "users": {
+        "label": "Todos los usuarios",
+        "description": "Administra el acceso del sitio."
+      },
+      "residents": {
+        "label": "Residentes",
+        "description": "Directorio e información de contacto."
+      },
+      "guards": {
+        "label": "Guardias",
+        "description": "Asignaciones de turnos y cobertura."
+      },
+      "admins": {
+        "label": "Administradores",
+        "description": "Permisos empresariales para este sitio."
+      },
+      "visits": {
+        "label": "Visitas",
+        "description": "Monitorea llegadas diarias."
+      },
+      "vehicles": {
+        "label": "Vehículos",
+        "description": "Calcomanías y placas registradas."
+      },
+      "visitors": {
+        "label": "Visitantes",
+        "description": "Lista de invitados recurrentes."
+      },
+      "residences": {
+        "label": "Residencias",
+        "description": "Unidades y ocupación."
+      },
+      "reports": {
+        "label": "Reportes",
+        "description": "Analítica y exportaciones."
+      }
+    },
+    "incidents": {
+      "cards": {
+        "pastSevenDays": {
+          "title": "Incidentes últimos 7 días",
+          "value": "18 registrados",
+          "helper": "Resueltos en 3.4 h promedio"
+        },
+        "critical": {
+          "title": "Alertas críticas",
+          "value": "2 abiertas",
+          "helper": "Escaladas al comando"
+        }
+      },
+      "breakdown": {
+        "segments": {
+          "gateAccess": {
+            "label": "Acceso por portón",
+            "value": "34%"
+          },
+          "noiseDisturbance": {
+            "label": "Molestia por ruido",
+            "value": "22%"
+          },
+          "maintenance": {
+            "label": "Mantenimiento",
+            "value": "18%"
+          },
+          "other": {
+            "label": "Otros",
+            "value": "26%"
+          }
+        }
+      }
+    },
+    "financials": {
+      "items": {
+        "monthlyRecurring": {
+          "label": "Ingresos recurrentes mensuales",
+          "value": "$86,400",
+          "delta": "+6.4% vs mes anterior"
+        },
+        "outstandingInvoices": {
+          "label": "Facturas pendientes",
+          "value": "$12,300",
+          "delta": "-2 facturas semana a semana"
+        },
+        "averageDues": {
+          "label": "Cuotas promedio cobradas",
+          "value": "$185 por residencia",
+          "delta": "+$8 vs ciclo anterior"
+        }
+      }
+    },
+    "guardRoster": {
+      "status": {
+        "onDuty": "En turno",
+        "scheduled": "Programado"
+      }
+    },
+    "timeline": {
+      "delivery": {
+        "title": "Entrega liberada en portón norte",
+        "subtitle": "Logística confirmó la salida de carga."
+      },
+      "residentCheckIn": {
+        "title": "Check-in de residente completado",
+        "subtitle": "El código QR del portal se escaneó en el lobby."
+      },
+      "incidentEscalated": {
+        "title": "Incidente escalado a comando",
+        "subtitle": "Supervisor revisa el reporte del guardia."
+      },
+      "visitorPassCreated": {
+        "title": "Pase de visitante creado",
+        "subtitle": "Credencial SMS enviada al invitado."
+      }
+    },
+    "context": {
+      "title": "Contexto del sitio",
+      "shortcuts": "Accesos rápidos",
+      "items": {
+        "address": {
+          "label": "Dirección",
+          "value": "1280 Harbor View Dr, Phoenix AZ"
+        },
+        "accessHours": {
+          "label": "Horario de acceso",
+          "value": "Diario 6:00 AM - 10:00 PM"
+        },
+        "primaryContact": {
+          "label": "Contacto principal",
+          "value": "María Álvarez, Administradora"
+        }
+      }
+    },
+    "speedDial": {
+      "ariaLabel": "Acciones rápidas del sitio",
+      "actions": {
+        "addVisitor": "Agregar pase de visitante",
+        "logIncident": "Registrar incidente",
+        "sendBroadcast": "Enviar anuncio",
+        "createInvoice": "Crear factura"
+      }
+    },
+    "sections": {
+      "timeline": {
+        "title": "Línea de tiempo",
+        "action": "Abrir registro de actividad"
+      },
+      "residentEngagement": {
+        "title": "Participación de residentes",
+        "action": "Ver reporte de adopción"
+      },
+      "incidents": {
+        "title": "Incidentes",
+        "action": "Revisar cola de incidentes"
+      },
+      "quickNavigation": {
+        "title": "Navegación rápida"
+      },
+      "panelShortcuts": {
+        "title": "Accesos del panel"
+      },
+      "financial": {
+        "title": "Resumen financiero",
+        "action": "Abrir centro de facturación",
+        "nextBilling": "El siguiente ciclo de cobro inicia el día 1 de cada mes."
+      },
+      "guardRoster": {
+        "title": "Cuadro de guardias",
+        "action": "Asignar turnos"
       }
     }
   }

@@ -1,7 +1,9 @@
+/* eslint-env node */
+/* global require, __dirname, console, process */
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 const fs = require('fs')
 const path = require('path')
-
-/* eslint-env node */
 
 const root = path.resolve(__dirname, '..')
 
