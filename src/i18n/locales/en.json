@@ -496,6 +496,131 @@
           }
         }
       }
+    },
+    "sitesPage": {
+      "title": "Sites",
+      "actions": {
+        "refresh": "Refresh",
+        "refreshAria": "Refresh sites",
+        "create": "Create site",
+        "setCurrent": "Set as current",
+        "invite": "Invite user"
+      },
+      "table": {
+        "name": "Name",
+        "slug": "Slug",
+        "plan": "Plan",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "state": {
+        "loading": "Loading...",
+        "empty": "No sites yet"
+      },
+      "badges": {
+        "current": "Current"
+      },
+      "statuses": {
+        "active": "Active",
+        "trial": "Trial",
+        "suspended": "Suspended"
+      }
+    },
+    "usersPage": {
+      "filters": {
+        "all": "All roles",
+        "admin": "Admins",
+        "guard": "Guards",
+        "resident": "Residents"
+      },
+      "roleLabels": {
+        "admin": "Admin",
+        "guard": "Guard",
+        "resident": "Resident"
+      },
+      "status": {
+        "active": "Active",
+        "pending": "Invited",
+        "suspended": "Suspended"
+      },
+      "table": {
+        "columns": {
+          "userId": "User ID",
+          "name": "Name",
+          "email": "Email",
+          "role": "Role",
+          "sites": "Sites",
+          "status": "Status",
+          "lastActive": "Last activity",
+          "actions": "Actions"
+        }
+      },
+      "search": {
+        "placeholder": "Search by name, email, or site"
+      },
+      "siteSelector": {
+        "label": "Site",
+        "all": "All sites"
+      },
+      "chip": {
+        "enterprise": "Enterprise"
+      },
+      "alerts": {
+        "siteFilter": {
+          "prefix": "Filtered to users associated with",
+          "suffix": "Clear the site selector to see the entire portfolio."
+        }
+      },
+      "tooltips": {
+        "restrictSite": "Restrict to this site",
+        "manageWorkspace": "Manage workspace access",
+        "moreActions": "More actions"
+      },
+      "actions": {
+        "adjustRoles": "Adjust roles",
+        "manage": "Manage"
+      },
+      "rowMenu": {
+        "viewProfile": "View profile"
+      },
+      "meta": {
+        "all": {
+          "title": "Users",
+          "description": "View and manage admins, guards, and residents across your workspace.",
+          "inviteCta": "Invite user",
+          "inviteCtaForSite": "Invite user for {{siteName}}",
+          "emptyTitle": "No users found",
+          "emptyDescription": "Adjust your filters or invite someone new to get started.",
+          "siteHint": "Managing members scoped to {{siteName}}. Removing access keeps their enterprise account but revokes permissions for this property."
+        },
+        "admin": {
+          "title": "Admins",
+          "description": "Control administrator and staff permissions for this property.",
+          "inviteCta": "Invite admin",
+          "inviteCtaForSite": "Invite admin for {{siteName}}",
+          "emptyTitle": "No admins assigned",
+          "emptyDescription": "Invite site admins to help run daily operations.",
+          "siteHint": "Showing admins with permissions for {{siteName}}. Removing access keeps enterprise credentials but removes this site role."
+        },
+        "guard": {
+          "title": "Guards",
+          "description": "Track guard staffing, shifts, and certifications for the gate team.",
+          "inviteCta": "Add guard",
+          "inviteCtaForSite": "Add guard for {{siteName}}",
+          "emptyTitle": "No guards assigned",
+          "emptyDescription": "Invite your security team or sync from your staffing partner.",
+          "siteHint": "Only guards assigned to {{siteName}} appear here. Update shifts from this view to adjust coverage."
+        },
+        "resident": {
+          "title": "Residents",
+          "description": "Directory of households and their portal adoption status.",
+          "inviteCta": "Invite resident",
+          "inviteCtaForSite": "Invite resident for {{siteName}}",
+          "emptyTitle": "No residents yet",
+          "emptyDescription": "Invite households to activate their portal access and start using amenities.",
+          "siteHint": "Only residents for {{siteName}} are shown. Removing them keeps their login but removes portal access for this property."
+        }
+      }
     }
   }
 }

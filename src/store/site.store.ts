@@ -28,7 +28,22 @@ export const useSiteStore = create<SiteState>((set, get) => ({
         name: String(s.name),
         slug: String(s.slug),
       }))
-      set({ sites: nextSites, current: nextSites[0] })
+      // Try to prefer a slug from the current URL so hydrate doesn't briefly set a
+      // different `current` and cause mode/path flipping when the app first loads
+      // (e.g. when navigating directly to /site/:slug).
+      let initial = nextSites[0]
+      try {
+        const m = window.location.pathname.match(/^\/site\/([^/]+)/)
+        if (m) {
+          const urlSlug = m[1]
+          const found = nextSites.find((s) => s.slug === urlSlug)
+          if (found) initial = found
+        }
+      } catch {
+        // ignore (server-side rendering or unknown context)
+      }
+
+      set({ sites: nextSites, current: initial })
     }
   },
 }))

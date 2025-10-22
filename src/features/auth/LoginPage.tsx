@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import { useAuthStore, LoginPayload } from '@app/auth/auth.store'
 import { useNavigate, Link } from 'react-router-dom'
+import buildEntityUrl from '@app/utils/contextPaths'
 
 const schema = z.object({
   email: z.string().email(),
@@ -32,7 +33,7 @@ export default function LoginPage() {
   const onSubmit = (data: Form) => {
     const payload: LoginPayload = { email: data.email, role: data.role }
     login(payload)
-    if (data.role === 'admin') nav('/admin/sites')
+    if (data.role === 'admin') nav(buildEntityUrl('sites'))
     else if (data.role === 'guard') nav('/guard')
     else nav('/app')
   }

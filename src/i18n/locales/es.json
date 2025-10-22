@@ -496,6 +496,131 @@
           }
         }
       }
+    },
+    "sitesPage": {
+      "title": "Sitios",
+      "actions": {
+        "refresh": "Refrescar",
+        "refreshAria": "Refrescar lista de sitios",
+        "create": "Crear sitio",
+        "setCurrent": "Establecer actual",
+        "invite": "Invitar usuario"
+      },
+      "table": {
+        "name": "Nombre",
+        "slug": "Slug",
+        "plan": "Plan",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "state": {
+        "loading": "Cargando...",
+        "empty": "Sin sitios aún"
+      },
+      "badges": {
+        "current": "Actual"
+      },
+      "statuses": {
+        "active": "Activo",
+        "trial": "Prueba",
+        "suspended": "Suspendido"
+      }
+    },
+    "usersPage": {
+      "filters": {
+        "all": "Todos los roles",
+        "admin": "Administradores",
+        "guard": "Guardias",
+        "resident": "Residentes"
+      },
+      "roleLabels": {
+        "admin": "Administrador",
+        "guard": "Guardia",
+        "resident": "Residente"
+      },
+      "status": {
+        "active": "Activo",
+        "pending": "Invitado",
+        "suspended": "Suspendido"
+      },
+      "table": {
+        "columns": {
+          "userId": "ID de usuario",
+          "name": "Nombre",
+          "email": "Correo electrónico",
+          "role": "Rol",
+          "sites": "Sitios",
+          "status": "Estado",
+          "lastActive": "Última actividad",
+          "actions": "Acciones"
+        }
+      },
+      "search": {
+        "placeholder": "Buscar por nombre, correo o sitio"
+      },
+      "siteSelector": {
+        "label": "Sitio",
+        "all": "Todos los sitios"
+      },
+      "chip": {
+        "enterprise": "Empresa"
+      },
+      "alerts": {
+        "siteFilter": {
+          "prefix": "Filtrado a usuarios asociados con",
+          "suffix": "Borra el selector de sitios para ver todo el portafolio."
+        }
+      },
+      "tooltips": {
+        "restrictSite": "Restringir a este sitio",
+        "manageWorkspace": "Gestionar acceso del espacio",
+        "moreActions": "Más acciones"
+      },
+      "actions": {
+        "adjustRoles": "Ajustar roles",
+        "manage": "Gestionar"
+      },
+      "rowMenu": {
+        "viewProfile": "Ver perfil"
+      },
+      "meta": {
+        "all": {
+          "title": "Usuarios",
+          "description": "Administra administradores, guardias y residentes en todo tu espacio.",
+          "inviteCta": "Invitar usuario",
+          "inviteCtaForSite": "Invitar usuario para {{siteName}}",
+          "emptyTitle": "No se encontraron usuarios",
+          "emptyDescription": "Ajusta los filtros o invita a alguien nuevo para comenzar.",
+          "siteHint": "Gestionando miembros para {{siteName}}. Al quitar acceso conservan su cuenta empresarial pero se revocan permisos para esta propiedad."
+        },
+        "admin": {
+          "title": "Administradores",
+          "description": "Controla permisos de administradores y personal para esta propiedad.",
+          "inviteCta": "Invitar administrador",
+          "inviteCtaForSite": "Invitar administrador para {{siteName}}",
+          "emptyTitle": "No hay administradores asignados",
+          "emptyDescription": "Invita administradores del sitio para apoyar las operaciones diarias.",
+          "siteHint": "Mostrando administradores con permisos para {{siteName}}. Al quitar acceso conservan credenciales empresariales pero pierden este rol del sitio."
+        },
+        "guard": {
+          "title": "Guardias",
+          "description": "Supervisa guardias, turnos y certificaciones del equipo de acceso.",
+          "inviteCta": "Agregar guardia",
+          "inviteCtaForSite": "Agregar guardia para {{siteName}}",
+          "emptyTitle": "No hay guardias asignados",
+          "emptyDescription": "Invita a tu equipo de seguridad o sincroniza desde tu proveedor.",
+          "siteHint": "Solo aparecen guardias asignados a {{siteName}}. Actualiza turnos desde aquí para ajustar la cobertura."
+        },
+        "resident": {
+          "title": "Residentes",
+          "description": "Directorio de hogares y su estado de adopción del portal.",
+          "inviteCta": "Invitar residente",
+          "inviteCtaForSite": "Invitar residente para {{siteName}}",
+          "emptyTitle": "Aún no hay residentes",
+          "emptyDescription": "Invita hogares para activar su acceso al portal y usar amenidades.",
+          "siteHint": "Solo se muestran residentes de {{siteName}}. Al quitarlos conservan su cuenta pero pierden acceso a esta propiedad."
+        }
+      }
     }
   }
 }

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import type { ReactNode } from 'react'
 import type { ButtonProps } from '@mui/material/Button'
-import { useLayoutHeaderActions } from './LayoutHeaderActionsContext'
+import { useBackStore } from '@store/back.store'
 
 export type BreadcrumbBackActionOptions = {
   label: string
@@ -29,8 +29,9 @@ export function useBreadcrumbBackAction({
   enabled = true,
 }: BreadcrumbBackActionOptions) {
   const navigate = useNavigate()
-  const { registerActions, clearActions } = useLayoutHeaderActions()
-  const registeredRef = useRef(false)
+  const setBack = useBackStore((s) => s.setBack)
+  const clearBack = useBackStore((s) => s.clearBack)
+  const didSetRef = useRef(false)
 
   const handler = useMemo(() => {
     if (onClick) {
@@ -42,46 +43,34 @@ export function useBreadcrumbBackAction({
     return () => navigate(-1)
   }, [navigate, onClick, to])
 
-  const actionIcon = useMemo(() => icon ?? <ArrowBackIcon fontSize="small" />, [icon])
+  const resolvedIcon = useMemo(() => icon ?? <ArrowBackIcon fontSize="small" />, [icon])
 
   useEffect(() => {
     if (!enabled) {
-      if (registeredRef.current) {
-        clearActions()
-        registeredRef.current = false
+      if (didSetRef.current) {
+        clearBack()
+        didSetRef.current = false
       }
       return
     }
 
-    registerActions([
-      {
-        key: key ?? 'breadcrumb-back',
-        label,
-        icon: actionIcon,
-        onClick: handler,
-        variant: variant ?? 'text',
-        color: color ?? 'inherit',
-        disabled,
-      },
-    ])
-    registeredRef.current = true
+    didSetRef.current = true
+    setBack({
+      label,
+      to,
+      onClick: handler,
+      icon: resolvedIcon,
+      variant: variant ?? 'text',
+      color: color ?? 'inherit',
+      disabled,
+      key: key ?? 'breadcrumb-back',
+    })
 
     return () => {
-      if (registeredRef.current) {
-        clearActions()
-        registeredRef.current = false
+      if (didSetRef.current) {
+        clearBack()
+        didSetRef.current = false
       }
     }
-  }, [
-    actionIcon,
-    clearActions,
-    color,
-    disabled,
-    enabled,
-    handler,
-    key,
-    label,
-    registerActions,
-    variant,
-  ])
+  }, [clearBack, color, disabled, enabled, handler, key, label, resolvedIcon, setBack, variant, to])
 }

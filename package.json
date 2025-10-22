@@ -11,6 +11,8 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",
+  "check:routes": "node ./scripts/check_routes.cjs",
+    "codemod:replace-routes": "echo \"Run jscodeshift: npx jscodeshift -t transforms/replace-admin-site-routes.js src --parser=ts\"",
   "gen:locale": "ts-node ./scripts/generate-locale.ts",
   "i18n:translate": "python ./scripts/translate_locales.py",
     "typecheck": "tsc --noEmit"

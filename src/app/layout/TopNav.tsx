@@ -57,6 +57,7 @@ import SettingsPage from '@features/settings/SettingsPage'
 import { useTranslate } from '../../i18n/useTranslate'
 import { alpha, useTheme } from '@mui/material/styles'
 import { useSiteStore, type SiteMode, type Site } from '@store/site.store'
+import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
 
 type NavItem = {
   label: string
@@ -117,7 +118,7 @@ export default function TopNav() {
     if (!user) return []
 
     if (mode === 'site' && current) {
-      const base = `/site/${current.slug}`
+      const base = siteRoot(current.slug)
       return [
         {
           label: t('topnav.siteNav.dashboard.label', { siteName: current.name }),
@@ -127,13 +128,16 @@ export default function TopNav() {
         },
         {
           label: t('topnav.siteNav.allUsers.label'),
-          to: `${base}/users`,
+          to: buildEntityUrl('users', undefined, { mode: 'site', currentSlug: current.slug }),
           Icon: PeopleIcon,
           description: t('topnav.siteNav.allUsers.description', { siteName: current.name }),
         },
         {
           label: t('topnav.siteNav.residents.label'),
-          to: `${base}/users/residents`,
+          to: buildEntityUrl('users/residents', undefined, {
+            mode: 'site',
+            currentSlug: current.slug,
+          }),
           Icon: GroupsIcon,
           description: t('topnav.siteNav.residents.description'),
         },
@@ -151,31 +155,31 @@ export default function TopNav() {
         },
         {
           label: t('topnav.siteNav.visits.label'),
-          to: `${base}/visits`,
+          to: buildEntityUrl('visits', undefined, { mode: 'site', currentSlug: current.slug }),
           Icon: DoorFrontIcon,
           description: t('topnav.siteNav.visits.description'),
         },
         {
           label: t('topnav.siteNav.residences.label'),
-          to: `${base}/residences`,
+          to: buildEntityUrl('residences', undefined, { mode: 'site', currentSlug: current.slug }),
           Icon: HomeWorkIcon,
           description: t('topnav.siteNav.residences.description'),
         },
         {
           label: t('topnav.siteNav.vehicles.label'),
-          to: `${base}/vehicles`,
+          to: buildEntityUrl('vehicles', undefined, { mode: 'site', currentSlug: current.slug }),
           Icon: DirectionsCarFilledIcon,
           description: t('topnav.siteNav.vehicles.description'),
         },
         {
           label: t('topnav.siteNav.visitors.label'),
-          to: `${base}/visitors`,
+          to: buildEntityUrl('visitors', undefined, { mode: 'site', currentSlug: current.slug }),
           Icon: BadgeOutlinedIcon,
           description: t('topnav.siteNav.visitors.description'),
         },
         {
           label: t('topnav.siteNav.reports.label'),
-          to: `${base}/reports`,
+          to: buildEntityUrl('reports', undefined, { mode: 'site', currentSlug: current.slug }),
           Icon: BarChartIcon,
           description: t('topnav.siteNav.reports.description', { siteName: current.name }),
         },
@@ -187,43 +191,43 @@ export default function TopNav() {
         return [
           {
             label: t('topnav.roleNav.admin.dashboard.label'),
-            to: '/admin',
+            to: buildEntityUrl(''),
             Icon: DashboardIcon,
             description: t('topnav.roleNav.admin.dashboard.description'),
           },
           {
             label: t('topnav.roleNav.admin.sites.label'),
-            to: '/admin/sites',
+            to: buildEntityUrl('sites'),
             Icon: DomainIcon,
             description: t('topnav.roleNav.admin.sites.description'),
           },
           {
             label: t('topnav.roleNav.admin.visits.label'),
-            to: '/admin/visits',
+            to: buildEntityUrl('visits'),
             Icon: DoorFrontIcon,
             description: t('topnav.roleNav.admin.visits.description'),
           },
           {
             label: t('topnav.roleNav.admin.vehicles.label'),
-            to: '/admin/vehicles',
+            to: buildEntityUrl('vehicles'),
             Icon: DirectionsCarFilledIcon,
             description: t('topnav.roleNav.admin.vehicles.description'),
           },
           {
             label: t('topnav.roleNav.admin.visitors.label'),
-            to: '/admin/visitors',
+            to: buildEntityUrl('visitors'),
             Icon: BadgeOutlinedIcon,
             description: t('topnav.roleNav.admin.visitors.description'),
           },
           {
             label: t('topnav.roleNav.admin.users.label'),
-            to: '/admin/users',
+            to: buildEntityUrl('users'),
             Icon: PeopleIcon,
             description: t('topnav.roleNav.admin.users.description'),
           },
           {
             label: t('topnav.roleNav.admin.reports.label'),
-            to: '/admin/reports',
+            to: buildEntityUrl('reports'),
             Icon: BarChartIcon,
             description: t('topnav.roleNav.admin.reports.description'),
           },
@@ -333,32 +337,43 @@ export default function TopNav() {
 
   const getActionsForNotification = useCallback(
     (notification: Notification): NotificationAction[] => {
-      const siteBase = notification.siteSlug ? `/site/${notification.siteSlug}` : '/admin'
-
       const goTo = (path: string) => {
         closeNotificationsMenu()
         navigate(path)
       }
 
       switch (notification.type) {
-        case 'incident':
+        case 'incident': {
+          const reportsUrl = buildEntityUrl('reports', undefined, {
+            mode: notification.siteSlug ? 'site' : 'enterprise',
+            currentSlug: notification.siteSlug ?? null,
+          })
+          const visitsUrl = buildEntityUrl('visits', undefined, {
+            mode: notification.siteSlug ? 'site' : 'enterprise',
+            currentSlug: notification.siteSlug ?? null,
+          })
           return [
             {
               label: t('topnav.notifications.actions.reviewIncidentLog'),
               variant: 'contained',
               color: 'error',
-              onClick: () => goTo(`${siteBase}/reports`),
+              onClick: () => goTo(reportsUrl),
             },
             {
               label: t('topnav.notifications.actions.markResolved'),
               color: 'inherit',
               onClick: () => {
                 dismissNotification(notification.id)
-                closeNotificationsMenu()
+                goTo(visitsUrl)
               },
             },
           ]
-        case 'visitor':
+        }
+        case 'visitor': {
+          const visitsUrl = buildEntityUrl('visits', undefined, {
+            mode: notification.siteSlug ? 'site' : 'enterprise',
+            currentSlug: notification.siteSlug ?? null,
+          })
           return [
             {
               label: t('topnav.notifications.actions.approveVisitor'),
@@ -366,7 +381,7 @@ export default function TopNav() {
               color: 'primary',
               onClick: () => {
                 dismissNotification(notification.id)
-                goTo(`${siteBase}/visits`)
+                goTo(visitsUrl)
               },
             },
             {
@@ -379,6 +394,7 @@ export default function TopNav() {
               },
             },
           ]
+        }
         case 'announcement':
         default:
           return [
@@ -443,7 +459,7 @@ export default function TopNav() {
       setMode('enterprise')
       setModeDialogOpen(false)
       setDrawerOpen(false)
-      navigate('/admin')
+      navigate(buildEntityUrl(''))
       return
     }
 
@@ -456,7 +472,7 @@ export default function TopNav() {
     setMode('site')
     setModeDialogOpen(false)
     setDrawerOpen(false)
-    navigate(`/site/${targetSite.slug}`)
+    navigate(siteRoot(targetSite.slug))
   }
 
   const disableConfirm =

@@ -35,7 +35,7 @@ import {
 } from './userData'
 import { useSiteStore } from '@store/site.store'
 import { useBreadcrumbBackAction } from '@app/layout/useBreadcrumbBackAction'
-import buildEntityUrl from '@app/utils/contextPaths'
+import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
 
 const ROLE_SEGMENT: Record<Exclude<RoleFilter, 'all'>, string> = {
   admin: 'admins',
@@ -82,6 +82,8 @@ export default function UserProfilePage() {
     label: backLabel,
     to: returnPath,
     key: 'back',
+    variant: 'outlined',
+    color: 'inherit',
   })
 
   if (userId && !user) {
@@ -262,7 +264,7 @@ export default function UserProfilePage() {
               </Typography>
               <Stack spacing={1}>
                 {activeSites.map((site) => {
-                  const sitePath = `/site/${site.slug}`
+                  const sitePath = siteRoot(site.slug)
                   const isFocused = siteScoped && current?.slug === site.slug
                   return (
                     <Button
@@ -407,10 +409,11 @@ function buildPeerLink(
   if (opts.resolvedFilter !== 'all') {
     params.set('role', opts.resolvedFilter)
   }
-  const base =
-    opts.siteScoped && opts.currentSlug
-      ? `/site/${opts.currentSlug}/users/${member.id}`
-      : `/admin/users/${member.id}`
+  const base = buildEntityUrl('users', member.id, {
+    mode: opts.siteScoped ? 'site' : 'enterprise',
+    currentSlug: opts.currentSlug ?? null,
+    routeParamSlug: opts.siteScoped ? (opts.currentSlug ?? null) : null,
+  })
   const suffix = params.toString()
   return suffix ? `${base}?${suffix}` : base
 }

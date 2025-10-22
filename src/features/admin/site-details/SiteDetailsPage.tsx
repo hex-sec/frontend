@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode, type ElementType } from 'react'
+import { useEffect, useMemo, type ReactNode, type ElementType } from 'react'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -14,6 +14,7 @@ import {
   SpeedDialAction,
   LinearProgress,
 } from '@mui/material'
+import type { ChipProps } from '@mui/material'
 import SettingsIcon from '@mui/icons-material/Settings'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import ReportProblemIcon from '@mui/icons-material/ReportProblem'
@@ -35,22 +36,29 @@ import BarChartIcon from '@mui/icons-material/BarChart'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import { alpha, type Theme } from '@mui/material/styles'
 import { useBreadcrumbBackAction } from '@app/layout/useBreadcrumbBackAction'
+import buildEntityUrl from '@app/utils/contextPaths'
 import { useSiteBySlugQuery } from '../sites.api'
 import { useSiteStore } from '@store/site.store'
 import { useTranslate } from '@i18n/useTranslate'
+import { useI18nStore } from '@store/i18n.store'
 
 const HERO_METRICS = [
-  { label: 'Active residents', value: '342', delta: '+12 this week', Icon: GroupsIcon },
-  { label: 'Scheduled visits', value: '18', delta: 'Next 8 hours', Icon: DoorFrontIcon },
-  { label: 'Open incidents', value: '3', delta: '2 critical', Icon: ReportProblemIcon },
-  { label: 'Guard coverage', value: '92%', delta: 'All shifts staffed', Icon: LocalPoliceIcon },
+  { key: 'activeResidents', Icon: GroupsIcon },
+  { key: 'scheduledVisits', Icon: DoorFrontIcon },
+  { key: 'openIncidents', Icon: ReportProblemIcon },
+  { key: 'guardCoverage', Icon: LocalPoliceIcon },
+]
+
+const RESIDENT_METRICS = [
+  { key: 'portalAdoption', value: 82, color: 'primary' as const },
+  { key: 'amenityBookings', value: 64, color: 'secondary' as const },
+  { key: 'broadcastReach', value: 91, color: 'success' as const },
 ]
 
 type ScopedPath = string | ((slug: string) => string)
 
 type QuickLinkConfig = {
-  label: string
-  description: string
+  key: string
   Icon: ElementType
   sitePath?: ScopedPath
   enterprisePath?: ScopedPath
@@ -58,43 +66,37 @@ type QuickLinkConfig = {
 
 const QUICK_LINKS: QuickLinkConfig[] = [
   {
-    label: 'Create visitor pass',
-    description: 'Generate a same-day QR',
+    key: 'createVisitorPass',
     Icon: DoorFrontIcon,
     sitePath: 'visits',
     enterprisePath: (slug) => `/admin/sites/${slug}/visits`,
   },
   {
-    label: 'Register vehicle',
-    description: 'Add resident or vendor plate',
+    key: 'registerVehicle',
     Icon: DirectionsCarFilledIcon,
     sitePath: 'vehicles',
     enterprisePath: (slug) => `/admin/sites/${slug}/vehicles`,
   },
   {
-    label: 'Add recurring visitor',
-    description: 'Save frequent guest profile',
+    key: 'addRecurringVisitor',
     Icon: BadgeIcon,
     sitePath: 'visitors',
     enterprisePath: (slug) => `/admin/sites/${slug}/visitors`,
   },
   {
-    label: 'Invite resident',
-    description: 'Send onboarding email',
+    key: 'inviteResident',
     Icon: PersonAddIcon,
     sitePath: 'users/residents',
     enterprisePath: (slug) => `/admin/sites/${slug}/users/residents`,
   },
   {
-    label: 'Log incident',
-    description: 'Record gate event',
+    key: 'logIncident',
     Icon: ReportProblemIcon,
     sitePath: 'reports',
     enterprisePath: '/admin/reports',
   },
   {
-    label: 'Automations',
-    description: 'Configure workflows',
+    key: 'automations',
     Icon: TrendingUpIcon,
     sitePath: 'reports',
     enterprisePath: '/admin/reports',
@@ -102,8 +104,7 @@ const QUICK_LINKS: QuickLinkConfig[] = [
 ]
 
 type PanelShortcutConfig = {
-  label: string
-  description: string
+  key: string
   Icon: ElementType
   sitePath?: ScopedPath
   enterprisePath?: ScopedPath
@@ -111,67 +112,58 @@ type PanelShortcutConfig = {
 
 const PANEL_SHORTCUTS: PanelShortcutConfig[] = [
   {
-    label: 'Users',
+    key: 'users',
     sitePath: 'users',
     enterprisePath: (slug) => `/admin/sites/${slug}/users`,
     Icon: GroupsIcon,
-    description: 'Manage roles and invites',
   },
   {
-    label: 'Residents',
+    key: 'residents',
     sitePath: 'users/residents',
     enterprisePath: (slug) => `/admin/sites/${slug}/users/residents`,
     Icon: GroupsIcon,
-    description: 'Directory and broadcasts',
   },
   {
-    label: 'Guards',
+    key: 'guards',
     sitePath: 'users/guards',
     enterprisePath: (slug) => `/admin/sites/${slug}/users/guards`,
     Icon: LocalPoliceIcon,
-    description: 'Shift assignments and handoffs',
   },
   {
-    label: 'Admins',
+    key: 'admins',
     sitePath: 'users/admins',
     enterprisePath: (slug) => `/admin/sites/${slug}/users/admins`,
     Icon: ManageAccountsIcon,
-    description: 'Enterprise access and permissions',
   },
   {
-    label: 'Visits',
+    key: 'visits',
     sitePath: 'visits',
     enterprisePath: (slug) => `/admin/sites/${slug}/visits`,
     Icon: DoorFrontIcon,
-    description: 'Gate log and passes',
   },
   {
-    label: 'Vehicles',
+    key: 'vehicles',
     sitePath: 'vehicles',
     enterprisePath: (slug) => `/admin/sites/${slug}/vehicles`,
     Icon: DirectionsCarFilledIcon,
-    description: 'Registered plates and decals',
   },
   {
-    label: 'Visitors',
+    key: 'visitors',
     sitePath: 'visitors',
     enterprisePath: (slug) => `/admin/sites/${slug}/visitors`,
     Icon: BadgeIcon,
-    description: 'Recurring guest directory',
   },
   {
-    label: 'Residences',
+    key: 'residences',
     sitePath: 'residences',
     enterprisePath: (slug) => `/admin/sites/${slug}/residences`,
     Icon: HomeWorkIcon,
-    description: 'Units, villas, and amenities',
   },
   {
-    label: 'Reports',
+    key: 'reports',
     sitePath: 'reports',
     enterprisePath: (slug) => `/admin/sites/${slug}/reports`,
     Icon: BarChartIcon,
-    description: 'Exports and analytics',
   },
 ]
 
@@ -231,27 +223,32 @@ function toEnterprisePath(slug: string, path: ScopedPath) {
 }
 
 const FINANCIALS = [
-  { label: 'Monthly recurring', value: '$12,480', delta: '+4.2%', accent: 'success.main' },
-  {
-    label: 'Outstanding invoices',
-    value: '$1,230',
-    delta: '-$540 vs last month',
-    accent: 'success.main',
-  },
-  { label: 'Average dues paid', value: '87%', delta: '-3% overdue', accent: 'warning.main' },
+  { key: 'monthlyRecurring', accent: 'success.main' },
+  { key: 'outstandingInvoices', accent: 'success.main' },
+  { key: 'averageDues', accent: 'warning.main' },
 ]
 
 const TIMELINE = [
-  { time: '08:45', title: 'Delivery: Amazon Van', subtitle: 'Gate 2' },
-  { time: '09:10', title: 'Resident check-in', subtitle: 'Laura Pérez · Tower B' },
-  { time: '10:24', title: 'Incident escalated', subtitle: 'Unauthorized vehicle' },
-  { time: '11:40', title: 'Visitor pass created', subtitle: 'Smith family' },
+  { time: '08:45', key: 'delivery' },
+  { time: '09:10', key: 'residentCheckIn' },
+  { time: '10:24', key: 'incidentEscalated' },
+  { time: '11:40', key: 'visitorPassCreated' },
 ]
 
+const INCIDENT_CARDS = [{ key: 'pastSevenDays' }, { key: 'critical', severity: true }]
+
+const INCIDENT_BREAKDOWN_KEYS = ['gateAccess', 'noiseDisturbance', 'maintenance', 'other']
+
 const GUARDS = [
-  { name: 'Carlos Díaz', shift: '06:00 – 14:00', status: 'On duty' },
-  { name: 'Ana López', shift: '14:00 – 22:00', status: 'On duty' },
-  { name: 'José Medina', shift: '22:00 – 06:00', status: 'Scheduled' },
+  { name: 'Carlos Díaz', shift: '06:00 – 14:00', statusKey: 'onDuty' },
+  { name: 'Ana López', shift: '14:00 – 22:00', statusKey: 'onDuty' },
+  { name: 'José Medina', shift: '22:00 – 06:00', statusKey: 'scheduled' },
+]
+
+const SITE_CONTEXT_ITEMS = [
+  { key: 'address', Icon: BusinessIcon },
+  { key: 'accessHours', Icon: AccessTimeIcon },
+  { key: 'primaryContact', Icon: EmailIcon },
 ]
 
 export default function SiteDetailsPage() {
@@ -261,10 +258,170 @@ export default function SiteDetailsPage() {
   const navigate = useNavigate()
   const isSiteMode = mode === 'site'
   const { t } = useTranslate()
+  const language = useI18nStore((s) => s.language)
+  const translate = useMemo(
+    () => (key: string, options?: Record<string, unknown>) => t(key, { lng: language, ...options }),
+    [language, t],
+  )
+
+  const heroMetrics = useMemo(
+    () =>
+      HERO_METRICS.map(({ key, Icon }) => ({
+        key,
+        Icon,
+        label: translate(`admin.siteDetails.hero.metrics.${key}.label`),
+        value: translate(`admin.siteDetails.hero.metrics.${key}.value`),
+        delta: translate(`admin.siteDetails.hero.metrics.${key}.delta`),
+      })),
+    [translate],
+  )
+
+  const residentMetrics = useMemo(
+    () =>
+      RESIDENT_METRICS.map(({ key, value, color }) => ({
+        key,
+        value,
+        color,
+        label: translate(`admin.siteDetails.residentEngagement.metrics.${key}.label`),
+        helper: translate(`admin.siteDetails.residentEngagement.metrics.${key}.helper`),
+      })),
+    [translate],
+  )
+
+  const quickLinksWithCopy = useMemo(
+    () =>
+      QUICK_LINKS.map((link) => ({
+        ...link,
+        label: translate(`admin.siteDetails.quickLinks.${link.key}.label`),
+        description: translate(`admin.siteDetails.quickLinks.${link.key}.description`),
+      })),
+    [translate],
+  )
+
+  const panelShortcutsWithCopy = useMemo(
+    () =>
+      PANEL_SHORTCUTS.map((shortcut) => ({
+        ...shortcut,
+        label: translate(`admin.siteDetails.panelShortcuts.${shortcut.key}.label`),
+        description: translate(`admin.siteDetails.panelShortcuts.${shortcut.key}.description`),
+      })),
+    [translate],
+  )
+
+  const incidentCardsWithCopy = useMemo(
+    () =>
+      INCIDENT_CARDS.map(({ key, severity }) => ({
+        key,
+        severity,
+        title: translate(`admin.siteDetails.incidents.cards.${key}.title`),
+        value: translate(`admin.siteDetails.incidents.cards.${key}.value`),
+        helper: translate(`admin.siteDetails.incidents.cards.${key}.helper`),
+      })),
+    [translate],
+  )
+
+  const incidentBreakdownSegments = useMemo(
+    () =>
+      INCIDENT_BREAKDOWN_KEYS.map((key) => ({
+        key,
+        label: translate(`admin.siteDetails.incidents.breakdown.segments.${key}.label`),
+        value: translate(`admin.siteDetails.incidents.breakdown.segments.${key}.value`),
+      })),
+    [translate],
+  )
+
+  const financialSnapshot = useMemo(
+    () =>
+      FINANCIALS.map(({ key, accent }) => ({
+        key,
+        accent,
+        label: translate(`admin.siteDetails.financials.items.${key}.label`),
+        value: translate(`admin.siteDetails.financials.items.${key}.value`),
+        delta: translate(`admin.siteDetails.financials.items.${key}.delta`),
+      })),
+    [translate],
+  )
+
+  const guardRoster = useMemo(
+    () =>
+      GUARDS.map((guard) => ({
+        ...guard,
+        status: translate(`admin.siteDetails.guardRoster.status.${guard.statusKey}`),
+      })),
+    [translate],
+  )
+
+  const timelineEntries = useMemo(
+    () =>
+      TIMELINE.map(({ time, key }) => ({
+        time,
+        title: translate(`admin.siteDetails.timeline.${key}.title`),
+        subtitle: translate(`admin.siteDetails.timeline.${key}.subtitle`),
+      })),
+    [translate],
+  )
+
+  const siteContextItems = useMemo(
+    () =>
+      SITE_CONTEXT_ITEMS.map(({ key, Icon }) => ({
+        key,
+        Icon,
+        label: translate(`admin.siteDetails.context.items.${key}.label`),
+        value: translate(`admin.siteDetails.context.items.${key}.value`),
+      })),
+    [translate],
+  )
+
+  const speedDialActions = useMemo(
+    () =>
+      [
+        { key: 'addVisitor', Icon: DoorFrontIcon },
+        { key: 'logIncident', Icon: ReportProblemIcon },
+        { key: 'sendBroadcast', Icon: AddAlertIcon },
+        { key: 'createInvoice', Icon: ReceiptLongIcon },
+      ].map(({ key, Icon }) => ({
+        key,
+        Icon,
+        tooltip: translate(`admin.siteDetails.speedDial.actions.${key}`),
+      })),
+    [translate],
+  )
+
+  const siteSlug = site?.slug
+
+  const quickLinkTargets = useMemo(() => {
+    if (!siteSlug) {
+      return []
+    }
+
+    return quickLinksWithCopy.map(({ sitePath, enterprisePath }) =>
+      resolveScopedTarget({
+        slug: siteSlug,
+        isSiteMode,
+        sitePath,
+        enterprisePath,
+      }),
+    )
+  }, [isSiteMode, quickLinksWithCopy, siteSlug])
+
+  const panelShortcutTargets = useMemo(() => {
+    if (!siteSlug) {
+      return []
+    }
+
+    return panelShortcutsWithCopy.map(({ sitePath, enterprisePath }) =>
+      resolveScopedTarget({
+        slug: siteSlug,
+        isSiteMode,
+        sitePath,
+        enterprisePath,
+      }),
+    )
+  }, [isSiteMode, panelShortcutsWithCopy, siteSlug])
 
   useBreadcrumbBackAction({
-    label: 'Back to Sites',
-    to: '/admin/sites',
+    label: translate('admin.siteDetails.actions.backToSites'),
+    to: buildEntityUrl('sites'),
     variant: 'outlined',
     color: 'inherit',
     key: 'back-to-sites',
@@ -286,27 +443,27 @@ export default function SiteDetailsPage() {
   }
 
   if (!site) {
-    return <Typography>Site not found.</Typography>
+    return <Typography>{translate('admin.siteDetails.state.notFound')}</Typography>
   }
 
-  // Memoize quick link targets and panel shortcut targets
-  const quickLinkTargets = QUICK_LINKS.map((link) =>
-    resolveScopedTarget({
-      slug: site.slug,
-      isSiteMode,
-      sitePath: link.sitePath,
-      enterprisePath: link.enterprisePath,
-    }),
-  )
-
-  const panelShortcutTargets = PANEL_SHORTCUTS.map((shortcut) =>
-    resolveScopedTarget({
-      slug: site.slug,
-      isSiteMode,
-      sitePath: shortcut.sitePath,
-      enterprisePath: shortcut.enterprisePath,
-    }),
-  )
+  const planLabel = site.plan?.toUpperCase() ?? translate('admin.siteDetails.header.planFallback')
+  const statusKey = site.status?.toLowerCase() ?? 'unknown'
+  const statusLabel = translate(`admin.siteDetails.status.${statusKey}`, {
+    defaultValue: site.status ?? statusKey,
+  })
+  const statusColorMap: Record<string, ChipProps['color']> = {
+    active: 'success',
+    pending: 'warning',
+    suspended: 'error',
+    inactive: 'default',
+    trial: 'info',
+  }
+  const statusColor: ChipProps['color'] = statusColorMap[statusKey] ?? 'default'
+  const headerSubtitle = translate('admin.siteDetails.header.subtitle', { slug: site.slug })
+  const siteSettingsLabel = translate('admin.siteDetails.actions.siteSettings')
+  const inviteUserLabel = translate('admin.siteDetails.actions.inviteUser')
+  const switchToSiteModeLabel = translate('admin.siteDetails.actions.switchToSiteMode')
+  const speedDialLabel = translate('admin.siteDetails.speedDial.ariaLabel')
 
   return (
     <Box sx={{ position: 'relative', pb: 8 }}>
@@ -322,15 +479,11 @@ export default function SiteDetailsPage() {
             {site.name}
           </Typography>
           <Stack direction="row" spacing={1}>
-            <Chip label={site.plan?.toUpperCase() ?? 'FREE'} size="small" color="primary" />
-            <Chip
-              label={site.status}
-              size="small"
-              color={site.status === 'active' ? 'success' : 'default'}
-            />
+            <Chip label={planLabel} size="small" color="primary" />
+            <Chip label={statusLabel} size="small" color={statusColor} />
           </Stack>
           <Typography variant="body2" color="text.secondary">
-            Focused view for {site.slug}
+            {headerSubtitle}
           </Typography>
         </Stack>
 
@@ -345,14 +498,14 @@ export default function SiteDetailsPage() {
                 navigate(`/site/${site.slug}`)
               }}
             >
-              {t('siteDetails.switchToSiteMode')}
+              {switchToSiteModeLabel}
             </Button>
           ) : null}
           <Button variant="outlined" startIcon={<SettingsIcon />}>
-            Site settings
+            {siteSettingsLabel}
           </Button>
           <Button variant="contained" startIcon={<PersonAddIcon />}>
-            Invite user
+            {inviteUserLabel}
           </Button>
         </Stack>
       </Stack>
@@ -362,12 +515,12 @@ export default function SiteDetailsPage() {
           <Stack spacing={2} position="sticky" top={88}>
             <Paper sx={{ p: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                Hero KPIs
+                {translate('admin.siteDetails.hero.title')}
               </Typography>
               <Stack spacing={1.5}>
-                {HERO_METRICS.map(({ label, value, delta, Icon }) => (
+                {heroMetrics.map(({ key, label, value, delta, Icon }) => (
                   <Box
-                    key={label}
+                    key={key}
                     sx={(theme) => ({
                       borderRadius: 2,
                       p: 1.5,
@@ -399,35 +552,28 @@ export default function SiteDetailsPage() {
 
             <Paper sx={{ p: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Site context
+                {translate('admin.siteDetails.context.title')}
               </Typography>
               <Stack spacing={1.2}>
-                <InfoLine
-                  icon={<BusinessIcon fontSize="small" />}
-                  label="Address"
-                  value="Av. Siempre Viva 123"
-                />
-                <InfoLine
-                  icon={<AccessTimeIcon fontSize="small" />}
-                  label="Access hours"
-                  value="24/7"
-                />
-                <InfoLine
-                  icon={<EmailIcon fontSize="small" />}
-                  label="Primary contact"
-                  value="admin@vistaazul.mx"
-                />
+                {siteContextItems.map(({ key, Icon, label, value }) => (
+                  <InfoLine
+                    key={key}
+                    icon={<Icon fontSize="small" />}
+                    label={label}
+                    value={value}
+                  />
+                ))}
                 <Divider flexItem sx={{ my: 1 }} />
                 <Typography variant="caption" color="text.secondary">
-                  Shortcuts
+                  {translate('admin.siteDetails.context.shortcuts')}
                 </Typography>
                 <Stack spacing={1}>
-                  {QUICK_LINKS.slice(0, 2).map((link, idx) => {
-                    const { label, Icon } = link
+                  {quickLinksWithCopy.slice(0, 2).map((link, idx) => {
+                    const { key, label, Icon } = link
                     const target = quickLinkTargets[idx]
                     return (
                       <Button
-                        key={label}
+                        key={key}
                         variant="outlined"
                         size="small"
                         startIcon={<Icon fontSize="small" />}
@@ -448,74 +594,81 @@ export default function SiteDetailsPage() {
         <Grid item xs={12} lg={6}>
           <Stack spacing={2}>
             <Paper sx={{ p: 2 }}>
-              <SectionHeader title="Today at a glance" actionLabel="View timeline" />
+              <SectionHeader
+                title={translate('admin.siteDetails.sections.timeline.title')}
+                actionLabel={translate('admin.siteDetails.sections.timeline.action')}
+              />
               <Stack spacing={1.5}>
-                {TIMELINE.map((activity) => (
+                {timelineEntries.map((activity) => (
                   <TimelineRow key={activity.time} {...activity} />
                 ))}
               </Stack>
             </Paper>
 
             <Paper sx={{ p: 2 }}>
-              <SectionHeader title="Resident engagement" actionLabel="Open residents" />
+              <SectionHeader
+                title={translate('admin.siteDetails.sections.residentEngagement.title')}
+                actionLabel={translate('admin.siteDetails.sections.residentEngagement.action')}
+              />
               <Stack spacing={1.5}>
-                <MetricProgress label="Portal adoption" value={82} helper="+5% vs last month" />
-                <MetricProgress
-                  label="Amenity bookings"
-                  value={64}
-                  helper="12 reservations today"
-                  color="secondary"
-                />
-                <MetricProgress
-                  label="Broadcast reach"
-                  value={91}
-                  helper="Last notice: 91% opened"
-                  color="success"
-                />
+                {residentMetrics.map(({ key, label, value, helper, color }) => (
+                  <MetricProgress
+                    key={key}
+                    label={label}
+                    value={value}
+                    helper={helper}
+                    color={color}
+                  />
+                ))}
               </Stack>
             </Paper>
 
             <Paper sx={{ p: 2 }}>
-              <SectionHeader title="Incident insights" actionLabel="Incident board" />
+              <SectionHeader
+                title={translate('admin.siteDetails.sections.incidents.title')}
+                actionLabel={translate('admin.siteDetails.sections.incidents.action')}
+              />
               <Stack spacing={1.5}>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <InsightCard title="Past 7 days" value="14" helper="-3 vs previous week" />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <InsightCard title="Critical" value="2" helper="Active follow-ups" severity />
-                  </Grid>
+                  {incidentCardsWithCopy.map(({ key, title, value, helper, severity }) => (
+                    <Grid item xs={12} sm={6} key={key}>
+                      <InsightCard
+                        title={title}
+                        value={value}
+                        helper={helper}
+                        severity={severity}
+                      />
+                    </Grid>
+                  ))}
                 </Grid>
                 <Divider sx={{ my: 1 }} />
                 <Stack spacing={1}>
-                  {['Gate access', 'Noise/Disturbance', 'Maintenance', 'Other'].map(
-                    (category, idx) => (
-                      <Stack key={category} direction="row" alignItems="center" spacing={1}>
-                        <Box
-                          sx={(theme) => {
-                            const scale = [
-                              theme.palette.primary.main,
-                              theme.palette.warning.main,
-                              theme.palette.info.main,
-                              theme.palette.success.main,
-                            ]
-                            return {
-                              width: 8,
-                              height: 8,
-                              borderRadius: '50%',
-                              background: scale[idx % scale.length],
-                            }
-                          }}
-                        />
-                        <Typography variant="body2" sx={{ flex: 1 }}>
-                          {category}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {35 - idx * 7}%
-                        </Typography>
-                      </Stack>
-                    ),
-                  )}
+                  {incidentBreakdownSegments.map(({ key, label, value }, idx) => (
+                    <Stack key={key} direction="row" alignItems="center" spacing={1}>
+                      <Box
+                        sx={(theme) => {
+                          const scale = [
+                            theme.palette.primary.main,
+                            theme.palette.warning.main,
+                            theme.palette.info.main,
+                            theme.palette.success.main,
+                          ]
+                          return {
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            background: scale[idx % scale.length],
+                          }
+                        }}
+                      />
+                      <Typography variant="body2" sx={{ flex: 1 }}>
+                        {label}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {value}
+                      </Typography>
+                    </Stack>
+                  ))}
                 </Stack>
               </Stack>
             </Paper>
@@ -525,11 +678,13 @@ export default function SiteDetailsPage() {
         <Grid item xs={12} lg={3}>
           <Stack spacing={2}>
             <Paper sx={{ p: 2 }}>
-              <SectionHeader title="Quick navigation" />
+              <SectionHeader
+                title={translate('admin.siteDetails.sections.quickNavigation.title')}
+              />
               <Stack spacing={1}>
-                {QUICK_LINKS.map(({ label, description, Icon }, idx) => (
+                {quickLinksWithCopy.map(({ key, label, description, Icon }, idx) => (
                   <QuickLink
-                    key={label}
+                    key={key}
                     label={label}
                     description={description}
                     Icon={Icon}
@@ -540,11 +695,11 @@ export default function SiteDetailsPage() {
             </Paper>
 
             <Paper sx={{ p: 2 }}>
-              <SectionHeader title="More in this site" />
+              <SectionHeader title={translate('admin.siteDetails.sections.panelShortcuts.title')} />
               <Stack spacing={1.25}>
-                {PANEL_SHORTCUTS.map(({ label, description, Icon }, idx) => (
+                {panelShortcutsWithCopy.map(({ key, label, description, Icon }, idx) => (
                   <PanelShortcut
-                    key={label}
+                    key={key}
                     label={label}
                     description={description}
                     to={panelShortcutTargets[idx]}
@@ -555,11 +710,14 @@ export default function SiteDetailsPage() {
             </Paper>
 
             <Paper sx={{ p: 2 }}>
-              <SectionHeader title="Financial snapshot" actionLabel="Open billing" />
+              <SectionHeader
+                title={translate('admin.siteDetails.sections.financial.title')}
+                actionLabel={translate('admin.siteDetails.sections.financial.action')}
+              />
               <Stack spacing={1.5}>
-                {FINANCIALS.map(({ label, value, delta, accent }) => (
+                {financialSnapshot.map(({ key, label, value, delta, accent }) => (
                   <FinancialRow
-                    key={label}
+                    key={key}
                     label={label}
                     value={value}
                     delta={delta}
@@ -568,15 +726,18 @@ export default function SiteDetailsPage() {
                 ))}
                 <Divider sx={{ my: 1 }} />
                 <Typography variant="caption" color="text.secondary">
-                  Next billing cycle: 02 Nov 2025
+                  {translate('admin.siteDetails.sections.financial.nextBilling')}
                 </Typography>
               </Stack>
             </Paper>
 
             <Paper sx={{ p: 2 }}>
-              <SectionHeader title="Guard roster" actionLabel="Manage shifts" />
+              <SectionHeader
+                title={translate('admin.siteDetails.sections.guardRoster.title')}
+                actionLabel={translate('admin.siteDetails.sections.guardRoster.action')}
+              />
               <Stack spacing={1}>
-                {GUARDS.map((guard) => (
+                {guardRoster.map((guard) => (
                   <GuardRow key={guard.name} {...guard} />
                 ))}
               </Stack>
@@ -586,14 +747,13 @@ export default function SiteDetailsPage() {
       </Grid>
 
       <SpeedDial
-        ariaLabel="Site actions"
+        ariaLabel={speedDialLabel}
         icon={<AddHomeWorkIcon />}
         sx={{ position: 'fixed', bottom: 32, right: 32 }}
       >
-        <SpeedDialAction icon={<DoorFrontIcon />} tooltipTitle="Add visitor" />
-        <SpeedDialAction icon={<ReportProblemIcon />} tooltipTitle="Log incident" />
-        <SpeedDialAction icon={<AddAlertIcon />} tooltipTitle="Send broadcast" />
-        <SpeedDialAction icon={<ReceiptLongIcon />} tooltipTitle="Create invoice" />
+        {speedDialActions.map(({ key, Icon, tooltip }) => (
+          <SpeedDialAction key={key} icon={<Icon />} tooltipTitle={tooltip} />
+        ))}
       </SpeedDial>
     </Box>
   )
@@ -783,7 +943,19 @@ function FinancialRow({
   )
 }
 
-function GuardRow({ name, shift, status }: { name: string; shift: string; status: string }) {
+function GuardRow({
+  name,
+  shift,
+  status,
+  statusKey,
+}: {
+  name: string
+  shift: string
+  status: string
+  statusKey: string
+}) {
+  const chipColor: ChipProps['color'] = statusKey === 'onDuty' ? 'success' : 'default'
+
   return (
     <Stack
       direction="row"
@@ -800,7 +972,7 @@ function GuardRow({ name, shift, status }: { name: string; shift: string; status
           {shift}
         </Typography>
       </Box>
-      <Chip label={status} size="small" color={status === 'On duty' ? 'success' : 'default'} />
+      <Chip label={status} size="small" color={chipColor} />
     </Stack>
   )
 }

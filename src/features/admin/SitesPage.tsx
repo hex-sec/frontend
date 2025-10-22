@@ -12,6 +12,7 @@ import {
   IconButton,
   Chip,
   Link as MLink,
+  type ChipProps,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
@@ -19,11 +20,21 @@ import RefreshIcon from '@mui/icons-material/Refresh'
 import { useSitesQuery, useCreateSiteMutation, useInviteMutation } from './sites.api'
 import { SiteFormDialog } from './components/SiteFormDialog'
 import { InviteDialog } from './components/InviteDialog'
-import type { Site } from './sites.types'
+import type { Site, SiteStatus } from './sites.types'
+
+const STATUS_CHIP_COLOR: Record<SiteStatus, ChipProps['color']> = {
+  active: 'success',
+  trial: 'warning',
+  suspended: 'default',
+}
 import { useSiteStore } from '@store/site.store'
 import { Link } from 'react-router-dom'
+import { useTranslate } from '../../i18n/useTranslate'
+import { useI18nStore } from '@store/i18n.store'
 
 export default function SitesPage() {
+  const { t } = useTranslate()
+  const language = useI18nStore((s) => s.language)
   const { data, isLoading, refetch } = useSitesQuery()
   const createSite = useCreateSiteMutation()
   const invite = useInviteMutation()
@@ -41,13 +52,16 @@ export default function SitesPage() {
   return (
     <Stack gap={2}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="h6">Sites</Typography>
+        <Typography variant="h6">{t('admin.sitesPage.title', { lng: language })}</Typography>
         <Stack direction="row" spacing={1}>
-          <IconButton onClick={() => refetch()} aria-label="Refrescar">
+          <IconButton
+            onClick={() => refetch()}
+            aria-label={t('admin.sitesPage.actions.refreshAria', { lng: language })}
+          >
             <RefreshIcon />
           </IconButton>
           <Button startIcon={<AddIcon />} variant="contained" onClick={() => setOpenCreate(true)}>
-            Crear Site
+            {t('admin.sitesPage.actions.create', { lng: language })}
           </Button>
         </Stack>
       </Stack>
@@ -56,22 +70,28 @@ export default function SitesPage() {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Nombre</TableCell>
-              <TableCell>Slug</TableCell>
-              <TableCell>Plan</TableCell>
-              <TableCell>Estado</TableCell>
-              <TableCell align="right">Acciones</TableCell>
+              <TableCell>{t('admin.sitesPage.table.name', { lng: language })}</TableCell>
+              <TableCell>{t('admin.sitesPage.table.slug', { lng: language })}</TableCell>
+              <TableCell>{t('admin.sitesPage.table.plan', { lng: language })}</TableCell>
+              <TableCell>{t('admin.sitesPage.table.status', { lng: language })}</TableCell>
+              <TableCell align="right">
+                {t('admin.sitesPage.table.actions', { lng: language })}
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={5}>Cargando…</TableCell>
+                <TableCell colSpan={5}>
+                  {t('admin.sitesPage.state.loading', { lng: language })}
+                </TableCell>
               </TableRow>
             )}
             {!isLoading && sites.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5}>Sin sites aún</TableCell>
+                <TableCell colSpan={5}>
+                  {t('admin.sitesPage.state.empty', { lng: language })}
+                </TableCell>
               </TableRow>
             )}
             {sites.map((s) => (
@@ -81,7 +101,12 @@ export default function SitesPage() {
                     <MLink component={Link} to={`/admin/sites/${s.slug}`} underline="hover">
                       <Typography fontWeight={600}>{s.name}</Typography>
                     </MLink>
-                    {current?.id === s.id && <Chip size="small" label="Actual" />}
+                    {current?.id === s.id && (
+                      <Chip
+                        size="small"
+                        label={t('admin.sitesPage.badges.current', { lng: language })}
+                      />
+                    )}
                   </Stack>
                 </TableCell>
                 <TableCell>{s.slug}</TableCell>
@@ -89,14 +114,14 @@ export default function SitesPage() {
                 <TableCell>
                   <Chip
                     size="small"
-                    label={s.status}
-                    color={s.status === 'active' ? 'success' : 'default'}
+                    label={t(`admin.sitesPage.statuses.${s.status}`, { lng: language })}
+                    color={STATUS_CHIP_COLOR[s.status]}
                   />
                 </TableCell>
                 <TableCell align="right">
                   <Stack direction="row" spacing={1} justifyContent="flex-end">
                     <Button size="small" variant="outlined" onClick={() => setCurrent(s)}>
-                      Establecer actual
+                      {t('admin.sitesPage.actions.setCurrent', { lng: language })}
                     </Button>
                     <Button
                       size="small"
@@ -104,7 +129,7 @@ export default function SitesPage() {
                       startIcon={<PersonAddIcon />}
                       onClick={() => setInviteFor(s)}
                     >
-                      Invitar usuario
+                      {t('admin.sitesPage.actions.invite', { lng: language })}
                     </Button>
                   </Stack>
                 </TableCell>

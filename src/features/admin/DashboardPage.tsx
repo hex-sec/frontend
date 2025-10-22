@@ -31,6 +31,7 @@ import type { SxProps, Theme } from '@mui/material/styles'
 import { useTranslate } from '../../i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
 import { useSiteStore } from '@store/site.store'
+import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
 
 const surfaceCard: SxProps<Theme> = {
   p: 3,
@@ -44,7 +45,7 @@ export default function DashboardPage() {
   const { t } = useTranslate()
   const language = useI18nStore((s) => s.language)
   const { mode, current } = useSiteStore()
-  const siteBase = mode === 'site' && current ? `/site/${current.slug}` : '/admin'
+  const siteBase = mode === 'site' && current ? siteRoot(current.slug) : buildEntityUrl('')
 
   const financialSnapshot = {
     mrr: '$18,450',
@@ -82,7 +83,7 @@ export default function DashboardPage() {
         accent: 'warning.main',
       },
     ],
-    [language, t],
+    [language, t, mode, current, siteBase],
   )
 
   const timelineItems = useMemo(
@@ -115,7 +116,7 @@ export default function DashboardPage() {
         chipColor: 'default' as const,
       },
     ],
-    [language, t],
+    [language, t, mode, current, siteBase],
   )
 
   const alertCards = useMemo(
@@ -147,14 +148,20 @@ export default function DashboardPage() {
         label: t('admin.dashboard.quickActions.createVisit.label', { lng: language }),
         description: t('admin.dashboard.quickActions.createVisit.description', { lng: language }),
         icon: <AddIcon />,
-        href: `${siteBase}/visits`,
+        href: buildEntityUrl('visits', undefined, {
+          mode: mode,
+          currentSlug: current?.slug ?? null,
+        }),
       },
       {
         key: 'logIncident',
         label: t('admin.dashboard.quickActions.logIncident.label', { lng: language }),
         description: t('admin.dashboard.quickActions.logIncident.description', { lng: language }),
         icon: <AlarmOnOutlinedIcon />,
-        href: `${siteBase}/incidents`,
+        href: buildEntityUrl('incidents', undefined, {
+          mode: mode,
+          currentSlug: current?.slug ?? null,
+        }),
       },
       {
         key: 'inviteResident',
@@ -163,7 +170,10 @@ export default function DashboardPage() {
           lng: language,
         }),
         icon: <PeopleOutlineIcon />,
-        href: `${siteBase}/users`,
+        href: buildEntityUrl('users', undefined, {
+          mode: mode,
+          currentSlug: current?.slug ?? null,
+        }),
       },
     ],
     [language, t],
@@ -193,10 +203,10 @@ export default function DashboardPage() {
         key: 'policies',
         label: t('layout.breadcrumbs.policies', { lng: language }),
         caption: t('admin.dashboard.navigation.policies.caption', { lng: language }),
-        href: '/admin/policies',
+        href: buildEntityUrl('policies'),
       },
     ],
-    [language, t],
+    [language, t, siteBase],
   )
 
   const billingEntries = useMemo(

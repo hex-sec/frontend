@@ -7,11 +7,17 @@ This document collects practical conventions for developers working on this repo
 - i18n: Use `t('key.path')` from `src/i18n/i18n.ts` and keep translation keys in `src/i18n/locales/*`.
 - State: Use Zustand stores defined under `src/store/*` (e.g., `@store/i18n.store`, `@store/site.store`).
 - Formatting: Follow existing ESLint and Prettier configs. Always run `yarn lint` and `yarn format` before opening a PR.
+- Documentation: Write a Javadoc-style block comment above every function detailing parameters, return shape, purpose, and control flow.
+- UI Components: New UI components must use the translation helpers and register keys in both `src/i18n/locales/en.json` and `src/i18n/locales/es.json`.
 
 ## i18n & UI
 - Use translation keys instead of hard-coded strings in UI components.
 - When rendering date/number/currency values, prefer using helper functions that accept `locale`/`currency` and fall back to `getCurrentLanguage()` or store-provided values.
 - Avoid translating programmatic or identifier strings. Wrap only human-facing text in `t(...)`.
+- When introducing a new UI component, ensure all user-facing strings are added to both the English (`en.json`) and Spanish (`es.json`) locale files alongside the component changes.
+
+## Function Documentation
+- Add a Javadoc-style comment block immediately above each function. Describe each parameter, the returned value or object shape, the function's responsibility, and a brief outline of its internal flow or major steps.
 
 ## Translation Automation (summary)
 - The repo contains `scripts/translate_locales.py` which uses the OpenAI API to generate translations.

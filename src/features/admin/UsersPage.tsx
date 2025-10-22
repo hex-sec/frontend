@@ -38,6 +38,7 @@ import {
   useColumnPreferences,
   type ColumnDefinition,
 } from '../../components/table/useColumnPreferences'
+import { useTranslate } from '../../i18n/useTranslate'
 import {
   PATH_ROLE_SEGMENT_MAP,
   ROLE_LABEL,
@@ -50,8 +51,34 @@ import {
   parseRoleFilter,
 } from '@features/admin/users/userData'
 import buildEntityUrl from '@app/utils/contextPaths'
+import { useI18nStore } from '@store/i18n.store'
 
-export default function UsersPage() {
+const ROLE_META_KEYS: Record<RoleFilter, string> = {
+  all: 'admin.usersPage.meta.all',
+  admin: 'admin.usersPage.meta.admin',
+  guard: 'admin.usersPage.meta.guard',
+  resident: 'admin.usersPage.meta.resident',
+}
+
+type LocalizedRoleViewMeta = {
+  title: string
+  description: string
+  inviteCta: string
+  inviteCtaForSite: (siteName: string) => string
+  emptyTitle: string
+  emptyDescription: string
+  siteHint: (siteName: string) => string
+}
+
+/**
+ * Renders the admin users management page with role and site filters synchronized to the URL.
+ * Flow: hydrates site data on mount, derives filter state from navigation params, builds a filtered user dataset, and renders table actions with contextual menus.
+ *
+ * @returns {JSX.Element} Users roster view for administrators and site operators.
+ */
+export default function UsersPage(): JSX.Element {
+  const { t } = useTranslate()
+  const language = useI18nStore((state) => state.language)
   const { sites, hydrate } = useSiteStore()
   const location = useLocation()
   const navigate = useNavigate()
@@ -147,7 +174,83 @@ export default function UsersPage() {
   )
 
   const effectiveFilter: RoleFilter = (lockedRoleFilter ?? roleFilter) as RoleFilter
-  const activeMeta = ROLE_VIEW_META[effectiveFilter]
+
+  const filterLabels = useMemo<Record<RoleFilter, string>>(
+    () => ({
+      all: t('admin.usersPage.filters.all', { lng: language, defaultValue: 'All roles' }),
+      admin: t('admin.usersPage.filters.admin', {
+        lng: language,
+        defaultValue: ROLE_LABEL.admin,
+      }),
+      guard: t('admin.usersPage.filters.guard', {
+        lng: language,
+        defaultValue: ROLE_LABEL.guard,
+      }),
+      resident: t('admin.usersPage.filters.resident', {
+        lng: language,
+        defaultValue: ROLE_LABEL.resident,
+      }),
+    }),
+    [language, t],
+  )
+
+  const roleChipLabels = useMemo<Record<RoleKey, string>>(
+    () => ({
+      admin: t('admin.usersPage.roleLabels.admin', {
+        lng: language,
+        defaultValue: ROLE_LABEL.admin,
+      }),
+      guard: t('admin.usersPage.roleLabels.guard', {
+        lng: language,
+        defaultValue: ROLE_LABEL.guard,
+      }),
+      resident: t('admin.usersPage.roleLabels.resident', {
+        lng: language,
+        defaultValue: ROLE_LABEL.resident,
+      }),
+    }),
+    [language, t],
+  )
+
+  const statusLabels = useMemo(
+    () => ({
+      active: t('admin.usersPage.status.active', { lng: language, defaultValue: 'Active' }),
+      pending: t('admin.usersPage.status.pending', { lng: language, defaultValue: 'Invited' }),
+      suspended: t('admin.usersPage.status.suspended', {
+        lng: language,
+        defaultValue: 'Suspended',
+      }),
+    }),
+    [language, t],
+  )
+
+  const activeMeta = useMemo<LocalizedRoleViewMeta>(() => {
+    const base = ROLE_VIEW_META[effectiveFilter]
+    const metaKey = ROLE_META_KEYS[effectiveFilter]
+    return {
+      title: t(`${metaKey}.title`, { lng: language, defaultValue: base.title }),
+      description: t(`${metaKey}.description`, { lng: language, defaultValue: base.description }),
+      inviteCta: t(`${metaKey}.inviteCta`, { lng: language, defaultValue: base.inviteCta }),
+      inviteCtaForSite: (siteName: string) =>
+        t(`${metaKey}.inviteCtaForSite`, {
+          lng: language,
+          siteName,
+          defaultValue: `${base.inviteCta} for ${siteName}`,
+        }),
+      emptyTitle: t(`${metaKey}.emptyTitle`, { lng: language, defaultValue: base.emptyTitle }),
+      emptyDescription: t(`${metaKey}.emptyDescription`, {
+        lng: language,
+        defaultValue: base.emptyDescription,
+      }),
+      siteHint: (siteName: string) =>
+        t(`${metaKey}.siteHint`, {
+          lng: language,
+          siteName,
+          defaultValue: base.siteHint(siteName),
+        }),
+    }
+  }, [effectiveFilter, language, t])
+
   const activeSiteSlug = derivedSiteSlug ?? (siteFilter !== 'all' ? siteFilter : null)
 
   const filteredUsers = useMemo(() => {
@@ -182,8 +285,9 @@ export default function UsersPage() {
 
   const filteredSiteName = selectedSite?.name ?? (siteFilter !== 'all' ? siteFilter : null)
   const inviteCopy = filteredSiteName
-    ? `${activeMeta.inviteCta} for ${filteredSiteName}`
+    ? activeMeta.inviteCtaForSite(filteredSiteName)
     : activeMeta.inviteCta
+  const filterLabel = filterLabels[effectiveFilter]
 
   const buildDetailUrl = useCallback(
     (user: UserRecord) => {
@@ -246,7 +350,10 @@ export default function UsersPage() {
     return [
       {
         id: 'id',
-        label: 'User ID',
+        label: t('admin.usersPage.table.columns.userId', {
+          lng: language,
+          defaultValue: 'User ID',
+        }),
         disableToggle: true,
         minWidth: 120,
         render: (user) => (
@@ -262,7 +369,7 @@ export default function UsersPage() {
       },
       {
         id: 'name',
-        label: 'Name',
+        label: t('admin.usersPage.table.columns.name', { lng: language, defaultValue: 'Name' }),
         minWidth: 220,
         render: (user) => (
           <Stack direction="row" spacing={1.5} alignItems="center">
@@ -289,7 +396,10 @@ export default function UsersPage() {
       },
       {
         id: 'email',
-        label: 'Email',
+        label: t('admin.usersPage.table.columns.email', {
+          lng: language,
+          defaultValue: 'Email',
+        }),
         minWidth: 220,
         render: (user) => (
           <Typography variant="body2" color="text.secondary">
@@ -299,13 +409,13 @@ export default function UsersPage() {
       },
       {
         id: 'role',
-        label: 'Role',
+        label: t('admin.usersPage.table.columns.role', { lng: language, defaultValue: 'Role' }),
         minWidth: 120,
-        render: (user) => <Chip size="small" label={ROLE_LABEL[user.role]} color="default" />,
+        render: (user) => <Chip size="small" label={roleChipLabels[user.role]} color="default" />,
       },
       {
         id: 'sites',
-        label: 'Sites',
+        label: t('admin.usersPage.table.columns.sites', { lng: language, defaultValue: 'Sites' }),
         minWidth: 200,
         render: (user) => (
           <Stack direction="row" spacing={0.75} flexWrap="wrap">
@@ -322,18 +432,15 @@ export default function UsersPage() {
       },
       {
         id: 'status',
-        label: 'Status',
+        label: t('admin.usersPage.table.columns.status', {
+          lng: language,
+          defaultValue: 'Status',
+        }),
         minWidth: 140,
         render: (user) => (
           <Chip
             size="small"
-            label={
-              user.status === 'active'
-                ? 'Active'
-                : user.status === 'pending'
-                  ? 'Invited'
-                  : 'Suspended'
-            }
+            label={statusLabels[user.status]}
             color={STATUS_COLOR[user.status]}
             variant={user.status === 'active' ? 'filled' : 'outlined'}
           />
@@ -341,7 +448,10 @@ export default function UsersPage() {
       },
       {
         id: 'lastActive',
-        label: 'Last activity',
+        label: t('admin.usersPage.table.columns.lastActive', {
+          lng: language,
+          defaultValue: 'Last activity',
+        }),
         minWidth: 140,
         render: (user) => (
           <Typography variant="body2" color="text.secondary">
@@ -351,30 +461,54 @@ export default function UsersPage() {
       },
       {
         id: 'actions',
-        label: 'Actions',
+        label: t('admin.usersPage.table.columns.actions', {
+          lng: language,
+          defaultValue: 'Actions',
+        }),
         disableToggle: true,
         minWidth: 160,
         align: 'right',
         render: (user) => (
           <Stack direction="row" spacing={1} justifyContent="flex-end">
             {isSiteContext ? (
-              <Tooltip title="Restrict to this site">
+              <Tooltip
+                title={t('admin.usersPage.tooltips.restrictSite', {
+                  lng: language,
+                  defaultValue: 'Restrict to this site',
+                })}
+              >
                 <Button size="small" variant="outlined">
-                  Adjust roles
+                  {t('admin.usersPage.actions.adjustRoles', {
+                    lng: language,
+                    defaultValue: 'Adjust roles',
+                  })}
                 </Button>
               </Tooltip>
             ) : (
-              <Tooltip title="Manage workspace access">
+              <Tooltip
+                title={t('admin.usersPage.tooltips.manageWorkspace', {
+                  lng: language,
+                  defaultValue: 'Manage workspace access',
+                })}
+              >
                 <Button
                   size="small"
                   variant="outlined"
                   startIcon={<ManageAccountsIcon fontSize="small" />}
                 >
-                  Manage
+                  {t('admin.usersPage.actions.manage', {
+                    lng: language,
+                    defaultValue: 'Manage',
+                  })}
                 </Button>
               </Tooltip>
             )}
-            <Tooltip title="More actions">
+            <Tooltip
+              title={t('admin.usersPage.tooltips.moreActions', {
+                lng: language,
+                defaultValue: 'More actions',
+              })}
+            >
               <IconButton size="small" onClick={(event) => openRowMenu(event, user)}>
                 <MoreVertIcon fontSize="small" />
               </IconButton>
@@ -383,7 +517,16 @@ export default function UsersPage() {
         ),
       },
     ]
-  }, [activeSiteSlug, buildDetailUrl, isSiteContext, openRowMenu])
+  }, [
+    activeSiteSlug,
+    buildDetailUrl,
+    isSiteContext,
+    language,
+    openRowMenu,
+    roleChipLabels,
+    statusLabels,
+    t,
+  ])
 
   const {
     orderedColumns,
@@ -413,8 +556,15 @@ export default function UsersPage() {
           icon={<DomainIcon fontSize="inherit" />}
           sx={{ alignItems: 'center', borderRadius: 2 }}
         >
-          Filtered to users associated with <strong>{filteredSiteName ?? siteFilter}</strong>. Clear
-          the site selector to see the entire portfolio.
+          {t('admin.usersPage.alerts.siteFilter.prefix', {
+            lng: language,
+            defaultValue: 'Filtered to users associated with',
+          })}{' '}
+          <strong>{filteredSiteName ?? siteFilter}</strong>{' '}
+          {t('admin.usersPage.alerts.siteFilter.suffix', {
+            lng: language,
+            defaultValue: 'Clear the site selector to see the entire portfolio.',
+          })}
         </Alert>
       ) : null}
 
@@ -433,7 +583,13 @@ export default function UsersPage() {
                   {activeMeta.title}
                 </Typography>
                 <Chip
-                  label={filteredSiteName ?? 'Enterprise'}
+                  label={
+                    filteredSiteName ??
+                    t('admin.usersPage.chip.enterprise', {
+                      lng: language,
+                      defaultValue: 'Enterprise',
+                    })
+                  }
                   size="small"
                   color={isSiteContext || siteFilter !== 'all' ? 'secondary' : 'primary'}
                 />
@@ -447,13 +603,21 @@ export default function UsersPage() {
                 <TextField
                   select
                   size="small"
-                  label="Site"
+                  label={t('admin.usersPage.siteSelector.label', {
+                    lng: language,
+                    defaultValue: 'Site',
+                  })}
                   value={siteFilter}
                   onChange={(event) => setSiteFilter(event.target.value)}
                   disabled={Boolean(lockedSiteFilter) || sites.length === 0}
                   sx={{ minWidth: 200 }}
                 >
-                  <MenuItem value="all">All sites</MenuItem>
+                  <MenuItem value="all">
+                    {t('admin.usersPage.siteSelector.all', {
+                      lng: language,
+                      defaultValue: 'All sites',
+                    })}
+                  </MenuItem>
                   {sites.map((site) => (
                     <MenuItem key={site.slug} value={site.slug}>
                       {site.name}
@@ -475,7 +639,7 @@ export default function UsersPage() {
                 color={effectiveFilter === 'all' ? 'inherit' : 'primary'}
                 disabled={Boolean(lockedRoleFilter)}
               >
-                {effectiveFilter === 'all' ? 'All roles' : ROLE_LABEL[effectiveFilter]}
+                {filterLabel}
               </Button>
               <Button variant="contained" startIcon={<PersonAddAltIcon />}>
                 {inviteCopy}
@@ -486,7 +650,10 @@ export default function UsersPage() {
           <TextField
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by name, email, or site"
+            placeholder={t('admin.usersPage.search.placeholder', {
+              lng: language,
+              defaultValue: 'Search by name, email, or site',
+            })}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -554,7 +721,12 @@ export default function UsersPage() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MenuItem onClick={handleRowMenuViewProfile}>View profile</MenuItem>
+        <MenuItem onClick={handleRowMenuViewProfile}>
+          {t('admin.usersPage.rowMenu.viewProfile', {
+            lng: language,
+            defaultValue: 'View profile',
+          })}
+        </MenuItem>
       </Menu>
 
       <Menu
@@ -565,20 +737,20 @@ export default function UsersPage() {
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <MenuItem selected={effectiveFilter === 'all'} onClick={() => handleSelectRole('all')}>
-          All roles
+          {filterLabels.all}
         </MenuItem>
         <Divider sx={{ my: 0.5 }} />
         <MenuItem selected={effectiveFilter === 'admin'} onClick={() => handleSelectRole('admin')}>
-          Admins
+          {filterLabels.admin}
         </MenuItem>
         <MenuItem selected={effectiveFilter === 'guard'} onClick={() => handleSelectRole('guard')}>
-          Guards
+          {filterLabels.guard}
         </MenuItem>
         <MenuItem
           selected={effectiveFilter === 'resident'}
           onClick={() => handleSelectRole('resident')}
         >
-          Residents
+          {filterLabels.resident}
         </MenuItem>
       </Menu>
     </Stack>

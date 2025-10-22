@@ -11,6 +11,7 @@ const Visitors = lazy(() => import('@features/admin/VisitorsPage'))
 const Vehicles = lazy(() => import('@features/admin/VehiclesPage'))
 const Reports = lazy(() => import('@features/admin/ReportsPage'))
 const Residences = lazy(() => import('@features/admin/ResidencesPage'))
+const Sites = lazy(() => import('@features/admin/SitesPage'))
 
 export const siteRoutes: RouteObject[] = [
   {
@@ -114,6 +115,14 @@ export const siteRoutes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <Vehicles />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'sites',
+        element: (
+          <Suspense fallback={null}>
+            <Sites />
           </Suspense>
         ),
       },

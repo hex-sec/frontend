@@ -16,18 +16,29 @@ export function buildEntityUrl(
   const slug = routeSlug ?? (mode === 'site' ? currentSlug : null)
 
   const resource = `${entity}${id ? `/${id}` : ''}`
+  // Normalize resource: if empty, avoid extra trailing slashes in returned paths
+  const hasResource = resource.length > 0
 
   // Prefer explicit site route (site mode) when requested / available
   if (slug && opts?.preferSiteWhenPossible !== false) {
-    return `/site/${slug}/${resource}`
+    return hasResource ? `/site/${slug}/${resource}` : `/site/${slug}`
   }
 
   // If a route-specific slug exists but not using site path, use enterprise per-site path
   if (routeSlug) {
-    return `/admin/sites/${routeSlug}/${resource}`
+    return hasResource ? `/admin/sites/${routeSlug}/${resource}` : `/admin/sites/${routeSlug}`
   }
 
-  return `/admin/${resource}`
+  return hasResource ? `/admin/${resource}` : '/admin'
 }
 
 export default buildEntityUrl
+
+// Small helpers to centralize common checks/roots so callers don't use '/site' or '/admin' literals
+export function isSitePath(pathname: string) {
+  return pathname.startsWith('/site/')
+}
+
+export function siteRoot(slug: string) {
+  return `/site/${slug}`
+}
