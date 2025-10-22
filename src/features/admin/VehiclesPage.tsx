@@ -37,6 +37,8 @@ import {
   type ColumnDefinition,
 } from '../../components/table/useColumnPreferences'
 import { ColumnPreferencesButton } from '../../components/table/ColumnPreferencesButton'
+import { useTranslate } from '@i18n/useTranslate'
+import { useI18nStore } from '@store/i18n.store'
 
 type VehicleUsage = 'resident' | 'visitor' | 'service'
 type VehicleStatus = 'active' | 'expired' | 'flagged'
@@ -78,40 +80,33 @@ const MOCK_VEHICLES: VehicleRecord[] = (vehiclesSeed as Array<Record<string, unk
   }),
 )
 
-const USAGE_META: Record<
-  VehicleUsage,
-  { label: string; Icon: typeof HomeIcon; color: 'default' | 'primary' | 'secondary' | 'info' }
-> = {
-  resident: { label: 'Resident', Icon: HomeIcon, color: 'primary' },
-  visitor: { label: 'Visitor', Icon: HandshakeIcon, color: 'secondary' },
-  service: { label: 'Service', Icon: BuildCircleIcon, color: 'info' },
-}
-
-const STATUS_META: Record<
-  VehicleStatus,
-  { label: string; color: 'success' | 'warning' | 'error'; Icon: typeof CheckCircleOutlineIcon }
-> = {
-  active: { label: 'Active', color: 'success', Icon: CheckCircleOutlineIcon },
-  expired: { label: 'Expired permit', color: 'warning', Icon: UpdateIcon },
-  flagged: { label: 'Flagged', color: 'error', Icon: ReportIcon },
-}
-
 type VehicleFilter = 'all' | VehicleUsage | 'flagged'
 
-const FILTER_OPTIONS: Array<{ value: VehicleFilter; label: string }> = [
-  { value: 'all', label: 'All vehicles' },
-  { value: 'resident', label: 'Resident vehicles' },
-  { value: 'visitor', label: 'Visitor vehicles' },
-  { value: 'service', label: 'Service vendors' },
-  { value: 'flagged', label: 'Flagged for review' },
-]
+const USAGE_META_BASE: Record<
+  VehicleUsage,
+  {
+    defaultLabel: string
+    Icon: typeof HomeIcon
+    color: 'default' | 'primary' | 'secondary' | 'info'
+  }
+> = {
+  resident: { defaultLabel: 'Resident', Icon: HomeIcon, color: 'primary' },
+  visitor: { defaultLabel: 'Visitor', Icon: HandshakeIcon, color: 'secondary' },
+  service: { defaultLabel: 'Service', Icon: BuildCircleIcon, color: 'info' },
+}
 
-const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric',
-})
-const TIME_FORMATTER = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' })
+const STATUS_META_BASE: Record<
+  VehicleStatus,
+  {
+    defaultLabel: string
+    color: 'success' | 'warning' | 'error'
+    Icon: typeof CheckCircleOutlineIcon
+  }
+> = {
+  active: { defaultLabel: 'Active', color: 'success', Icon: CheckCircleOutlineIcon },
+  expired: { defaultLabel: 'Expired permit', color: 'warning', Icon: UpdateIcon },
+  flagged: { defaultLabel: 'Flagged', color: 'error', Icon: ReportIcon },
+}
 
 export default function VehiclesPage() {
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
@@ -168,6 +163,145 @@ export default function VehiclesPage() {
   )
 
   const handleCloseRowMenu = useCallback(() => setRowMenu({ anchor: null, vehicle: undefined }), [])
+  const { t } = useTranslate()
+  const language = useI18nStore((state) => state.language) ?? 'en'
+
+  const translate = useMemo(
+    () => (key: string, defaultValue: string, options?: Record<string, unknown>) =>
+      t(key, { lng: language, defaultValue, ...options }),
+    [language, t],
+  )
+
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(language, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    [language],
+  )
+
+  const timeFormatter = useMemo(
+    () => new Intl.DateTimeFormat(language, { hour: 'numeric', minute: '2-digit' }),
+    [language],
+  )
+
+  const usageMeta = useMemo(
+    () => ({
+      resident: {
+        label: translate('vehiclesPage.usage.resident', USAGE_META_BASE.resident.defaultLabel),
+        Icon: USAGE_META_BASE.resident.Icon,
+        color: USAGE_META_BASE.resident.color,
+      },
+      visitor: {
+        label: translate('vehiclesPage.usage.visitor', USAGE_META_BASE.visitor.defaultLabel),
+        Icon: USAGE_META_BASE.visitor.Icon,
+        color: USAGE_META_BASE.visitor.color,
+      },
+      service: {
+        label: translate('vehiclesPage.usage.service', USAGE_META_BASE.service.defaultLabel),
+        Icon: USAGE_META_BASE.service.Icon,
+        color: USAGE_META_BASE.service.color,
+      },
+    }),
+    [translate],
+  )
+
+  const statusMeta = useMemo(
+    () => ({
+      active: {
+        label: translate('vehiclesPage.statuses.active', STATUS_META_BASE.active.defaultLabel),
+        color: STATUS_META_BASE.active.color,
+        Icon: STATUS_META_BASE.active.Icon,
+      },
+      expired: {
+        label: translate('vehiclesPage.statuses.expired', STATUS_META_BASE.expired.defaultLabel),
+        color: STATUS_META_BASE.expired.color,
+        Icon: STATUS_META_BASE.expired.Icon,
+      },
+      flagged: {
+        label: translate('vehiclesPage.statuses.flagged', STATUS_META_BASE.flagged.defaultLabel),
+        color: STATUS_META_BASE.flagged.color,
+        Icon: STATUS_META_BASE.flagged.Icon,
+      },
+    }),
+    [translate],
+  )
+
+  const filterOptions = useMemo<Array<{ value: VehicleFilter; label: string }>>(
+    () => [
+      { value: 'all', label: translate('vehiclesPage.filters.all', 'All vehicles') },
+      {
+        value: 'resident',
+        label: translate('vehiclesPage.filters.resident', 'Resident vehicles'),
+      },
+      {
+        value: 'visitor',
+        label: translate('vehiclesPage.filters.visitor', 'Visitor vehicles'),
+      },
+      {
+        value: 'service',
+        label: translate('vehiclesPage.filters.service', 'Service vendors'),
+      },
+      {
+        value: 'flagged',
+        label: translate('vehiclesPage.filters.flagged', 'Flagged for review'),
+      },
+    ],
+    [translate],
+  )
+
+  const columnLabels = useMemo(
+    () => ({
+      plate: translate('vehiclesPage.table.columns.plate', 'Plate'),
+      vehicle: translate('vehiclesPage.table.columns.vehicle', 'Vehicle'),
+      usage: translate('vehiclesPage.table.columns.usage', 'Usage'),
+      assignedTo: translate('vehiclesPage.table.columns.assignedTo', 'Assigned to'),
+      site: translate('vehiclesPage.table.columns.site', 'Site'),
+      permit: translate('vehiclesPage.table.columns.permit', 'Permit'),
+      lastSeen: translate('vehiclesPage.table.columns.lastSeen', 'Last seen'),
+      status: translate('vehiclesPage.table.columns.status', 'Status'),
+      actions: translate('vehiclesPage.table.columns.actions', 'Actions'),
+    }),
+    [translate],
+  )
+
+  const vehiclesTitle = translate('vehiclesPage.title', 'Vehicle registry')
+  const vehiclesDescription = translate(
+    'vehiclesPage.description',
+    'Register resident, visitor, and service vehicles to keep guard kiosks synced.',
+  )
+  const siteAlertPrefix = translate(
+    'vehiclesPage.alerts.siteScoped.prefix',
+    'Showing vehicles scoped to',
+  )
+  const siteAlertSuffix = translate(
+    'vehiclesPage.alerts.siteScoped.suffix',
+    'Registration flows will prefill permits and contact info for this property.',
+  )
+  const enterpriseAlert = translate(
+    'vehiclesPage.alerts.enterprise',
+    'Switch to a site to manage permits at the property level or stay in enterprise mode to audit all registered vehicles.',
+  )
+  const enterpriseChipLabel = translate('vehiclesPage.chip.enterprise', 'Enterprise')
+  const searchPlaceholder = translate(
+    'vehiclesPage.search.placeholder',
+    'Search by plate, permit, or contact',
+  )
+  const registerVehicleLabel = translate('vehiclesPage.actions.registerVehicle', 'Register vehicle')
+  const downloadPermitLabel = translate('vehiclesPage.actions.downloadPermit', 'Download permit')
+  const moreActionsLabel = translate('vehiclesPage.actions.moreActions', 'More actions')
+  const flagForReviewLabel = translate('vehiclesPage.actions.flagForReview', 'Flag for review')
+  const removeFromRegistryLabel = translate(
+    'vehiclesPage.actions.removeFromRegistry',
+    'Remove from registry',
+  )
+  const noVehiclesTitle = translate('vehiclesPage.table.empty.title', 'No vehicles found')
+  const noVehiclesDescription = translate(
+    'vehiclesPage.table.empty.description',
+    'Adjust filters or register a vehicle to populate this list.',
+  )
 
   const handleDownloadPermit = useCallback(() => {
     handleCloseRowMenu()
@@ -177,12 +311,20 @@ export default function VehiclesPage() {
     handleCloseRowMenu()
   }, [handleCloseRowMenu])
 
+  const filterButtonLabel = useMemo(() => {
+    return (
+      filterOptions.find((option) => option.value === filter)?.label ??
+      filterOptions[0]?.label ??
+      translate('vehiclesPage.filters.all', 'All vehicles')
+    )
+  }, [filter, filterOptions, translate])
+
   const columnDefs = useMemo<ColumnDefinition<VehicleRecord>[]>(() => {
     const currentSlug = derivedSiteSlug ?? null
     return [
       {
         id: 'plate',
-        label: 'Plate',
+        label: columnLabels.plate,
         disableToggle: true,
         minWidth: 120,
         render: (vehicle) => (
@@ -193,7 +335,7 @@ export default function VehiclesPage() {
       },
       {
         id: 'vehicle',
-        label: 'Vehicle',
+        label: columnLabels.vehicle,
         minWidth: 210,
         render: (vehicle) => (
           <Stack spacing={0.3}>
@@ -208,10 +350,10 @@ export default function VehiclesPage() {
       },
       {
         id: 'usage',
-        label: 'Usage',
+        label: columnLabels.usage,
         minWidth: 160,
         render: (vehicle) => {
-          const meta = USAGE_META[vehicle.usage]
+          const meta = usageMeta[vehicle.usage]
           return (
             <Chip
               size="small"
@@ -224,7 +366,7 @@ export default function VehiclesPage() {
       },
       {
         id: 'assignedTo',
-        label: 'Assigned to',
+        label: columnLabels.assignedTo,
         minWidth: 200,
         render: (vehicle) => (
           <Stack spacing={0.2}>
@@ -238,7 +380,7 @@ export default function VehiclesPage() {
       },
       {
         id: 'site',
-        label: 'Site',
+        label: columnLabels.site,
         minWidth: 150,
         render: (vehicle) => (
           <Chip
@@ -250,7 +392,7 @@ export default function VehiclesPage() {
       },
       {
         id: 'permit',
-        label: 'Permit',
+        label: columnLabels.permit,
         minWidth: 140,
         render: (vehicle) => (
           <Stack spacing={0.2}>
@@ -258,32 +400,34 @@ export default function VehiclesPage() {
               {vehicle.permitId}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {vehicle.passesIssued} passes issued
+              {translate('vehiclesPage.permit.passesIssued', '{{count}} passes issued', {
+                count: vehicle.passesIssued,
+              })}
             </Typography>
           </Stack>
         ),
       },
       {
         id: 'lastSeen',
-        label: 'Last seen',
+        label: columnLabels.lastSeen,
         minWidth: 160,
         render: (vehicle) => (
           <Stack spacing={0.2}>
             <Typography variant="body2">
-              {DATE_FORMATTER.format(new Date(vehicle.lastSeen))}
+              {dateFormatter.format(new Date(vehicle.lastSeen))}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {TIME_FORMATTER.format(new Date(vehicle.lastSeen))}
+              {timeFormatter.format(new Date(vehicle.lastSeen))}
             </Typography>
           </Stack>
         ),
       },
       {
         id: 'status',
-        label: 'Status',
+        label: columnLabels.status,
         minWidth: 150,
         render: (vehicle) => {
-          const meta = STATUS_META[vehicle.status]
+          const meta = statusMeta[vehicle.status]
           return (
             <Chip
               size="small"
@@ -297,18 +441,18 @@ export default function VehiclesPage() {
       },
       {
         id: 'actions',
-        label: 'Actions',
+        label: columnLabels.actions,
         disableToggle: true,
         align: 'right',
         minWidth: 160,
         render: (vehicle) => (
           <Stack direction="row" spacing={1} justifyContent="flex-end">
-            <Tooltip title="Download permit">
+            <Tooltip title={downloadPermitLabel}>
               <IconButton size="small" onClick={handleDownloadPermit}>
                 <DownloadIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="More actions">
+            <Tooltip title={moreActionsLabel}>
               <IconButton size="small" onClick={(event) => handleOpenRowMenu(event, vehicle)}>
                 <MoreVertIcon fontSize="small" />
               </IconButton>
@@ -317,7 +461,19 @@ export default function VehiclesPage() {
         ),
       },
     ]
-  }, [derivedSiteSlug, handleDownloadPermit, handleOpenRowMenu])
+  }, [
+    columnLabels,
+    dateFormatter,
+    derivedSiteSlug,
+    downloadPermitLabel,
+    handleDownloadPermit,
+    handleOpenRowMenu,
+    moreActionsLabel,
+    statusMeta,
+    timeFormatter,
+    translate,
+    usageMeta,
+  ])
 
   const {
     orderedColumns,
@@ -340,8 +496,9 @@ export default function VehiclesPage() {
           icon={<DirectionsCarFilledIcon fontSize="inherit" />}
           sx={{ alignItems: 'center', borderRadius: 2 }}
         >
-          Showing vehicles scoped to <strong>{activeSiteName}</strong>. Registration flows will
-          prefill permits and contact info for this property.
+          <Typography variant="body2">
+            {siteAlertPrefix} <strong>{activeSiteName}</strong>. {siteAlertSuffix}
+          </Typography>
         </Alert>
       ) : (
         <Alert
@@ -349,8 +506,7 @@ export default function VehiclesPage() {
           icon={<DirectionsCarFilledIcon fontSize="inherit" />}
           sx={{ alignItems: 'center', borderRadius: 2 }}
         >
-          Switch to a site to manage permits at the property level or stay in enterprise mode to
-          audit all registered vehicles.
+          <Typography variant="body2">{enterpriseAlert}</Typography>
         </Alert>
       )}
 
@@ -366,16 +522,16 @@ export default function VehiclesPage() {
             <Box>
               <Stack direction="row" alignItems="center" spacing={1.5}>
                 <Typography variant="h5" fontWeight={600}>
-                  Vehicle registry
+                  {vehiclesTitle}
                 </Typography>
                 {isSiteContext && activeSiteName ? (
                   <Chip label={activeSiteName} size="small" color="secondary" />
                 ) : (
-                  <Chip label="Enterprise" size="small" color="primary" />
+                  <Chip label={enterpriseChipLabel} size="small" color="primary" />
                 )}
               </Stack>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                Register resident, visitor, and service vehicles to keep guard kiosks synced.
+                {vehiclesDescription}
               </Typography>
             </Box>
             <Stack direction="row" spacing={1} alignItems="center">
@@ -392,10 +548,10 @@ export default function VehiclesPage() {
                 onClick={handleOpenFilterMenu}
                 color={filter === 'all' ? 'inherit' : 'primary'}
               >
-                {FILTER_OPTIONS.find((option) => option.value === filter)?.label ?? 'All vehicles'}
+                {filterButtonLabel}
               </Button>
               <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
-                Register vehicle
+                {registerVehicleLabel}
               </Button>
             </Stack>
           </Stack>
@@ -403,7 +559,7 @@ export default function VehiclesPage() {
           <TextField
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by plate, permit, or contact"
+            placeholder={searchPlaceholder}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -433,12 +589,12 @@ export default function VehiclesPage() {
                   <TableRow>
                     <TableCell colSpan={visibleColumnCount}>
                       <Stack spacing={1} alignItems="center" sx={{ py: 5 }}>
-                        <Typography variant="subtitle1">No vehicles found</Typography>
+                        <Typography variant="subtitle1">{noVehiclesTitle}</Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Adjust filters or register a vehicle to populate this list.
+                          {noVehiclesDescription}
                         </Typography>
                         <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
-                          Register vehicle
+                          {registerVehicleLabel}
                         </Button>
                       </Stack>
                     </TableCell>
@@ -471,7 +627,7 @@ export default function VehiclesPage() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        {FILTER_OPTIONS.map((option) => (
+        {filterOptions.map((option) => (
           <MenuItem
             key={option.value}
             selected={filter === option.value}
@@ -489,14 +645,14 @@ export default function VehiclesPage() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MenuItem onClick={handleDownloadPermit}>Download permit</MenuItem>
-        <MenuItem onClick={handleFlagVehicle}>Flag for review</MenuItem>
+        <MenuItem onClick={handleDownloadPermit}>{downloadPermitLabel}</MenuItem>
+        <MenuItem onClick={handleFlagVehicle}>{flagForReviewLabel}</MenuItem>
         <MenuItem
           onClick={() => {
             handleCloseRowMenu()
           }}
         >
-          Remove from registry
+          {removeFromRegistryLabel}
         </MenuItem>
       </Menu>
     </Stack>

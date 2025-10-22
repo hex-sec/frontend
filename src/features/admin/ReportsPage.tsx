@@ -6,23 +6,83 @@ import { Paper, Typography, Stack, Chip, Button, Divider, Box } from '@mui/mater
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
 import {
   createReportSnapshots,
+  type ReportTranslate,
   formatCurrency,
   type ReportSnapshot,
   type BillingSummaryRow,
   type EventHighlightRow,
 } from '@features/admin/reports/reportData'
 import { generateReportPdf } from '@features/admin/reports/reportPdf'
+import { useTranslate } from '@i18n/useTranslate'
+import { useI18nStore } from '@store/i18n.store'
 
 export default function ReportsPage() {
   const { activeSite, slug: derivedSlug } = useSiteBackNavigation()
+  const { t } = useTranslate()
+  const language = useI18nStore((state) => state.language) ?? 'en'
   const siteName = activeSite?.name ?? derivedSlug ?? null
   const isSiteContext = Boolean(siteName)
 
-  const snapshots = useMemo(() => createReportSnapshots(siteName ?? undefined), [siteName])
+  const translate = useMemo<ReportTranslate>(
+    () => (key, defaultValue, options) =>
+      t(key, {
+        lng: language,
+        defaultValue,
+        ...options,
+      }),
+    [language, t],
+  )
+
+  const snapshots = useMemo(
+    () => createReportSnapshots(translate, { siteName: siteName ?? undefined, language }),
+    [language, siteName, translate],
+  )
+
   const { daily, monthly } = snapshots
 
-  const handleDailyDownload = useCallback(() => generateReportPdf(daily), [daily])
-  const handleMonthlyDownload = useCallback(() => generateReportPdf(monthly), [monthly])
+  const pageTitle = translate('reportsPage.title', 'Reports')
+  const pageDescription = translate(
+    'reportsPage.description',
+    'Daily and monthly billing summaries paired with the top operational events. Export a PDF snapshot to share with stakeholders.',
+  )
+  const dailyPdfLabel = translate('reportsPage.actions.dailyPdf', 'Daily PDF')
+  const monthlyPdfLabel = translate('reportsPage.actions.monthlyPdf', 'Monthly PDF')
+  const siteScopedAlert = translate(
+    'reportsPage.alerts.siteScoped',
+    'Metrics are scoped to {{siteName}}. Switch back to enterprise mode for cross-site comparisons.',
+    { siteName: siteName ?? '' },
+  )
+  const enterpriseAlert = translate(
+    'reportsPage.alerts.enterprise',
+    'Portfolio-wide aggregates shown. Select a specific site to focus this report.',
+  )
+  const billingOverviewTitle = translate('reportsPage.cards.billingOverview', 'Billing Overview')
+  const eventHighlightsTitle = translate('reportsPage.cards.eventHighlights', 'Event Highlights')
+  const keyInsightsTitle = translate('reportsPage.cards.keyInsights', 'Key Insights')
+
+  const pdfLabels = useMemo(
+    () => ({
+      reportTitle: translate('reportsPage.pdf.title', 'Hex Community Report'),
+      focusPrefix: translate('reportsPage.pdf.focusPrefix', 'Focus:'),
+      sitePrefix: translate('reportsPage.pdf.sitePrefix', 'Site:'),
+      siteFallback: translate('reportsPage.pdf.siteFallback', 'Enterprise Portfolio'),
+      dateRangePrefix: translate('reportsPage.pdf.dateRangePrefix', 'Date Range:'),
+      generatedPrefix: translate('reportsPage.pdf.generatedPrefix', 'Generated:'),
+      billingSummaryTitle: translate('reportsPage.pdf.billingSummary', 'Billing Summary'),
+      eventHighlightsTitle: translate('reportsPage.pdf.eventHighlights', 'Event Highlights'),
+      keyNotesTitle: translate('reportsPage.pdf.keyNotes', 'Key Notes'),
+    }),
+    [translate],
+  )
+
+  const handleDailyDownload = useCallback(
+    () => generateReportPdf(daily, pdfLabels),
+    [daily, pdfLabels],
+  )
+  const handleMonthlyDownload = useCallback(
+    () => generateReportPdf(monthly, pdfLabels),
+    [monthly, pdfLabels],
+  )
 
   return (
     <Paper sx={{ p: { xs: 2, md: 3 } }}>
@@ -35,14 +95,13 @@ export default function ReportsPage() {
         >
           <Stack spacing={1} sx={{ flex: 1 }}>
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="h6">Reports</Typography>
+              <Typography variant="h6">{pageTitle}</Typography>
               {isSiteContext && siteName ? (
                 <Chip label={siteName} size="small" color="secondary" />
               ) : null}
             </Stack>
             <Typography color="text.secondary" variant="body2">
-              Daily and monthly billing summaries paired with the top operational events. Export a
-              PDF snapshot to share with stakeholders.
+              {pageDescription}
             </Typography>
           </Stack>
           <Stack
@@ -56,7 +115,7 @@ export default function ReportsPage() {
               onClick={handleDailyDownload}
               fullWidth
             >
-              Daily PDF
+              {dailyPdfLabel}
             </Button>
             <Button
               variant="contained"
@@ -64,21 +123,29 @@ export default function ReportsPage() {
               onClick={handleMonthlyDownload}
               fullWidth
             >
-              Monthly PDF
+              {monthlyPdfLabel}
             </Button>
           </Stack>
         </Stack>
 
         <Typography variant="body2" color="text.secondary">
-          {isSiteContext && siteName
-            ? `Metrics are scoped to ${siteName}. Switch back to enterprise mode for cross-site comparisons.`
-            : 'Portfolio-wide aggregates shown. Select a specific site to focus this report.'}
+          {isSiteContext && siteName ? siteScopedAlert : enterpriseAlert}
         </Typography>
 
         <Divider flexItem />
 
-        <SnapshotSection snapshot={daily} />
-        <SnapshotSection snapshot={monthly} />
+        <SnapshotSection
+          snapshot={daily}
+          billingTitle={billingOverviewTitle}
+          eventsTitle={eventHighlightsTitle}
+          insightsTitle={keyInsightsTitle}
+        />
+        <SnapshotSection
+          snapshot={monthly}
+          billingTitle={billingOverviewTitle}
+          eventsTitle={eventHighlightsTitle}
+          insightsTitle={keyInsightsTitle}
+        />
       </Stack>
     </Paper>
   )
@@ -112,7 +179,17 @@ function SummaryCard({ icon, title, subtitle, children }: SummaryCardProps) {
   )
 }
 
-function SnapshotSection({ snapshot }: { snapshot: ReportSnapshot }) {
+function SnapshotSection({
+  snapshot,
+  billingTitle,
+  eventsTitle,
+  insightsTitle,
+}: {
+  snapshot: ReportSnapshot
+  billingTitle: string
+  eventsTitle: string
+  insightsTitle: string
+}) {
   return (
     <Stack spacing={2}>
       <Typography variant="subtitle1">{snapshot.title}</Typography>
@@ -128,20 +205,20 @@ function SnapshotSection({ snapshot }: { snapshot: ReportSnapshot }) {
       >
         <SummaryCard
           icon={<PaidRoundedIcon fontSize="small" />}
-          title="Billing Overview"
+          title={billingTitle}
           subtitle={snapshot.dateRange}
         >
           <BillingList items={snapshot.billingSummary} />
         </SummaryCard>
         <SummaryCard
           icon={<EventAvailableRoundedIcon fontSize="small" />}
-          title="Event Highlights"
+          title={eventsTitle}
           subtitle={snapshot.dateRange}
         >
           <EventList items={snapshot.eventHighlights} />
         </SummaryCard>
       </Box>
-      <SummaryCard title="Key Insights">
+      <SummaryCard title={insightsTitle}>
         <InsightList insights={snapshot.insights} />
       </SummaryCard>
     </Stack>

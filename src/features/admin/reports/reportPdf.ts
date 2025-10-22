@@ -10,7 +10,19 @@ const sanitizeFileName = (value: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '') || 'report'
 
-export function generateReportPdf(snapshot: ReportSnapshot) {
+export type ReportPdfLabels = {
+  reportTitle: string
+  focusPrefix: string
+  sitePrefix: string
+  siteFallback: string
+  dateRangePrefix: string
+  generatedPrefix: string
+  billingSummaryTitle: string
+  eventHighlightsTitle: string
+  keyNotesTitle: string
+}
+
+export function generateReportPdf(snapshot: ReportSnapshot, labels: ReportPdfLabels) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' })
   const pageWidth = doc.internal.pageSize.getWidth()
   const innerWidth = pageWidth - MARGIN_X * 2
@@ -18,26 +30,26 @@ export function generateReportPdf(snapshot: ReportSnapshot) {
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
-  doc.text(`Hex Community Report — ${snapshot.title}`, MARGIN_X, cursorY)
+  doc.text(`${labels.reportTitle} — ${snapshot.title}`, MARGIN_X, cursorY)
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(12)
   cursorY += LINE_HEIGHT
-  doc.text(`Focus: ${snapshot.focus}`, MARGIN_X, cursorY)
+  doc.text(`${labels.focusPrefix} ${snapshot.focus}`, MARGIN_X, cursorY)
 
   cursorY += LINE_HEIGHT
-  doc.text(`Site: ${snapshot.siteName ?? 'Enterprise Portfolio'}`, MARGIN_X, cursorY)
+  doc.text(`${labels.sitePrefix} ${snapshot.siteName ?? labels.siteFallback}`, MARGIN_X, cursorY)
 
   cursorY += LINE_HEIGHT
-  doc.text(`Date Range: ${snapshot.dateRange}`, MARGIN_X, cursorY)
+  doc.text(`${labels.dateRangePrefix} ${snapshot.dateRange}`, MARGIN_X, cursorY)
 
   cursorY += LINE_HEIGHT
-  doc.text(`Generated: ${snapshot.generatedAt}`, MARGIN_X, cursorY)
+  doc.text(`${labels.generatedPrefix} ${snapshot.generatedAt}`, MARGIN_X, cursorY)
 
   cursorY += LINE_HEIGHT * 1.5
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(14)
-  doc.text('Billing Summary', MARGIN_X, cursorY)
+  doc.text(labels.billingSummaryTitle, MARGIN_X, cursorY)
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(12)
@@ -62,7 +74,7 @@ export function generateReportPdf(snapshot: ReportSnapshot) {
   cursorY += LINE_HEIGHT / 2
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(14)
-  doc.text('Event Highlights', MARGIN_X, cursorY)
+  doc.text(labels.eventHighlightsTitle, MARGIN_X, cursorY)
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(12)
@@ -86,7 +98,7 @@ export function generateReportPdf(snapshot: ReportSnapshot) {
     cursorY += LINE_HEIGHT / 2
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(14)
-    doc.text('Key Notes', MARGIN_X, cursorY)
+    doc.text(labels.keyNotesTitle, MARGIN_X, cursorY)
 
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(11)

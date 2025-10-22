@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ElementType } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ElementType, type MouseEvent } from 'react'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   AppBar,
@@ -49,13 +49,15 @@ import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled'
 import BadgeOutlinedIcon from '@mui/icons-material/Badge'
 import Badge from '@mui/material/Badge'
+import SearchIcon from '@mui/icons-material/Search'
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import type { ButtonProps } from '@mui/material/Button'
+import { alpha } from '@mui/material/styles'
 import { useAuthStore } from '@app/auth/auth.store'
 import { useUIStore } from '@store/ui.store'
 import { useI18nStore } from '@store/i18n.store'
 import SettingsPage from '@features/settings/SettingsPage'
 import { useTranslate } from '../../i18n/useTranslate'
-import { alpha, useTheme } from '@mui/material/styles'
 import { useSiteStore, type SiteMode, type Site } from '@store/site.store'
 import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
 
@@ -84,9 +86,6 @@ type NotificationAction = {
   onClick: () => void
 }
 
-// Removed ROLE_NAV constant for translation-driven navigation
-// Keeping type definitions intact
-
 function getUserInitials(source?: string): string {
   if (!source) return 'HX'
   const trimmed = source.trim()
@@ -96,7 +95,7 @@ function getUserInitials(source?: string): string {
   return `${parts[0][0] ?? ''}${parts[parts.length - 1][0] ?? ''}`.toUpperCase()
 }
 
-export default function TopNav() {
+export default function TopBar() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const { t } = useTranslate()
@@ -104,13 +103,10 @@ export default function TopNav() {
   const patternEnabled = useUIStore((s) => s.patternEnabled)
   const patternKind = useUIStore((s) => s.patternKind)
   const patternOpacity = useUIStore((s) => s.patternOpacity)
-  const patternBackgroundSource = useUIStore((s) => s.patternBackgroundSource)
-  const patternCustomColor = useUIStore((s) => s.patternCustomColor)
   const patternScale = useUIStore((s) => s.patternScale)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const openSettings = useUIStore((s) => s.openSettings)
   const setOpenSettings = useUIStore((s) => s.setOpenSettings)
-  const theme = useTheme()
   const { sites, current, mode, hydrate, setCurrent, setMode } = useSiteStore()
   const location = useLocation()
 
@@ -437,16 +433,8 @@ export default function TopNav() {
     }
   }, [selectedMode, selectedSiteSlug, sites])
 
-  const appBarBackground = useMemo(() => {
-    if (patternBackgroundSource === 'secondary') return theme.palette.secondary.main
-    if (patternBackgroundSource === 'custom' && patternCustomColor) return patternCustomColor
-    return theme.palette.primary.main
-  }, [
-    patternBackgroundSource,
-    patternCustomColor,
-    theme.palette.primary.main,
-    theme.palette.secondary.main,
-  ])
+  const appBarBackground = alpha('#1b2735', 0.88)
+  const toolbarTextColor = 'rgba(255, 255, 255, 0.92)'
 
   const clampedScale = useMemo(
     () => Math.max(8, Math.min(64, Math.round(patternScale || 28))),
@@ -479,70 +467,133 @@ export default function TopNav() {
     selectedMode === 'site' &&
     (!selectedSiteSlug || !sites.some((site) => site.slug === selectedSiteSlug))
 
+  const openUserMenu = (event: MouseEvent<HTMLButtonElement>) => {
+    setUserAnchor(event.currentTarget)
+  }
+
+  const closeUserMenu = () => {
+    setUserAnchor(null)
+  }
+
   return (
     <>
       <AppBar
-        position="static"
-        sx={(theme) => {
-          const bg = appBarBackground
-          let bgImage: string | undefined = undefined
-          let bgSize: string | undefined = undefined
+        position="fixed"
+        elevation={0}
+        sx={(muiTheme) => {
+          let bgImage: string | undefined
+          let bgSize: string | undefined
           if (patternEnabled && patternKind !== 'none') {
             const alphaVal = Math.max(0, Math.min(1, patternOpacity))
             if (patternKind === 'subtle-diagonal') {
-              bgImage = `linear-gradient(135deg, ${alpha(theme.palette.getContrastText(bg), alphaVal)} 25%, transparent 25%, transparent 50%, ${alpha(theme.palette.getContrastText(bg), alphaVal)} 50%, ${alpha(theme.palette.getContrastText(bg), alphaVal)} 75%, transparent 75%, transparent)`
+              bgImage = `linear-gradient(135deg, ${alpha(
+                muiTheme.palette.getContrastText(appBarBackground),
+                alphaVal,
+              )} 25%, transparent 25%, transparent 50%, ${alpha(
+                muiTheme.palette.getContrastText(appBarBackground),
+                alphaVal,
+              )} 50%, ${alpha(
+                muiTheme.palette.getContrastText(appBarBackground),
+                alphaVal,
+              )} 75%, transparent 75%, transparent)`
               bgSize = `${clampedScale}px ${clampedScale}px`
             } else if (patternKind === 'subtle-dots') {
-              bgImage = `radial-gradient(${alpha(theme.palette.getContrastText(bg), alphaVal)} 1px, transparent 1px)`
+              bgImage = `radial-gradient(${alpha(
+                muiTheme.palette.getContrastText(appBarBackground),
+                alphaVal,
+              )} 1px, transparent 1px)`
               bgSize = `${dotScale}px ${dotScale}px`
             } else if (patternKind === 'geometry') {
-              bgImage = `linear-gradient(45deg, ${alpha(theme.palette.getContrastText(bg), alphaVal)} 25%, transparent 25%), linear-gradient(-45deg, ${alpha(theme.palette.getContrastText(bg), alphaVal)} 25%, transparent 25%)`
+              bgImage = `linear-gradient(45deg, ${alpha(
+                muiTheme.palette.getContrastText(appBarBackground),
+                alphaVal,
+              )} 25%, transparent 25%), linear-gradient(-45deg, ${alpha(
+                muiTheme.palette.getContrastText(appBarBackground),
+                alphaVal,
+              )} 25%, transparent 25%)`
               bgSize = `${clampedScale}px ${clampedScale}px`
             }
           }
+
           return {
-            pl: 1,
-            pt: 0.5,
-            pb: 0.5,
-            backgroundColor: bg,
+            height: 64,
+            backdropFilter: 'blur(14px)',
+            backgroundColor: appBarBackground,
             backgroundImage: bgImage,
             backgroundSize: bgSize,
-            boxShadow: `0 2px 6px ${alpha(
-              theme.palette.getContrastText(bg),
-              theme.palette.mode === 'dark' ? 0.45 : 0.08,
-            )}`,
-            borderBottom: `1px solid ${alpha(
-              theme.palette.getContrastText(bg),
-              theme.palette.mode === 'dark' ? 0.02 : 0.04,
-            )}`,
+            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3)',
           }
         }}
       >
         <Toolbar
-          sx={(theme) => ({
+          sx={{
             alignItems: 'center',
-            gap: 1,
-            minHeight: 48,
-            px: { xs: 1, sm: 2 },
-            color: theme.palette.getContrastText(appBarBackground),
-          })}
+            gap: 1.5,
+            minHeight: 64,
+            px: { xs: 2, sm: 3 },
+            color: toolbarTextColor,
+          }}
         >
-          <IconButton
-            edge="start"
-            color="inherit"
-            onClick={() => setDrawerOpen(true)}
-            aria-label={t('topnav.drawer.openMenu')}
-          >
-            <MenuIcon />
-          </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={() => setDrawerOpen(true)}
+              aria-label={t('topnav.drawer.openMenu')}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" fontWeight={600} component="div">
+              Hex Access
+            </Typography>
+          </Box>
+
+          <Box sx={{ flexGrow: 1 }} />
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <IconButton
+              color="inherit"
+              aria-label={t('topnav.notifications.aria')}
+              onClick={(event) => setNotificationsAnchor(event.currentTarget)}
+            >
+              <Badge
+                badgeContent={unreadCount}
+                color={hasCritical ? 'error' : 'secondary'}
+                invisible={unreadCount === 0}
+              >
+                <NotificationsNoneIcon sx={{ color: 'inherit' }} />
+              </Badge>
+            </IconButton>
+
+            <IconButton
+              color="inherit"
+              aria-label={t('topnav.searchAria', { defaultValue: 'Search' })}
+            >
+              <SearchIcon />
+            </IconButton>
+
+            <Button
+              color="inherit"
+              endIcon={<ArrowDropDownIcon />}
+              onClick={openUserMenu}
+              sx={{ textTransform: 'none', fontWeight: 500 }}
+              aria-haspopup="true"
+              aria-controls={userAnchor ? 'topbar-account-menu' : undefined}
+              aria-expanded={userAnchor ? 'true' : undefined}
+            >
+              {t('topnav.accountMenu.welcome', { name: accountDisplayName })}
+            </Button>
+          </Box>
+
           <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
             <Box
-              sx={(t) => ({
+              sx={(muiTheme) => ({
                 width: 320,
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: t.palette.background.paper,
+                backgroundColor: muiTheme.palette.background.paper,
               })}
             >
               <Box
@@ -553,7 +604,7 @@ export default function TopNav() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 2,
-                  borderBottom: (t) => `1px solid ${alpha(t.palette.divider, 0.6)}`,
+                  borderBottom: (muiTheme) => `1px solid ${alpha(muiTheme.palette.divider, 0.6)}`,
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -562,8 +613,9 @@ export default function TopNav() {
                       width: 44,
                       height: 44,
                       borderRadius: 2,
-                      bgcolor: (t) => t.palette.primary.main,
-                      color: (t) => t.palette.getContrastText(t.palette.primary.main),
+                      bgcolor: (muiTheme) => muiTheme.palette.primary.main,
+                      color: (muiTheme) =>
+                        muiTheme.palette.getContrastText(muiTheme.palette.primary.main),
                       fontWeight: 600,
                     }}
                   >
@@ -653,16 +705,16 @@ export default function TopNav() {
                         alignItems: 'flex-start',
                         px: 2,
                         py: 1.25,
-                        transition: (t) =>
-                          t.transitions.create(['background-color', 'transform'], {
-                            duration: t.transitions.duration.shorter,
+                        transition: (muiTheme) =>
+                          muiTheme.transitions.create(['background-color', 'transform'], {
+                            duration: muiTheme.transitions.duration.shorter,
                           }),
                         ...(isActive
                           ? {
-                              backgroundColor: (t) =>
+                              backgroundColor: (muiTheme) =>
                                 alpha(
-                                  t.palette.primary.main,
-                                  t.palette.mode === 'dark' ? 0.25 : 0.12,
+                                  muiTheme.palette.primary.main,
+                                  muiTheme.palette.mode === 'dark' ? 0.25 : 0.12,
                                 ),
                               color: 'primary.main',
                               '& .MuiListItemIcon-root': { color: 'primary.main' },
@@ -671,7 +723,8 @@ export default function TopNav() {
                               color: 'text.primary',
                               '& .MuiListItemIcon-root': { color: 'text.secondary' },
                               '&:hover': {
-                                backgroundColor: (t) => alpha(t.palette.primary.main, 0.08),
+                                backgroundColor: (muiTheme) =>
+                                  alpha(muiTheme.palette.primary.main, 0.08),
                               },
                             }),
                       }}
@@ -729,85 +782,6 @@ export default function TopNav() {
               </Box>
             </Box>
           </Drawer>
-
-          <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="h6">{t('topnav.title')}</Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="subtitle2">{t('topnav.title')}</Typography>
-              <Typography
-                variant="caption"
-                sx={(theme) => ({
-                  color: alpha(theme.palette.getContrastText(appBarBackground), 0.9),
-                })}
-              >
-                {t('topnav.welcome')}
-              </Typography>
-            </Box>
-            <Box
-              sx={{
-                width: 36,
-                height: 36,
-                borderRadius: 1.5,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: (t) =>
-                  alpha(t.palette.getContrastText(t.palette.background.paper), 0.08),
-              }}
-            >
-              <Typography
-                variant="subtitle2"
-                sx={{ color: (t) => t.palette.getContrastText(t.palette.background.paper) }}
-              >
-                HX
-              </Typography>
-            </Box>
-            <Button color="inherit" onClick={(e) => setUserAnchor(e.currentTarget)}>
-              {accountDisplayName}
-            </Button>
-            <IconButton
-              color="inherit"
-              aria-label={t('topnav.notifications.aria')}
-              onClick={(event) => setNotificationsAnchor(event.currentTarget)}
-            >
-              <Badge
-                badgeContent={unreadCount}
-                color={hasCritical ? 'error' : 'secondary'}
-                invisible={unreadCount === 0}
-              >
-                <NotificationsNoneIcon sx={{ color: 'inherit' }} />
-              </Badge>
-            </IconButton>
-            <Menu anchorEl={userAnchor} open={!!userAnchor} onClose={() => setUserAnchor(null)}>
-              <MenuItem component={RouterLink} to="/profile" onClick={() => setUserAnchor(null)}>
-                <ListItemIcon>
-                  <AccountCircleIcon fontSize="small" />
-                </ListItemIcon>
-                {t('topnav.accountMenu.profile')}
-              </MenuItem>
-              <MenuItem component={RouterLink} to="/billing" onClick={() => setUserAnchor(null)}>
-                <ListItemIcon>
-                  <CreditCardIcon fontSize="small" />
-                </ListItemIcon>
-                {t('topnav.accountMenu.billing')}
-              </MenuItem>
-              <Divider />
-              <MenuItem
-                onClick={() => {
-                  setUserAnchor(null)
-                  logout()
-                }}
-              >
-                <ListItemIcon>
-                  <LogoutIcon fontSize="small" />
-                </ListItemIcon>
-                {t('topnav.accountMenu.logout')}
-              </MenuItem>
-            </Menu>
-          </Box>
         </Toolbar>
         <Menu
           anchorEl={notificationsAnchor}
@@ -819,7 +793,7 @@ export default function TopNav() {
               width: 360,
               mt: 1,
               borderRadius: 2.5,
-              boxShadow: (theme) => theme.shadows[8],
+              boxShadow: (muiTheme) => muiTheme.shadows[8],
             },
           }}
         >
@@ -913,6 +887,39 @@ export default function TopNav() {
         </Menu>
         <SettingsPage openProp={openSettings} onCloseProp={() => setOpenSettings(false)} />
       </AppBar>
+
+      <Menu
+        id="topbar-account-menu"
+        anchorEl={userAnchor}
+        open={Boolean(userAnchor)}
+        onClose={closeUserMenu}
+      >
+        <MenuItem component={RouterLink} to="/profile" onClick={closeUserMenu}>
+          <ListItemIcon>
+            <AccountCircleIcon fontSize="small" />
+          </ListItemIcon>
+          {t('topnav.accountMenu.profile')}
+        </MenuItem>
+        <MenuItem component={RouterLink} to="/billing" onClick={closeUserMenu}>
+          <ListItemIcon>
+            <CreditCardIcon fontSize="small" />
+          </ListItemIcon>
+          {t('topnav.accountMenu.billing')}
+        </MenuItem>
+        <Divider />
+        <MenuItem
+          onClick={() => {
+            closeUserMenu()
+            logout()
+          }}
+        >
+          <ListItemIcon>
+            <LogoutIcon fontSize="small" />
+          </ListItemIcon>
+          {t('topnav.accountMenu.logout')}
+        </MenuItem>
+      </Menu>
+
       <ModeSwitchDialog
         open={modeDialogOpen}
         onClose={() => setModeDialogOpen(false)}

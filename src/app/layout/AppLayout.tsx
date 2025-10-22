@@ -1,5 +1,5 @@
 import { Outlet, Link as RouterLink, useLocation } from 'react-router-dom'
-import { Box, Breadcrumbs, Link } from '@mui/material'
+import { Box, Breadcrumbs, Link, Toolbar } from '@mui/material'
 import HomeIcon from '@mui/icons-material/Home'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import DomainIcon from '@mui/icons-material/Domain'
@@ -8,8 +8,7 @@ import PersonIcon from '@mui/icons-material/Person'
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar'
 import GavelIcon from '@mui/icons-material/Gavel'
 import BarChartIcon from '@mui/icons-material/BarChart'
-import TopNav from './TopNav'
-import { useAuthStore } from '@app/auth/auth.store'
+import TopBar from './TopBar'
 import { useTranslate } from '../../i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
 
@@ -24,7 +23,6 @@ const CRUMB_META: Record<string, { labelKey: string; Icon?: typeof DashboardIcon
 }
 
 export default function AppLayout() {
-  useAuthStore()
   const { t } = useTranslate()
   const language = useI18nStore((s) => s.language)
   const loc = useLocation()
@@ -46,7 +44,8 @@ export default function AppLayout() {
 
   return (
     <Box>
-      <TopNav />
+      <TopBar />
+      <Toolbar sx={{ minHeight: 64 }} />
       <Box sx={{ p: 2 }}>
         <Box
           sx={{

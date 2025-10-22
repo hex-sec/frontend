@@ -34,13 +34,8 @@ import {
   useColumnPreferences,
   type ColumnDefinition,
 } from '../../components/table/useColumnPreferences'
-
-const SQFT_FORMATTER = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
-const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric',
-})
+import { useTranslate } from '@i18n/useTranslate'
+import { useI18nStore } from '@store/i18n.store'
 
 type ResidenceStatus = 'occupied' | 'vacant' | 'maintenance'
 type ResidenceType = 'tower' | 'villa' | 'amenity' | 'parcel'
@@ -58,20 +53,24 @@ type ResidenceRecord = {
   lastInspection: string
 }
 
-const TYPE_META: Record<ResidenceType, { label: string; Icon: typeof HomeWorkIcon }> = {
-  tower: { label: 'High-rise', Icon: MapsHomeWorkIcon },
-  villa: { label: 'Villa', Icon: HomeWorkIcon },
-  amenity: { label: 'Amenity', Icon: MeetingRoomIcon },
-  parcel: { label: 'Parcel', Icon: SubjectIcon },
+const TYPE_META_BASE: Record<ResidenceType, { defaultLabel: string; Icon: typeof HomeWorkIcon }> = {
+  tower: { defaultLabel: 'High-rise', Icon: MapsHomeWorkIcon },
+  villa: { defaultLabel: 'Villa', Icon: HomeWorkIcon },
+  amenity: { defaultLabel: 'Amenity', Icon: MeetingRoomIcon },
+  parcel: { defaultLabel: 'Parcel', Icon: SubjectIcon },
 }
 
-const STATUS_META: Record<
+const STATUS_META_BASE: Record<
   ResidenceStatus,
-  { label: string; color: 'success' | 'default' | 'warning'; Icon: typeof CheckCircleOutlineIcon }
+  {
+    defaultLabel: string
+    color: 'success' | 'default' | 'warning'
+    Icon: typeof CheckCircleOutlineIcon
+  }
 > = {
-  occupied: { label: 'Occupied', color: 'success', Icon: CheckCircleOutlineIcon },
-  vacant: { label: 'Vacant', color: 'default', Icon: DoNotDisturbOnIcon },
-  maintenance: { label: 'Maintenance', color: 'warning', Icon: BuildCircleIcon },
+  occupied: { defaultLabel: 'Occupied', color: 'success', Icon: CheckCircleOutlineIcon },
+  vacant: { defaultLabel: 'Vacant', color: 'default', Icon: DoNotDisturbOnIcon },
+  maintenance: { defaultLabel: 'Maintenance', color: 'warning', Icon: BuildCircleIcon },
 }
 
 import residencesSeed from '../../mocks/residences.json'
@@ -93,21 +92,162 @@ const MOCK_RESIDENCES: ResidenceRecord[] = (residencesSeed as Array<Record<strin
 
 type ResidenceFilter = 'all' | ResidenceStatus
 
-const FILTER_OPTIONS: Array<{ value: ResidenceFilter; label: string }> = [
-  { value: 'all', label: 'All residences' },
-  { value: 'occupied', label: 'Occupied' },
-  { value: 'vacant', label: 'Vacant' },
-  { value: 'maintenance', label: 'Under maintenance' },
-]
-
 export default function ResidencesPage() {
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
-  const activeSiteName = activeSite?.name ?? derivedSiteSlug ?? null
+  const { t } = useTranslate()
+  const language = useI18nStore((state) => state.language) ?? 'en'
   const isSiteContext = Boolean(derivedSiteSlug)
+
+  const translate = useMemo(
+    () => (key: string, defaultValue: string, options?: Record<string, unknown>) =>
+      t(key, { lng: language, defaultValue, ...options }),
+    [language, t],
+  )
+
+  const numberFormatter = useMemo(
+    () => new Intl.NumberFormat(language, { maximumFractionDigits: 0 }),
+    [language],
+  )
+
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(language, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    [language],
+  )
+
+  const typeMeta = useMemo(
+    () => ({
+      tower: {
+        label: translate('residencesPage.types.tower', TYPE_META_BASE.tower.defaultLabel),
+        Icon: TYPE_META_BASE.tower.Icon,
+      },
+      villa: {
+        label: translate('residencesPage.types.villa', TYPE_META_BASE.villa.defaultLabel),
+        Icon: TYPE_META_BASE.villa.Icon,
+      },
+      amenity: {
+        label: translate('residencesPage.types.amenity', TYPE_META_BASE.amenity.defaultLabel),
+        Icon: TYPE_META_BASE.amenity.Icon,
+      },
+      parcel: {
+        label: translate('residencesPage.types.parcel', TYPE_META_BASE.parcel.defaultLabel),
+        Icon: TYPE_META_BASE.parcel.Icon,
+      },
+    }),
+    [translate],
+  )
+
+  const statusMeta = useMemo(
+    () => ({
+      occupied: {
+        label: translate(
+          'residencesPage.statuses.occupied',
+          STATUS_META_BASE.occupied.defaultLabel,
+        ),
+        color: STATUS_META_BASE.occupied.color,
+        Icon: STATUS_META_BASE.occupied.Icon,
+      },
+      vacant: {
+        label: translate('residencesPage.statuses.vacant', STATUS_META_BASE.vacant.defaultLabel),
+        color: STATUS_META_BASE.vacant.color,
+        Icon: STATUS_META_BASE.vacant.Icon,
+      },
+      maintenance: {
+        label: translate(
+          'residencesPage.statuses.maintenance',
+          STATUS_META_BASE.maintenance.defaultLabel,
+        ),
+        color: STATUS_META_BASE.maintenance.color,
+        Icon: STATUS_META_BASE.maintenance.Icon,
+      },
+    }),
+    [translate],
+  )
+
+  const filterOptions = useMemo<Array<{ value: ResidenceFilter; label: string }>>(
+    () => [
+      { value: 'all', label: translate('residencesPage.filters.all', 'All residences') },
+      { value: 'occupied', label: translate('residencesPage.filters.occupied', 'Occupied') },
+      { value: 'vacant', label: translate('residencesPage.filters.vacant', 'Vacant') },
+      {
+        value: 'maintenance',
+        label: translate('residencesPage.filters.maintenance', 'Under maintenance'),
+      },
+    ],
+    [translate],
+  )
+
+  const columnLabels = useMemo(
+    () => ({
+      label: translate('residencesPage.table.columns.label', 'Residence'),
+      status: translate('residencesPage.table.columns.status', 'Status'),
+      residents: translate('residencesPage.table.columns.residents', 'Residents'),
+      layout: translate('residencesPage.table.columns.layout', 'Layout'),
+      site: translate('residencesPage.table.columns.site', 'Site'),
+      inspection: translate('residencesPage.table.columns.inspection', 'Last inspection'),
+    }),
+    [translate],
+  )
+
+  const residencesTitle = translate('residencesPage.title', 'Residences')
+  const residencesDescription = translate(
+    'residencesPage.description',
+    'Manage unit inventory, occupancy, and inspections across the portfolio.',
+  )
+  const siteAlertPrefix = translate(
+    'residencesPage.alerts.siteScoped.prefix',
+    'Residences scoped to',
+  )
+  const siteAlertSuffix = translate(
+    'residencesPage.alerts.siteScoped.suffix',
+    'Capacity, inspection schedules, and occupancy will use this property by default.',
+  )
+  const enterpriseAlert = translate(
+    'residencesPage.alerts.enterprise',
+    'Residences are only available in site-focused mode. Open a site detail page or switch your workspace to a specific community to continue.',
+  )
+  const searchPlaceholder = translate(
+    'residencesPage.search.placeholder',
+    'Search by unit, ID, or resident',
+  )
+  const addResidenceLabel = translate('residencesPage.actions.addResidence', 'Add residence')
+  const enterpriseChipLabel = translate('residencesPage.chip.enterprise', 'Enterprise')
+  const residentsEmptyLabel = translate('residencesPage.residents.empty', 'None on record')
+  const layoutBedroomsNA = translate('residencesPage.layout.bedroomsNA', 'N/A')
+  const inspectionFollowUpLabel = translate(
+    'residencesPage.inspection.followUp',
+    'Follow-up required',
+  )
+  const inspectionCompliantLabel = translate('residencesPage.inspection.compliant', 'Compliant')
+  const tableEmptyTitle = translate('residencesPage.table.empty.title', 'No residences found')
+  const tableEmptyDescription = translate(
+    'residencesPage.table.empty.description',
+    'Adjust your filters or add a new residence to get started.',
+  )
+  const noSiteTitle = translate('residencesPage.noSite.title', 'Select a site to view residences')
+  const noSiteDescription = translate(
+    'residencesPage.noSite.description',
+    'Residences are scoped to individual communities. Choose a site from the workspace switcher or open a site detail page to access unit data.',
+  )
+  const browseSitesLabel = translate('residencesPage.actions.browseSites', 'Browse sites')
+
+  const activeSiteName = activeSite?.name ?? derivedSiteSlug ?? null
 
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<ResidenceFilter>('all')
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
+
+  const filterButtonLabel = useMemo(() => {
+    return (
+      filterOptions.find((option) => option.value === filter)?.label ??
+      filterOptions[0]?.label ??
+      translate('residencesPage.filters.all', 'All residences')
+    )
+  }, [filter, filterOptions, translate])
 
   const filteredResidences = useMemo(() => {
     const needle = search.trim().toLowerCase()
@@ -134,26 +274,33 @@ export default function ResidencesPage() {
 
   const handleCloseFilterMenu = useCallback(() => setFilterAnchor(null), [])
 
+  const handleSelectFilter = useCallback((value: ResidenceFilter) => {
+    setFilter(value)
+    setFilterAnchor(null)
+  }, [])
+
   const columnDefs = useMemo<ColumnDefinition<ResidenceRecord>[]>(() => {
     const currentSlug = derivedSiteSlug ?? null
     return [
       {
         id: 'label',
-        label: 'Residence',
+        label: columnLabels.label,
         minWidth: 220,
         disableToggle: true,
         render: (residence: ResidenceRecord) => {
-          const typeMeta = TYPE_META[residence.type]
+          const meta = typeMeta[residence.type]
           return (
             <Stack spacing={0.5}>
               <Stack direction="row" spacing={0.75} alignItems="center">
-                <typeMeta.Icon fontSize="small" color="action" />
+                <meta.Icon fontSize="small" color="action" />
                 <Typography variant="subtitle2" fontWeight={600}>
                   {residence.label}
                 </Typography>
               </Stack>
               <Typography variant="caption" color="text.secondary">
-                ID {residence.id}
+                {translate('residencesPage.table.idPrefix', 'ID {{id}}', {
+                  id: residence.id,
+                })}
               </Typography>
             </Stack>
           )
@@ -161,16 +308,16 @@ export default function ResidencesPage() {
       },
       {
         id: 'status',
-        label: 'Status',
+        label: columnLabels.status,
         minWidth: 140,
         render: (residence: ResidenceRecord) => {
-          const statusMeta = STATUS_META[residence.status]
+          const meta = statusMeta[residence.status]
           return (
             <Chip
               size="small"
-              color={statusMeta.color}
-              icon={<statusMeta.Icon fontSize="small" />}
-              label={statusMeta.label}
+              color={meta.color}
+              icon={<meta.Icon fontSize="small" />}
+              label={meta.label}
               variant={residence.status === 'vacant' ? 'outlined' : 'filled'}
             />
           )
@@ -178,13 +325,13 @@ export default function ResidencesPage() {
       },
       {
         id: 'residents',
-        label: 'Residents',
+        label: columnLabels.residents,
         minWidth: 200,
         render: (residence: ResidenceRecord) => (
           <Stack spacing={0.3}>
             {residence.residents.length === 0 ? (
               <Typography variant="body2" color="text.secondary">
-                None on record
+                {residentsEmptyLabel}
               </Typography>
             ) : (
               residence.residents.map((name: string) => (
@@ -198,22 +345,28 @@ export default function ResidencesPage() {
       },
       {
         id: 'layout',
-        label: 'Layout',
+        label: columnLabels.layout,
         minWidth: 140,
         render: (residence: ResidenceRecord) => (
           <Stack spacing={0.2}>
             <Typography variant="body2" fontWeight={600}>
-              {residence.bedrooms > 0 ? `${residence.bedrooms} BR` : 'N/A'}
+              {residence.bedrooms > 0
+                ? translate('residencesPage.layout.bedroomsValue', '{{count}} BR', {
+                    count: residence.bedrooms,
+                  })
+                : layoutBedroomsNA}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {SQFT_FORMATTER.format(residence.areaSqFt)} sq ft
+              {translate('residencesPage.layout.area', '{{value}} sq ft', {
+                value: numberFormatter.format(residence.areaSqFt),
+              })}
             </Typography>
           </Stack>
         ),
       },
       {
         id: 'site',
-        label: 'Site',
+        label: columnLabels.site,
         minWidth: 160,
         render: (residence: ResidenceRecord) => (
           <Chip
@@ -225,21 +378,35 @@ export default function ResidencesPage() {
       },
       {
         id: 'inspection',
-        label: 'Last inspection',
+        label: columnLabels.inspection,
         minWidth: 160,
         render: (residence: ResidenceRecord) => (
           <Stack spacing={0.2}>
             <Typography variant="body2" fontWeight={600}>
-              {DATE_FORMATTER.format(new Date(residence.lastInspection))}
+              {dateFormatter.format(new Date(residence.lastInspection))}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {residence.status === 'maintenance' ? 'Follow-up required' : 'Compliant'}
+              {residence.status === 'maintenance'
+                ? inspectionFollowUpLabel
+                : inspectionCompliantLabel}
             </Typography>
           </Stack>
         ),
       },
     ]
-  }, [derivedSiteSlug])
+  }, [
+    columnLabels,
+    dateFormatter,
+    derivedSiteSlug,
+    inspectionCompliantLabel,
+    inspectionFollowUpLabel,
+    layoutBedroomsNA,
+    numberFormatter,
+    residentsEmptyLabel,
+    statusMeta,
+    translate,
+    typeMeta,
+  ])
 
   const {
     orderedColumns,
@@ -258,8 +425,9 @@ export default function ResidencesPage() {
           icon={<AddHomeWorkIcon fontSize="inherit" />}
           sx={{ alignItems: 'center', borderRadius: 2 }}
         >
-          Residences scoped to <strong>{activeSiteName}</strong>. Capacity, inspection schedules,
-          and occupancy will use this property by default.
+          <Typography variant="body2">
+            {siteAlertPrefix} <strong>{activeSiteName}</strong>. {siteAlertSuffix}
+          </Typography>
         </Alert>
       ) : (
         <Alert
@@ -267,8 +435,7 @@ export default function ResidencesPage() {
           icon={<AddHomeWorkIcon fontSize="inherit" />}
           sx={{ alignItems: 'center', borderRadius: 2 }}
         >
-          Residences are only available in site-focused mode. Open a site detail page or switch your
-          workspace to a specific community to continue.
+          <Typography variant="body2">{enterpriseAlert}</Typography>
         </Alert>
       )}
 
@@ -286,16 +453,16 @@ export default function ResidencesPage() {
                 <Box>
                   <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Typography variant="h5" fontWeight={600}>
-                      Residences
+                      {residencesTitle}
                     </Typography>
                     {isSiteContext && activeSiteName ? (
                       <Chip label={activeSiteName} size="small" color="secondary" />
                     ) : (
-                      <Chip label="Enterprise" size="small" color="primary" />
+                      <Chip label={enterpriseChipLabel} size="small" color="primary" />
                     )}
                   </Stack>
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    Manage unit inventory, occupancy, and inspections across the portfolio.
+                    {residencesDescription}
                   </Typography>
                 </Box>
                 <Stack direction="row" spacing={1} alignItems="center">
@@ -311,11 +478,10 @@ export default function ResidencesPage() {
                     onClick={handleOpenFilterMenu}
                     color={filter === 'all' ? 'inherit' : 'primary'}
                   >
-                    {FILTER_OPTIONS.find((option) => option.value === filter)?.label ??
-                      'All residences'}
+                    {filterButtonLabel}
                   </Button>
                   <Button variant="contained" startIcon={<HomeWorkIcon />}>
-                    Add residence
+                    {addResidenceLabel}
                   </Button>
                 </Stack>
               </Stack>
@@ -323,7 +489,7 @@ export default function ResidencesPage() {
               <TextField
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search by unit, ID, or resident"
+                placeholder={searchPlaceholder}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -353,12 +519,12 @@ export default function ResidencesPage() {
                       <TableRow>
                         <TableCell colSpan={visibleColumns.length || 1}>
                           <Stack spacing={1} alignItems="center" sx={{ py: 5 }}>
-                            <Typography variant="subtitle1">No residences found</Typography>
+                            <Typography variant="subtitle1">{tableEmptyTitle}</Typography>
                             <Typography variant="body2" color="text.secondary">
-                              Adjust your filters or add a new residence to get started.
+                              {tableEmptyDescription}
                             </Typography>
                             <Button variant="contained" startIcon={<HomeWorkIcon />}>
-                              Add residence
+                              {addResidenceLabel}
                             </Button>
                           </Stack>
                         </TableCell>
@@ -389,14 +555,11 @@ export default function ResidencesPage() {
             open={Boolean(filterAnchor)}
             onClose={handleCloseFilterMenu}
           >
-            {FILTER_OPTIONS.map((option) => (
+            {filterOptions.map((option) => (
               <MenuItem
                 key={option.value}
                 selected={filter === option.value}
-                onClick={() => {
-                  setFilter(option.value)
-                  handleCloseFilterMenu()
-                }}
+                onClick={() => handleSelectFilter(option.value)}
               >
                 {option.label}
               </MenuItem>
@@ -406,13 +569,12 @@ export default function ResidencesPage() {
       ) : (
         <Paper sx={{ p: 3, borderRadius: 3 }}>
           <Stack spacing={2} alignItems="flex-start">
-            <Typography variant="h6">Select a site to view residences</Typography>
+            <Typography variant="h6">{noSiteTitle}</Typography>
             <Typography variant="body2" color="text.secondary">
-              Residences are scoped to individual communities. Choose a site from the workspace
-              switcher or open a site detail page to access unit data.
+              {noSiteDescription}
             </Typography>
             <Button variant="contained" component={RouterLink} to="/admin/sites">
-              Browse sites
+              {browseSitesLabel}
             </Button>
           </Stack>
         </Paper>

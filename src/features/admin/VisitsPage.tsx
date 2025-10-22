@@ -39,6 +39,7 @@ import {
 } from '../../components/table/useColumnPreferences'
 import { ColumnPreferencesButton } from '../../components/table/ColumnPreferencesButton'
 import { useI18nStore } from '@store/i18n.store'
+import { useTranslate } from '@i18n/useTranslate'
 
 type VisitStatus = 'approved' | 'pending' | 'denied'
 type VisitType = 'guest' | 'delivery' | 'event'
@@ -78,49 +79,137 @@ const MOCK_VISITS: VisitRecord[] = (visitsSeed as Array<Record<string, unknown>>
   createdAt: String(v.createdAt),
 }))
 
-const STATUS_META: Record<
-  VisitStatus,
-  { label: string; color: 'success' | 'warning' | 'error'; Icon: typeof CheckCircleOutlineIcon }
-> = {
-  approved: { label: 'Approved', color: 'success', Icon: CheckCircleOutlineIcon },
-  pending: { label: 'Pending', color: 'warning', Icon: PendingIcon },
-  denied: { label: 'Denied', color: 'error', Icon: ErrorOutlineIcon },
-}
-
-const TYPE_META: Record<VisitType, { label: string; Icon: typeof PersonAddAltIcon }> = {
-  guest: { label: 'Guest', Icon: PersonAddAltIcon },
-  delivery: { label: 'Delivery', Icon: DirectionsCarFilledIcon },
-  event: { label: 'Event', Icon: CelebrationIcon },
-}
-
 type VisitFilter = 'all' | VisitStatus | VisitType
-const FILTER_OPTIONS: Array<{ value: VisitFilter; label: string }> = [
-  { value: 'all', label: 'All visits' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'denied', label: 'Denied' },
-  { value: 'guest', label: 'Guests' },
-  { value: 'delivery', label: 'Deliveries' },
-  { value: 'event', label: 'Events' },
-]
 
 // Removed USER_LOCALE, DATE_FORMATTER, and TIME_FORMATTER from module scope
 
 export default function VisitsPage() {
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
-  // Use the selected locale from the i18n store
-  // Replace this import with your actual i18n store hook if different
-  // import { useI18nStore } from '@app/i18n/useI18nStore'
-  // const locale = useI18nStore((state) => state.language) || 'en-US'
-  // Use language from i18n store; fall back to 'en'
-  const lang = useI18nStore((s) => s.language) ?? 'en'
-  // Intl accepts simple language tags like 'en', 'es', 'fr'
-  const DATE_FORMATTER = new Intl.DateTimeFormat(lang, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-  const TIME_FORMATTER = new Intl.DateTimeFormat(lang, { hour: 'numeric', minute: '2-digit' })
+  const { t } = useTranslate()
+  const language = useI18nStore((s) => s.language) ?? 'en'
+
+  const translate = useMemo(
+    () => (key: string, defaultValue: string, options?: Record<string, unknown>) =>
+      t(key, { lng: language, defaultValue, ...options }),
+    [language, t],
+  )
+
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(language, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    [language],
+  )
+
+  const timeFormatter = useMemo(
+    () => new Intl.DateTimeFormat(language, { hour: 'numeric', minute: '2-digit' }),
+    [language],
+  )
+
+  const statusMeta = useMemo(
+    () => ({
+      approved: {
+        label: translate('visitsPage.statuses.approved', 'Approved'),
+        color: 'success' as const,
+        Icon: CheckCircleOutlineIcon,
+      },
+      pending: {
+        label: translate('visitsPage.statuses.pending', 'Pending'),
+        color: 'warning' as const,
+        Icon: PendingIcon,
+      },
+      denied: {
+        label: translate('visitsPage.statuses.denied', 'Denied'),
+        color: 'error' as const,
+        Icon: ErrorOutlineIcon,
+      },
+    }),
+    [translate],
+  )
+
+  const typeMeta = useMemo(
+    () => ({
+      guest: {
+        label: translate('visitsPage.types.guest', 'Guest'),
+        Icon: PersonAddAltIcon,
+      },
+      delivery: {
+        label: translate('visitsPage.types.delivery', 'Delivery'),
+        Icon: DirectionsCarFilledIcon,
+      },
+      event: {
+        label: translate('visitsPage.types.event', 'Event'),
+        Icon: CelebrationIcon,
+      },
+    }),
+    [translate],
+  )
+
+  const filterOptions = useMemo<Array<{ value: VisitFilter; label: string }>>(
+    () => [
+      { value: 'all', label: translate('visitsPage.filters.all', 'All visits') },
+      { value: 'approved', label: translate('visitsPage.filters.approved', 'Approved') },
+      { value: 'pending', label: translate('visitsPage.filters.pending', 'Pending') },
+      { value: 'denied', label: translate('visitsPage.filters.denied', 'Denied') },
+      { value: 'guest', label: translate('visitsPage.filters.guest', 'Guests') },
+      { value: 'delivery', label: translate('visitsPage.filters.delivery', 'Deliveries') },
+      { value: 'event', label: translate('visitsPage.filters.event', 'Events') },
+    ],
+    [translate],
+  )
+
+  const columnLabels = useMemo(
+    () => ({
+      id: translate('visitsPage.table.columns.id', 'Visit ID'),
+      visitor: translate('visitsPage.table.columns.visitor', 'Visitor'),
+      host: translate('visitsPage.table.columns.host', 'Host'),
+      vehicle: translate('visitsPage.table.columns.vehicle', 'Vehicle'),
+      site: translate('visitsPage.table.columns.site', 'Site'),
+      schedule: translate('visitsPage.table.columns.schedule', 'Scheduled'),
+      status: translate('visitsPage.table.columns.status', 'Status'),
+      type: translate('visitsPage.table.columns.type', 'Type'),
+      badge: translate('visitsPage.table.columns.badge', 'Badge'),
+      actions: translate('visitsPage.table.columns.actions', 'Actions'),
+    }),
+    [translate],
+  )
+
+  const visitsTitle = translate('visitsPage.title', 'Visits')
+  const visitsDescription = translate(
+    'visitsPage.description',
+    'Monitor guest traffic, scheduled arrivals, and kiosk approvals in real-time.',
+  )
+  const siteAlertPrefix = translate('visitsPage.alerts.siteScoped.prefix', 'Visits scoped to')
+  const siteAlertSuffix = translate(
+    'visitsPage.alerts.siteScoped.suffix',
+    'Approvals, guest lists, and badges will prefill for this property.',
+  )
+  const enterpriseAlert = translate(
+    'visitsPage.alerts.enterprise',
+    'Switch to a specific site to pre-filter kiosk traffic or stay at enterprise level to audit all communities.',
+  )
+  const enterpriseChipLabel = translate('visitsPage.chip.enterprise', 'Enterprise')
+  const searchPlaceholder = translate(
+    'visitsPage.search.placeholder',
+    'Search by visitor, host, badge, or ID',
+  )
+  const createPassLabel = translate('visitsPage.actions.createPass', 'Create pass')
+  const downloadBadgeLabel = translate('visitsPage.actions.downloadBadge', 'Download badge')
+  const moreActionsLabel = translate('visitsPage.actions.moreActions', 'More actions')
+  const resendEmailLabel = translate(
+    'visitsPage.actions.resendConfirmation',
+    'Resend confirmation email',
+  )
+  const cancelVisitLabel = translate('visitsPage.actions.cancelVisit', 'Cancel visit')
+  const noPlateLabel = translate('visitsPage.vehicle.noPlate', 'No plate on file')
+  const emptyStateTitle = translate('visitsPage.table.empty.title', 'No visits found')
+  const emptyStateDescription = translate(
+    'visitsPage.table.empty.description',
+    'Adjust your filters or create a pass to get started.',
+  )
 
   const isSiteContext = Boolean(derivedSiteSlug)
   const [search, setSearch] = useState('')
@@ -130,6 +219,14 @@ export default function VisitsPage() {
     visit: undefined,
   })
   const [downloading, setDownloading] = useState(false)
+
+  const filterButtonLabel = useMemo(() => {
+    return (
+      filterOptions.find((option) => option.value === filter)?.label ??
+      filterOptions[0]?.label ??
+      translate('visitsPage.filters.all', 'All visits')
+    )
+  }, [filter, filterOptions, translate])
 
   const filteredVisits = useMemo(() => {
     const lower = search.trim().toLowerCase()
@@ -175,7 +272,7 @@ export default function VisitsPage() {
     return [
       {
         id: 'id',
-        label: 'Visit ID',
+        label: columnLabels.id,
         disableToggle: true,
         minWidth: 120,
         render: (visit) => (
@@ -186,7 +283,7 @@ export default function VisitsPage() {
       },
       {
         id: 'visitor',
-        label: 'Visitor',
+        label: columnLabels.visitor,
         minWidth: 200,
         render: (visit) => (
           <Stack spacing={0.3}>
@@ -203,7 +300,7 @@ export default function VisitsPage() {
       },
       {
         id: 'host',
-        label: 'Host',
+        label: columnLabels.host,
         minWidth: 200,
         render: (visit) => (
           <Stack spacing={0.3}>
@@ -216,7 +313,7 @@ export default function VisitsPage() {
       },
       {
         id: 'vehicle',
-        label: 'Vehicle',
+        label: columnLabels.vehicle,
         minWidth: 140,
         render: (visit) => (
           <Stack direction="row" spacing={0.75} alignItems="center">
@@ -228,14 +325,14 @@ export default function VisitsPage() {
               variant="body2"
               color={visit.vehiclePlate ? 'text.primary' : 'text.secondary'}
             >
-              {visit.vehiclePlate ?? 'No plate on file'}
+              {visit.vehiclePlate ?? noPlateLabel}
             </Typography>
           </Stack>
         ),
       },
       {
         id: 'site',
-        label: 'Site',
+        label: columnLabels.site,
         minWidth: 160,
         render: (visit) => (
           <Chip
@@ -247,25 +344,25 @@ export default function VisitsPage() {
       },
       {
         id: 'schedule',
-        label: 'Scheduled',
+        label: columnLabels.schedule,
         minWidth: 160,
         render: (visit) => (
           <Stack spacing={0.2}>
             <Typography variant="body2" fontWeight={600}>
-              {DATE_FORMATTER.format(new Date(visit.scheduledFor))}
+              {dateFormatter.format(new Date(visit.scheduledFor))}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {TIME_FORMATTER.format(new Date(visit.scheduledFor))}
+              {timeFormatter.format(new Date(visit.scheduledFor))}
             </Typography>
           </Stack>
         ),
       },
       {
         id: 'status',
-        label: 'Status',
+        label: columnLabels.status,
         minWidth: 140,
         render: (visit) => {
-          const meta = STATUS_META[visit.status]
+          const meta = statusMeta[visit.status]
           return (
             <Chip
               size="small"
@@ -279,10 +376,10 @@ export default function VisitsPage() {
       },
       {
         id: 'type',
-        label: 'Type',
+        label: columnLabels.type,
         minWidth: 140,
         render: (visit) => {
-          const meta = TYPE_META[visit.type]
+          const meta = typeMeta[visit.type]
           return (
             <Chip
               size="small"
@@ -301,7 +398,7 @@ export default function VisitsPage() {
       },
       {
         id: 'badge',
-        label: 'Badge',
+        label: columnLabels.badge,
         minWidth: 140,
         render: (visit) => (
           <Stack direction="row" spacing={0.75} alignItems="center">
@@ -314,20 +411,20 @@ export default function VisitsPage() {
       },
       {
         id: 'actions',
-        label: 'Actions',
+        label: columnLabels.actions,
         disableToggle: true,
         align: 'right',
         minWidth: 160,
         render: (visit) => (
           <Stack direction="row" spacing={1} justifyContent="flex-end">
-            <Tooltip title="Download badge">
+            <Tooltip title={downloadBadgeLabel}>
               <span>
                 <IconButton size="small" onClick={handleDownloadBadge} disabled={downloading}>
                   <DownloadIcon fontSize="small" />
                 </IconButton>
               </span>
             </Tooltip>
-            <Tooltip title="More actions">
+            <Tooltip title={moreActionsLabel}>
               <IconButton size="small" onClick={(event) => handleOpenRowMenu(event, visit)}>
                 <MoreVertIcon fontSize="small" />
               </IconButton>
@@ -336,7 +433,20 @@ export default function VisitsPage() {
         ),
       },
     ]
-  }, [derivedSiteSlug, downloading, handleDownloadBadge, handleOpenRowMenu])
+  }, [
+    columnLabels,
+    dateFormatter,
+    derivedSiteSlug,
+    downloading,
+    handleDownloadBadge,
+    handleOpenRowMenu,
+    moreActionsLabel,
+    noPlateLabel,
+    statusMeta,
+    timeFormatter,
+    typeMeta,
+    downloadBadgeLabel,
+  ])
 
   const {
     orderedColumns,
@@ -358,8 +468,9 @@ export default function VisitsPage() {
           icon={<AddBusinessIcon fontSize="inherit" />}
           sx={{ alignItems: 'center', borderRadius: 2 }}
         >
-          Visits scoped to <strong>{activeSiteName}</strong>. Approvals, guest lists, and badges
-          will prefill for this property.
+          <Typography variant="body2">
+            {siteAlertPrefix} <strong>{activeSiteName}</strong>. {siteAlertSuffix}
+          </Typography>
         </Alert>
       ) : (
         <Alert
@@ -367,8 +478,7 @@ export default function VisitsPage() {
           icon={<AddBusinessIcon fontSize="inherit" />}
           sx={{ alignItems: 'center', borderRadius: 2 }}
         >
-          Switch to a specific site to pre-filter kiosk traffic or stay at enterprise level to audit
-          all communities.
+          <Typography variant="body2">{enterpriseAlert}</Typography>
         </Alert>
       )}
 
@@ -384,16 +494,16 @@ export default function VisitsPage() {
             <Box>
               <Stack direction="row" alignItems="center" spacing={1.5}>
                 <Typography variant="h5" fontWeight={600}>
-                  Visits
+                  {visitsTitle}
                 </Typography>
                 {isSiteContext && activeSiteName ? (
                   <Chip label={activeSiteName} size="small" color="secondary" />
                 ) : (
-                  <Chip label="Enterprise" size="small" color="primary" />
+                  <Chip label={enterpriseChipLabel} size="small" color="primary" />
                 )}
               </Stack>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                Monitor guest traffic, scheduled arrivals, and kiosk approvals in real-time.
+                {visitsDescription}
               </Typography>
             </Box>
             <Stack direction="row" spacing={1} alignItems="center">
@@ -410,10 +520,10 @@ export default function VisitsPage() {
                 onClick={(event) => setRowMenu({ anchor: event.currentTarget, visit: undefined })}
                 color={filter === 'all' ? 'inherit' : 'primary'}
               >
-                {FILTER_OPTIONS.find((option) => option.value === filter)?.label ?? 'All visits'}
+                {filterButtonLabel}
               </Button>
               <Button variant="contained" startIcon={<PersonAddAltIcon />}>
-                Create pass
+                {createPassLabel}
               </Button>
             </Stack>
           </Stack>
@@ -421,7 +531,7 @@ export default function VisitsPage() {
           <TextField
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by visitor, host, badge, or ID"
+            placeholder={searchPlaceholder}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -451,12 +561,12 @@ export default function VisitsPage() {
                   <TableRow>
                     <TableCell colSpan={visibleColumnCount}>
                       <Stack spacing={1} alignItems="center" sx={{ py: 5 }}>
-                        <Typography variant="subtitle1">No visits found</Typography>
+                        <Typography variant="subtitle1">{emptyStateTitle}</Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Adjust your filters or create a pass to get started.
+                          {emptyStateDescription}
                         </Typography>
                         <Button variant="contained" startIcon={<PersonAddAltIcon />}>
-                          Create pass
+                          {createPassLabel}
                         </Button>
                       </Stack>
                     </TableCell>
@@ -498,25 +608,25 @@ export default function VisitsPage() {
               }}
               disabled={downloading}
             >
-              Download badge
+              {downloadBadgeLabel}
             </MenuItem>
             <MenuItem
               onClick={() => {
                 handleCloseRowMenu()
               }}
             >
-              Resend confirmation email
+              {resendEmailLabel}
             </MenuItem>
             <MenuItem
               onClick={() => {
                 handleCloseRowMenu()
               }}
             >
-              Cancel visit
+              {cancelVisitLabel}
             </MenuItem>
           </>
         ) : (
-          FILTER_OPTIONS.map((option) => (
+          filterOptions.map((option) => (
             <MenuItem
               key={option.value}
               selected={filter === option.value}

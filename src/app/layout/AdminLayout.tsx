@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, type ElementType } from 'react'
 import { Outlet, Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Box, Breadcrumbs, Link, Typography, Button } from '@mui/material'
+import { Box, Breadcrumbs, Link, Typography, Button, Toolbar } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import DomainIcon from '@mui/icons-material/Domain'
 import PeopleIcon from '@mui/icons-material/People'
@@ -14,7 +14,7 @@ import HomeWorkIcon from '@mui/icons-material/HomeWork'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import LocalPoliceIcon from '@mui/icons-material/LocalPolice'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import TopNav from './TopNav'
+import TopBar from './TopBar'
 import { useAuthStore } from '@app/auth/auth.store'
 import { useSiteStore } from '@store/site.store'
 import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
@@ -171,7 +171,8 @@ export default function AdminLayout() {
 
   return (
     <Box>
-      <TopNav />
+      <TopBar />
+      <Toolbar sx={{ minHeight: 64 }} />
       <Box sx={{ p: 2 }}>
         <Box
           sx={{

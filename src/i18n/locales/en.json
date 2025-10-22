@@ -1001,5 +1001,383 @@
         "action": "Assign shifts"
       }
     }
+  },
+  "visitsPage": {
+    "title": "Visits",
+    "description": "Monitor guest traffic, scheduled arrivals, and kiosk approvals in real-time.",
+    "alerts": {
+      "siteScoped": {
+        "prefix": "Visits scoped to",
+        "suffix": "Approvals, guest lists, and badges will prefill for this property."
+      },
+      "enterprise": "Switch to a specific site to pre-filter kiosk traffic or stay at enterprise level to audit all communities."
+    },
+    "chip": {
+      "enterprise": "Enterprise"
+    },
+    "search": {
+      "placeholder": "Search by visitor, host, badge, or ID"
+    },
+    "vehicle": {
+      "noPlate": "No plate on file"
+    },
+    "filters": {
+      "all": "All visits",
+      "approved": "Approved",
+      "pending": "Pending",
+      "denied": "Denied",
+      "guest": "Guests",
+      "delivery": "Deliveries",
+      "event": "Events"
+    },
+    "statuses": {
+      "approved": "Approved",
+      "pending": "Pending",
+      "denied": "Denied"
+    },
+    "types": {
+      "guest": "Guest",
+      "delivery": "Delivery",
+      "event": "Event"
+    },
+    "actions": {
+      "createPass": "Create pass",
+      "downloadBadge": "Download badge",
+      "moreActions": "More actions",
+      "resendConfirmation": "Resend confirmation email",
+      "cancelVisit": "Cancel visit"
+    },
+    "table": {
+      "columns": {
+        "id": "Visit ID",
+        "visitor": "Visitor",
+        "host": "Host",
+        "vehicle": "Vehicle",
+        "site": "Site",
+        "schedule": "Scheduled",
+        "status": "Status",
+        "type": "Type",
+        "badge": "Badge",
+        "actions": "Actions"
+      },
+      "empty": {
+        "title": "No visits found",
+        "description": "Adjust your filters or create a pass to get started."
+      }
+    }
+  },
+  "vehiclesPage": {
+    "title": "Vehicle registry",
+    "description": "Register resident, visitor, and service vehicles to keep guard kiosks synced.",
+    "alerts": {
+      "siteScoped": {
+        "prefix": "Showing vehicles scoped to",
+        "suffix": "Registration flows will prefill permits and contact info for this property."
+      },
+      "enterprise": "Switch to a site to manage permits at the property level or stay in enterprise mode to audit all registered vehicles."
+    },
+    "chip": {
+      "enterprise": "Enterprise"
+    },
+    "search": {
+      "placeholder": "Search by plate, permit, or contact"
+    },
+    "filters": {
+      "all": "All vehicles",
+      "resident": "Resident vehicles",
+      "visitor": "Visitor vehicles",
+      "service": "Service vendors",
+      "flagged": "Flagged for review"
+    },
+    "usage": {
+      "resident": "Resident",
+      "visitor": "Visitor",
+      "service": "Service"
+    },
+    "statuses": {
+      "active": "Active",
+      "expired": "Expired permit",
+      "flagged": "Flagged"
+    },
+    "actions": {
+      "registerVehicle": "Register vehicle",
+      "downloadPermit": "Download permit",
+      "moreActions": "More actions",
+      "flagForReview": "Flag for review",
+      "removeFromRegistry": "Remove from registry"
+    },
+    "table": {
+      "columns": {
+        "plate": "Plate",
+        "vehicle": "Vehicle",
+        "usage": "Usage",
+        "assignedTo": "Assigned to",
+        "site": "Site",
+        "permit": "Permit",
+        "lastSeen": "Last seen",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "empty": {
+        "title": "No vehicles found",
+        "description": "Adjust filters or register a vehicle to populate this list."
+      }
+    },
+    "permit": {
+      "passesIssued": "{{count}} passes issued"
+    }
+  },
+  "reportsPage": {
+    "title": "Reports",
+    "description": "Daily and monthly billing summaries paired with the top operational events. Export a PDF snapshot to share with stakeholders.",
+    "actions": {
+      "dailyPdf": "Daily PDF",
+      "monthlyPdf": "Monthly PDF"
+    },
+    "alerts": {
+      "siteScoped": "Metrics are scoped to {{siteName}}. Switch back to enterprise mode for cross-site comparisons.",
+      "enterprise": "Portfolio-wide aggregates shown. Select a specific site to focus this report."
+    },
+    "cards": {
+      "billingOverview": "Billing Overview",
+      "eventHighlights": "Event Highlights",
+      "keyInsights": "Key Insights"
+    },
+    "pdf": {
+      "title": "Hex Community Report",
+      "focusPrefix": "Focus:",
+      "sitePrefix": "Site:",
+      "siteFallback": "Enterprise Portfolio",
+      "dateRangePrefix": "Date Range:",
+      "generatedPrefix": "Generated:",
+      "billingSummary": "Billing Summary",
+      "eventHighlights": "Event Highlights",
+      "keyNotes": "Key Notes"
+    },
+    "snapshots": {
+      "generatedAt": "{{value}}",
+      "portfolioFallback": "Portfolio",
+      "portfolioLongFallback": "The portfolio",
+      "daily": {
+        "title": "Daily Snapshot",
+        "focus": "Billing & Events",
+        "dateRange": "{{date}}",
+        "billing": {
+          "invoices": {
+            "label": "Invoices issued today",
+            "trend": "Up 5% vs yesterday"
+          },
+          "payments": {
+            "label": "Payments collected",
+            "trend": "92% same-day capture rate"
+          },
+          "outstanding": {
+            "label": "Outstanding balance",
+            "trend": "5 households flagged for follow-up"
+          },
+          "eventRevenue": {
+            "label": "Event-related revenue",
+            "trend": "Includes 2 venue deposits"
+          }
+        },
+        "events": {
+          "vendorSession": {
+            "label": "Vendor onboarding session",
+            "timeframe": "09:30 – 10:15",
+            "impact": "Facilities and Finance aligned on auto-billing for maintenance vendors."
+          },
+          "movieNight": {
+            "label": "Community movie night",
+            "timeframe": "19:00 – 21:00",
+            "impact": "215 RSVPs • Security confirmed perimeter sweep and guest parking overflow."
+          },
+          "emergencyMaintenance": {
+            "label": "Emergency gate maintenance",
+            "timeframe": "Scheduled 22:30",
+            "impact": "Guard team Bravo on standby • Billing holds waived for affected residents."
+          }
+        },
+        "insights": {
+          "recoveries": "{{target}} recovered 3 past-due invoices with automated reminders.",
+          "portalUsage": "Self-service portal usage peaked at 18:40 after the evening broadcast.",
+          "chargebacks": "No chargebacks reported in the last 48 hours."
+        }
+      },
+      "monthly": {
+        "title": "Monthly Overview",
+        "focus": "Billing & Events",
+        "dateRange": "{{start}} – {{end}}",
+        "billing": {
+          "totalInvoiced": {
+            "label": "Total invoiced",
+            "trend": "Up 7% vs prior month"
+          },
+          "payments": {
+            "label": "Payments collected",
+            "trend": "90% collection rate"
+          },
+          "outstanding": {
+            "label": "Outstanding balance",
+            "trend": "Down 12% vs prior month"
+          },
+          "eventRevenue": {
+            "label": "Event revenue",
+            "trend": "Includes 4 corporate rentals"
+          }
+        },
+        "events": {
+          "gala": {
+            "label": "Fall gala weekend",
+            "timeframe": "Oct 11 – 13",
+            "impact": "Generated $6.2k in sponsorships • Zero escalations logged."
+          },
+          "fireDrills": {
+            "label": "Fire safety drills",
+            "timeframe": "Oct 3 / Oct 17",
+            "impact": "All guard shifts compliant • Billing holds lifted for participating vendors."
+          },
+          "marketPrep": {
+            "label": "Holiday market preparation",
+            "timeframe": "Oct 21 – 30",
+            "impact": "Early vendor onboarding cuts deposit reconciliation time by 18%."
+          }
+        },
+        "insights": {
+          "paymentRate": "{{target}} sustained a 94% on-time payment rate across recurring charges.",
+          "attendance": "Event attendance is 22% above last October, driven by resident-led initiatives.",
+          "receivables": "Projected receivables for next month sit 11% below the same period last year."
+        }
+      }
+    }
+  },
+  "residencesPage": {
+    "title": "Residences",
+    "description": "Manage unit inventory, occupancy, and inspections across the portfolio.",
+    "alerts": {
+      "siteScoped": {
+        "prefix": "Residences scoped to",
+        "suffix": "Capacity, inspection schedules, and occupancy will use this property by default."
+      },
+      "enterprise": "Residences are only available in site-focused mode. Open a site detail page or switch your workspace to a specific community to continue."
+    },
+    "chip": {
+      "enterprise": "Enterprise"
+    },
+    "search": {
+      "placeholder": "Search by unit, ID, or resident"
+    },
+    "filters": {
+      "all": "All residences",
+      "occupied": "Occupied",
+      "vacant": "Vacant",
+      "maintenance": "Under maintenance"
+    },
+    "types": {
+      "tower": "High-rise",
+      "villa": "Villa",
+      "amenity": "Amenity",
+      "parcel": "Parcel"
+    },
+    "statuses": {
+      "occupied": "Occupied",
+      "vacant": "Vacant",
+      "maintenance": "Maintenance"
+    },
+    "actions": {
+      "addResidence": "Add residence",
+      "browseSites": "Browse sites"
+    },
+    "residents": {
+      "empty": "None on record"
+    },
+    "layout": {
+      "bedroomsValue": "{{count}} BR",
+      "bedroomsNA": "N/A",
+      "area": "{{value}} sq ft"
+    },
+    "inspection": {
+      "followUp": "Follow-up required",
+      "compliant": "Compliant"
+    },
+    "table": {
+      "columns": {
+        "label": "Residence",
+        "status": "Status",
+        "residents": "Residents",
+        "layout": "Layout",
+        "site": "Site",
+        "inspection": "Last inspection"
+      },
+      "idPrefix": "ID {{id}}",
+      "empty": {
+        "title": "No residences found",
+        "description": "Adjust your filters or add a new residence to get started."
+      }
+    },
+    "noSite": {
+      "title": "Select a site to view residences",
+      "description": "Residences are scoped to individual communities. Choose a site from the workspace switcher or open a site detail page to access unit data."
+    }
+  },
+  "visitorsPage": {
+    "title": "Recurring visitors",
+    "description": "Store frequent visitor profiles for faster gate processing and audit trails.",
+    "alerts": {
+      "siteScoped": {
+        "prefix": "Visitors scoped to",
+        "suffix": "Recurring approvals, notes, and expedited kiosk settings will stay in sync for this property."
+      },
+      "enterprise": "Track frequent guests across the portfolio and move to site mode to tune access rules for a single community."
+    },
+    "chip": {
+      "enterprise": "Enterprise"
+    },
+    "search": {
+      "placeholder": "Search by visitor, email, or host"
+    },
+    "filters": {
+      "all": "All visitors",
+      "active": "Active",
+      "pending": "Pending review",
+      "blocked": "Blocked",
+      "family": "Family & friends",
+      "vendor": "Vendors",
+      "staff": "Staff & contractors"
+    },
+    "categories": {
+      "family": "Family & friends",
+      "vendor": "Vendor",
+      "staff": "Staff"
+    },
+    "statuses": {
+      "active": "Active",
+      "blocked": "Blocked",
+      "pending": "Pending review"
+    },
+    "actions": {
+      "addRecurringVisitor": "Add recurring visitor",
+      "issuePass": "Create pass",
+      "moreActions": "More actions",
+      "blockVisitor": "Block visitor",
+      "deleteProfile": "Delete profile",
+      "issueVisitPass": "Issue visit pass"
+    },
+    "table": {
+      "columns": {
+        "visitor": "Visitor",
+        "category": "Category",
+        "host": "Primary host",
+        "site": "Site",
+        "lastVisit": "Last visit",
+        "totalVisits": "Visits logged",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "totalVisitsChip": "{{count}} visits",
+      "empty": {
+        "title": "No visitors found",
+        "description": "Adjust filters or add a recurring visitor profile."
+      }
+    }
   }
 }

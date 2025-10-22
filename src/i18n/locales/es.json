@@ -1001,5 +1001,383 @@
         "action": "Asignar turnos"
       }
     }
+  },
+  "visitsPage": {
+    "title": "Visitas",
+    "description": "Supervisa el tráfico de invitados, las llegadas programadas y las aprobaciones del kiosco en tiempo real.",
+    "alerts": {
+      "siteScoped": {
+        "prefix": "Visitas limitadas a",
+        "suffix": "Las aprobaciones, listas de invitados y credenciales se completarán automáticamente para esta propiedad."
+      },
+      "enterprise": "Cambia a un sitio específico para filtrar el tráfico del kiosco o mantente a nivel empresarial para auditar todas las comunidades."
+    },
+    "chip": {
+      "enterprise": "Empresa"
+    },
+    "search": {
+      "placeholder": "Buscar por visitante, anfitrión, credencial o ID"
+    },
+    "vehicle": {
+      "noPlate": "Sin placa registrada"
+    },
+    "filters": {
+      "all": "Todas las visitas",
+      "approved": "Aprobadas",
+      "pending": "Pendientes",
+      "denied": "Rechazadas",
+      "guest": "Invitados",
+      "delivery": "Entregas",
+      "event": "Eventos"
+    },
+    "statuses": {
+      "approved": "Aprobada",
+      "pending": "Pendiente",
+      "denied": "Rechazada"
+    },
+    "types": {
+      "guest": "Invitado",
+      "delivery": "Entrega",
+      "event": "Evento"
+    },
+    "actions": {
+      "createPass": "Crear pase",
+      "downloadBadge": "Descargar credencial",
+      "moreActions": "Más acciones",
+      "resendConfirmation": "Reenviar correo de confirmación",
+      "cancelVisit": "Cancelar visita"
+    },
+    "table": {
+      "columns": {
+        "id": "ID de visita",
+        "visitor": "Visitante",
+        "host": "Anfitrión",
+        "vehicle": "Vehículo",
+        "site": "Sitio",
+        "schedule": "Programado",
+        "status": "Estado",
+        "type": "Tipo",
+        "badge": "Credencial",
+        "actions": "Acciones"
+      },
+      "empty": {
+        "title": "No se encontraron visitas",
+        "description": "Ajusta tus filtros o crea un pase para comenzar."
+      }
+    }
+  },
+  "vehiclesPage": {
+    "title": "Registro de vehículos",
+    "description": "Registra vehículos de residentes, visitantes y servicios para mantener los kioscos sincronizados.",
+    "alerts": {
+      "siteScoped": {
+        "prefix": "Mostrando vehículos limitados a",
+        "suffix": "Los flujos de registro completarán permisos e información de contacto para esta propiedad."
+      },
+      "enterprise": "Cambia a un sitio para gestionar permisos a nivel de propiedad o mantente en modo empresarial para auditar todos los vehículos registrados."
+    },
+    "chip": {
+      "enterprise": "Empresa"
+    },
+    "search": {
+      "placeholder": "Buscar por placa, permiso o contacto"
+    },
+    "filters": {
+      "all": "Todos los vehículos",
+      "resident": "Vehículos de residentes",
+      "visitor": "Vehículos de visitantes",
+      "service": "Proveedores de servicio",
+      "flagged": "Marcados para revisión"
+    },
+    "usage": {
+      "resident": "Residente",
+      "visitor": "Visitante",
+      "service": "Servicio"
+    },
+    "statuses": {
+      "active": "Activo",
+      "expired": "Permiso vencido",
+      "flagged": "Marcado"
+    },
+    "actions": {
+      "registerVehicle": "Registrar vehículo",
+      "downloadPermit": "Descargar permiso",
+      "moreActions": "Más acciones",
+      "flagForReview": "Marcar para revisión",
+      "removeFromRegistry": "Eliminar del registro"
+    },
+    "table": {
+      "columns": {
+        "plate": "Placa",
+        "vehicle": "Vehículo",
+        "usage": "Uso",
+        "assignedTo": "Asignado a",
+        "site": "Sitio",
+        "permit": "Permiso",
+        "lastSeen": "Último visto",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "empty": {
+        "title": "No se encontraron vehículos",
+        "description": "Ajusta los filtros o registra un vehículo para completar la lista."
+      }
+    },
+    "permit": {
+      "passesIssued": "Se emitieron {{count}} pases"
+    }
+  },
+  "reportsPage": {
+    "title": "Informes",
+    "description": "Resúmenes diarios y mensuales de facturación junto con los principales eventos operativos. Exporta un PDF para compartir con los interesados.",
+    "actions": {
+      "dailyPdf": "PDF diario",
+      "monthlyPdf": "PDF mensual"
+    },
+    "alerts": {
+      "siteScoped": "Las métricas están limitadas a {{siteName}}. Vuelve al modo empresarial para comparar entre sitios.",
+      "enterprise": "Se muestran agregados del portafolio. Selecciona un sitio específico para enfocar este informe."
+    },
+    "cards": {
+      "billingOverview": "Resumen de facturación",
+      "eventHighlights": "Eventos destacados",
+      "keyInsights": "Ideas clave"
+    },
+    "pdf": {
+      "title": "Informe comunitario HEX",
+      "focusPrefix": "Enfoque:",
+      "sitePrefix": "Sitio:",
+      "siteFallback": "Portafolio empresarial",
+      "dateRangePrefix": "Rango de fechas:",
+      "generatedPrefix": "Generado:",
+      "billingSummary": "Resumen de facturación",
+      "eventHighlights": "Eventos destacados",
+      "keyNotes": "Notas clave"
+    },
+    "snapshots": {
+      "generatedAt": "{{value}}",
+      "portfolioFallback": "Portafolio",
+      "portfolioLongFallback": "El portafolio",
+      "daily": {
+        "title": "Resumen diario",
+        "focus": "Facturación y eventos",
+        "dateRange": "{{date}}",
+        "billing": {
+          "invoices": {
+            "label": "Facturas emitidas hoy",
+            "trend": "5% más que ayer"
+          },
+          "payments": {
+            "label": "Pagos cobrados",
+            "trend": "92% de cobro el mismo día"
+          },
+          "outstanding": {
+            "label": "Saldo pendiente",
+            "trend": "5 hogares marcados para seguimiento"
+          },
+          "eventRevenue": {
+            "label": "Ingresos por eventos",
+            "trend": "Incluye 2 depósitos de eventos"
+          }
+        },
+        "events": {
+          "vendorSession": {
+            "label": "Sesión de incorporación de proveedores",
+            "timeframe": "09:30 – 10:15",
+            "impact": "Instalaciones y Finanzas alinearon la facturación automática para proveedores de mantenimiento."
+          },
+          "movieNight": {
+            "label": "Noche de cine comunitaria",
+            "timeframe": "19:00 – 21:00",
+            "impact": "215 confirmados • Seguridad confirmó el recorrido perimetral y el desvío de estacionamiento para invitados."
+          },
+          "emergencyMaintenance": {
+            "label": "Mantenimiento de emergencia en la puerta",
+            "timeframe": "Programado 22:30",
+            "impact": "El equipo de guardias Bravo en guardia • Se suspendieron cargos a los residentes afectados."
+          }
+        },
+        "insights": {
+          "recoveries": "{{target}} recuperó 3 facturas vencidas con recordatorios automáticos.",
+          "portalUsage": "El uso del portal de autoservicio alcanzó su pico a las 18:40 tras el aviso nocturno.",
+          "chargebacks": "No se registraron contracargos en las últimas 48 horas."
+        }
+      },
+      "monthly": {
+        "title": "Resumen mensual",
+        "focus": "Facturación y eventos",
+        "dateRange": "{{start}} – {{end}}",
+        "billing": {
+          "totalInvoiced": {
+            "label": "Total facturado",
+            "trend": "7% más que el mes anterior"
+          },
+          "payments": {
+            "label": "Pagos cobrados",
+            "trend": "90% de tasa de cobro"
+          },
+          "outstanding": {
+            "label": "Saldo pendiente",
+            "trend": "12% menos que el mes anterior"
+          },
+          "eventRevenue": {
+            "label": "Ingresos por eventos",
+            "trend": "Incluye 4 alquileres corporativos"
+          }
+        },
+        "events": {
+          "gala": {
+            "label": "Fin de semana de gala otoñal",
+            "timeframe": "11 – 13 oct",
+            "impact": "Generó 6,2 k$ en patrocinios • Sin escalaciones registradas."
+          },
+          "fireDrills": {
+            "label": "Simulacros contra incendios",
+            "timeframe": "3 oct / 17 oct",
+            "impact": "Todos los turnos de guardias cumplieron • Se levantaron los bloqueos de facturación para los proveedores participantes."
+          },
+          "marketPrep": {
+            "label": "Preparación de mercado navideño",
+            "timeframe": "21 – 30 oct",
+            "impact": "La incorporación temprana de proveedores reduce en 18% el tiempo de conciliación de depósitos."
+          }
+        },
+        "insights": {
+          "paymentRate": "{{target}} mantuvo una tasa de pago puntual del 94% en cargos recurrentes.",
+          "attendance": "La asistencia a eventos supera en 22% a la de octubre pasado, impulsada por iniciativas de residentes.",
+          "receivables": "Las cuentas por cobrar proyectadas para el próximo mes están 11% por debajo del mismo periodo del año pasado."
+        }
+      }
+    }
+  },
+  "residencesPage": {
+    "title": "Residencias",
+    "description": "Administra el inventario de unidades, la ocupación y las inspecciones en todo el portafolio.",
+    "alerts": {
+      "siteScoped": {
+        "prefix": "Residencias limitadas a",
+        "suffix": "La capacidad, los calendarios de inspección y la ocupación usarán esta propiedad de manera predeterminada."
+      },
+      "enterprise": "Las residencias solo están disponibles en modo enfocado al sitio. Abre la página de un sitio o cambia tu espacio de trabajo a una comunidad específica para continuar."
+    },
+    "chip": {
+      "enterprise": "Empresa"
+    },
+    "search": {
+      "placeholder": "Buscar por unidad, ID o residente"
+    },
+    "filters": {
+      "all": "Todas las residencias",
+      "occupied": "Ocupadas",
+      "vacant": "Desocupadas",
+      "maintenance": "En mantenimiento"
+    },
+    "types": {
+      "tower": "Torre",
+      "villa": "Villa",
+      "amenity": "Amenidad",
+      "parcel": "Parcela"
+    },
+    "statuses": {
+      "occupied": "Ocupada",
+      "vacant": "Desocupada",
+      "maintenance": "Mantenimiento"
+    },
+    "actions": {
+      "addResidence": "Agregar residencia",
+      "browseSites": "Explorar sitios"
+    },
+    "residents": {
+      "empty": "Sin registros"
+    },
+    "layout": {
+      "bedroomsValue": "{{count}} recámaras",
+      "bedroomsNA": "N/D",
+      "area": "{{value}} pies cuadrados"
+    },
+    "inspection": {
+      "followUp": "Se requiere seguimiento",
+      "compliant": "Cumple"
+    },
+    "table": {
+      "columns": {
+        "label": "Residencia",
+        "status": "Estado",
+        "residents": "Residentes",
+        "layout": "Distribución",
+        "site": "Sitio",
+        "inspection": "Última inspección"
+      },
+      "idPrefix": "ID {{id}}",
+      "empty": {
+        "title": "No se encontraron residencias",
+        "description": "Ajusta los filtros o agrega una nueva residencia para comenzar."
+      }
+    },
+    "noSite": {
+      "title": "Selecciona un sitio para ver residencias",
+      "description": "Las residencias están limitadas a comunidades individuales. Elige un sitio en el cambiador del espacio de trabajo u abre la página de un sitio para acceder a la información de las unidades."
+    }
+  },
+  "visitorsPage": {
+    "title": "Visitantes recurrentes",
+    "description": "Guarda perfiles de visitantes frecuentes para agilizar el proceso en la garita y mantener el registro.",
+    "alerts": {
+      "siteScoped": {
+        "prefix": "Visitantes limitados a",
+        "suffix": "Las aprobaciones recurrentes, notas y configuraciones aceleradas del kiosco se mantendrán sincronizadas para esta propiedad."
+      },
+      "enterprise": "Sigue a los invitados frecuentes en todo el portafolio y cambia al modo de sitio para ajustar las reglas de acceso en una sola comunidad."
+    },
+    "chip": {
+      "enterprise": "Empresa"
+    },
+    "search": {
+      "placeholder": "Buscar por visitante, correo o anfitrión"
+    },
+    "filters": {
+      "all": "Todos los visitantes",
+      "active": "Activos",
+      "pending": "Pendiente de revisión",
+      "blocked": "Bloqueados",
+      "family": "Familia y amigos",
+      "vendor": "Proveedores",
+      "staff": "Personal y contratistas"
+    },
+    "categories": {
+      "family": "Familia y amigos",
+      "vendor": "Proveedor",
+      "staff": "Personal"
+    },
+    "statuses": {
+      "active": "Activo",
+      "blocked": "Bloqueado",
+      "pending": "Pendiente de revisión"
+    },
+    "actions": {
+      "addRecurringVisitor": "Agregar visitante recurrente",
+      "issuePass": "Crear pase",
+      "moreActions": "Más acciones",
+      "blockVisitor": "Bloquear visitante",
+      "deleteProfile": "Eliminar perfil",
+      "issueVisitPass": "Emitir pase de visita"
+    },
+    "table": {
+      "columns": {
+        "visitor": "Visitante",
+        "category": "Categoría",
+        "host": "Anfitrión principal",
+        "site": "Sitio",
+        "lastVisit": "Última visita",
+        "totalVisits": "Visitas registradas",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "totalVisitsChip": "{{count}} visitas",
+      "empty": {
+        "title": "No se encontraron visitantes",
+        "description": "Ajusta los filtros o agrega un perfil de visitante recurrente."
+      }
+    }
   }
 }
