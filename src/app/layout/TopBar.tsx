@@ -56,10 +56,13 @@ import { alpha } from '@mui/material/styles'
 import { useAuthStore } from '@app/auth/auth.store'
 import { useUIStore } from '@store/ui.store'
 import { useI18nStore } from '@store/i18n.store'
-import SettingsPage from '@features/settings/SettingsPage'
+import SettingsModal, { SETTINGS_DEFAULT_VALUES } from './SettingsModal'
 import { useTranslate } from '../../i18n/useTranslate'
 import { useSiteStore, type SiteMode, type Site } from '@store/site.store'
 import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
+import { useUserSettings, type UserSettings } from '@app/hooks/useUserSettings'
+import { useThemeStore } from '@store/theme.store'
+import type { ThemeKind } from '@app/theme.types'
 
 type NavItem = {
   label: string
@@ -104,11 +107,21 @@ export default function TopBar() {
   const patternKind = useUIStore((s) => s.patternKind)
   const patternOpacity = useUIStore((s) => s.patternOpacity)
   const patternScale = useUIStore((s) => s.patternScale)
+  const topbarBlur = useUIStore((s) => s.topbarBlur)
+  const setTopbarBlur = useUIStore((s) => s.setTopbarBlur)
+  const topbarBadges = useUIStore((s) => s.topbarBadges)
+  const setTopbarBadges = useUIStore((s) => s.setTopbarBadges)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const openSettings = useUIStore((s) => s.openSettings)
   const setOpenSettings = useUIStore((s) => s.setOpenSettings)
   const { sites, current, mode, hydrate, setCurrent, setMode } = useSiteStore()
   const location = useLocation()
+  const { load: loadUserSettings, save: saveUserSettings } = useUserSettings()
+  const themeKind = useThemeStore((s) => s.kind)
+  const setThemeKind = useThemeStore((s) => s.setKind)
+  const [settingsModalInitialValues, setSettingsModalInitialValues] = useState<
+    Record<string, boolean | number | string>
+  >(() => ({ ...SETTINGS_DEFAULT_VALUES }))
 
   const items = useMemo<NavItem[]>(() => {
     if (!user) return []
@@ -256,6 +269,7 @@ export default function TopBar() {
   const [selectedMode, setSelectedMode] = useState<SiteMode>(mode)
   const [selectedSiteSlug, setSelectedSiteSlug] = useState(current?.slug ?? '')
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null)
+  const topbarBlurRadius = useMemo(() => Math.max(0, Math.min(20, topbarBlur)), [topbarBlur])
 
   const baseNotifications = useMemo<Notification[]>(() => {
     if (!user) return []
@@ -322,6 +336,113 @@ export default function TopBar() {
   useEffect(() => {
     setNotifications(baseNotifications)
   }, [baseNotifications])
+
+  useEffect(() => {
+    if (!openSettings) return
+    const stored = loadUserSettings()
+    const derived: Record<string, boolean | number | string> = {
+      ...SETTINGS_DEFAULT_VALUES,
+      ...(stored?.modalSettings ?? {}),
+    }
+    if (stored?.locale) {
+      derived['account.profile.digestLanguage'] = stored.locale
+    }
+    if (typeof stored?.receiveEmails === 'boolean') {
+      derived['notifications.channels.channelEmail'] = stored.receiveEmails
+    }
+    if (typeof stored?.receiveSms === 'boolean') {
+      derived['notifications.channels.channelSms'] = stored.receiveSms
+    }
+    if (typeof stored?.twoFactorEnabled === 'boolean') {
+      derived['security.auth.mfa'] = stored.twoFactorEnabled
+    }
+    if (stored?.density) {
+      derived['appearance.generalLook.density'] = stored.density
+    }
+    const themePreference = stored?.themePreference ?? themeKind
+    derived['appearance.generalLook.themeMode'] =
+      themePreference === 'system' ? 'auto' : themePreference
+    derived['appearance.topbar.topbarBlur'] = topbarBlur
+    derived['appearance.topbar.topbarBadges'] = topbarBadges
+    setSettingsModalInitialValues(derived)
+  }, [
+    openSettings,
+    loadUserSettings,
+    themeKind,
+    topbarBlur,
+    topbarBadges,
+    setSettingsModalInitialValues,
+  ])
+
+  const handleSettingsClose = useCallback(() => {
+    setOpenSettings(false)
+  }, [setOpenSettings])
+
+  const handleSettingsSave = useCallback(
+    (nextValues: Record<string, boolean | number | string>) => {
+      const stored = loadUserSettings()
+
+      const defaultThemeMode = stored?.themePreference
+        ? stored.themePreference === 'system'
+          ? 'auto'
+          : stored.themePreference
+        : SETTINGS_DEFAULT_VALUES['appearance.generalLook.themeMode']
+      const rawTheme = String(nextValues['appearance.generalLook.themeMode'] ?? defaultThemeMode)
+      const resolvedThemePreference: ThemeKind =
+        rawTheme === 'auto' ? 'system' : (rawTheme as ThemeKind)
+
+      const defaultDensity =
+        stored?.density ?? SETTINGS_DEFAULT_VALUES['appearance.generalLook.density']
+      const rawDensity = String(nextValues['appearance.generalLook.density'] ?? defaultDensity)
+      const normalizedDensity =
+        rawDensity === 'comfortable' || rawDensity === 'compact' || rawDensity === 'standard'
+          ? (rawDensity as 'comfortable' | 'compact' | 'standard')
+          : stored?.density
+
+      const localeValue =
+        typeof nextValues['account.profile.digestLanguage'] === 'string'
+          ? nextValues['account.profile.digestLanguage']
+          : stored?.locale
+
+      const nextSettings: UserSettings = {
+        ...(stored ?? {}),
+        locale: localeValue,
+        receiveEmails: Boolean(nextValues['notifications.channels.channelEmail']),
+        receiveSms: Boolean(nextValues['notifications.channels.channelSms']),
+        twoFactorEnabled: Boolean(nextValues['security.auth.mfa']),
+        density: normalizedDensity,
+        themePreference: resolvedThemePreference,
+        modalSettings: nextValues,
+      }
+
+      saveUserSettings(nextSettings)
+      setThemeKind(resolvedThemePreference)
+
+      const blurValueRaw = Number(nextValues['appearance.topbar.topbarBlur'] ?? topbarBlurRadius)
+      const normalizedBlur = Number.isFinite(blurValueRaw)
+        ? Math.max(0, Math.min(40, blurValueRaw))
+        : topbarBlurRadius
+      setTopbarBlur(normalizedBlur)
+      const badgesEnabled = Boolean(nextValues['appearance.topbar.topbarBadges'])
+      setTopbarBadges(badgesEnabled)
+      setSettingsModalInitialValues({
+        ...nextValues,
+        'appearance.topbar.topbarBlur': normalizedBlur,
+        'appearance.topbar.topbarBadges': badgesEnabled,
+      })
+      setOpenSettings(false)
+    },
+    [
+      loadUserSettings,
+      saveUserSettings,
+      setThemeKind,
+      setTopbarBlur,
+      setTopbarBadges,
+      topbarBlurRadius,
+      setOpenSettings,
+      setSettingsModalInitialValues,
+    ],
+  )
 
   const dismissNotification = useCallback((id: string) => {
     setNotifications((prev) => prev.filter((item) => item.id !== id))
@@ -517,7 +638,7 @@ export default function TopBar() {
 
           return {
             height: 64,
-            backdropFilter: 'blur(14px)',
+            backdropFilter: `blur(${topbarBlurRadius}px)`,
             backgroundColor: appBarBackground,
             backgroundImage: bgImage,
             backgroundSize: bgSize,
@@ -560,7 +681,7 @@ export default function TopBar() {
               <Badge
                 badgeContent={unreadCount}
                 color={hasCritical ? 'error' : 'secondary'}
-                invisible={unreadCount === 0}
+                invisible={!topbarBadges || unreadCount === 0}
               >
                 <NotificationsNoneIcon sx={{ color: 'inherit' }} />
               </Badge>
@@ -702,7 +823,7 @@ export default function TopBar() {
                       sx={{
                         borderRadius: 2,
                         mb: 0.5,
-                        alignItems: 'flex-start',
+                        alignItems: 'center',
                         px: 2,
                         py: 1.25,
                         transition: (muiTheme) =>
@@ -885,7 +1006,12 @@ export default function TopBar() {
             </MenuList>
           )}
         </Menu>
-        <SettingsPage openProp={openSettings} onCloseProp={() => setOpenSettings(false)} />
+        <SettingsModal
+          open={openSettings}
+          onClose={handleSettingsClose}
+          onSave={handleSettingsSave}
+          initialValues={settingsModalInitialValues}
+        />
       </AppBar>
 
       <Menu

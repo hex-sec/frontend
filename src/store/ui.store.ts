@@ -32,6 +32,10 @@ type UIState = {
   setPatternDraftScale: (v: number) => void
   commitPatternDraft: () => void
   resetPatternDraft: () => void
+  topbarBlur: number
+  setTopbarBlur: (v: number) => void
+  topbarBadges: boolean
+  setTopbarBadges: (v: boolean) => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -67,6 +71,10 @@ export const useUIStore = create<UIState>()(
       setPatternDraftCustomColor: (v: string) => set({ patternDraftCustomColor: v }),
       patternDraftScale: 28,
       setPatternDraftScale: (v: number) => set({ patternDraftScale: v }),
+      topbarBlur: 14,
+      setTopbarBlur: (v: number) => set({ topbarBlur: v }),
+      topbarBadges: true,
+      setTopbarBadges: (v: boolean) => set({ topbarBadges: v }),
       commitPatternDraft: () =>
         set((state) => ({
           patternEnabled: state.patternDraftEnabled,

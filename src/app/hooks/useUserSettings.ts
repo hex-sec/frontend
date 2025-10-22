@@ -3,17 +3,23 @@ import { useAuthStore } from '@app/auth/auth.store'
 import { useThemeStore } from '@store/theme.store'
 import type { ThemeKind } from '@app/theme.types'
 
-type UserSettings = {
+export type UserSettings = {
   // grouped settings for upcoming features
   locale?: string
   timezone?: string
   receiveEmails?: boolean
   receiveSms?: boolean
   twoFactorEnabled?: boolean
-  themePreference?: 'light' | 'dark' | 'system' | 'brand'
-  density?: 'comfortable' | 'compact'
+  /**
+   * Theme preference for the user.
+   * 'high-contrast' is intended for improved accessibility, providing greater color contrast than other themes.
+   * Use this option if the user requires enhanced visibility or accessibility support.
+   */
+  themePreference?: 'light' | 'dark' | 'system' | 'brand' | 'high-contrast'
+  density?: 'comfortable' | 'compact' | 'standard'
   displayName?: string
   webhookUrl?: string
+  modalSettings?: Record<string, boolean | number | string>
 }
 
 const storageKey = (userId: string) => `user.settings.${userId}`
