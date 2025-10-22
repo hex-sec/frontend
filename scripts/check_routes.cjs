@@ -34,7 +34,13 @@ function walk(dir) {
     if (isIgnored(full)) continue
     if (e.isDirectory()) {
       walk(full)
-    } else if (e.isFile() && (full.endsWith('.tsx') || full.endsWith('.ts') || full.endsWith('.js') || full.endsWith('.jsx'))) {
+    } else if (
+      e.isFile() &&
+      (full.endsWith('.tsx') ||
+        full.endsWith('.ts') ||
+        full.endsWith('.js') ||
+        full.endsWith('.jsx'))
+    ) {
       const content = fs.readFileSync(full, 'utf8')
       let match
       while ((match = pattern.exec(content)) !== null) {
@@ -52,7 +58,9 @@ function walk(dir) {
 
 walk(root)
 if (process.exitCode) {
-  console.error('Hard-coded admin/site route literals detected. Use buildEntityUrl or a helper instead.')
+  console.error(
+    'Hard-coded admin/site route literals detected. Use buildEntityUrl or a helper instead.',
+  )
   process.exit(process.exitCode)
 } else {
   console.log('No hard-coded admin/site route literals found.')

@@ -203,7 +203,7 @@
   },
   "settings": {
     "title": "Configuración",
-  "searchPlaceholder": "Buscar en la configuración...",
+    "searchPlaceholder": "Buscar en la configuración...",
     "noResults": "No hay configuraciones que coincidan con tu búsqueda.",
     "optional": "Opcional",
     "signInPrompt": "Inicia sesión para ver tu configuración.",

@@ -6,16 +6,16 @@ A repeatable workflow for generating machine translations for every supported UI
 
 The workspace now exposes the following language codes:
 
-| Code | Language |
-| --- | --- |
-| en | English |
-| es | Spanish |
-| fr | French |
-| de | German |
-| it | Italian |
-| ru | Russian |
-| zh | Chinese (Simplified) |
-| ja | Japanese |
+| Code | Language             |
+| ---- | -------------------- |
+| en   | English              |
+| es   | Spanish              |
+| fr   | French               |
+| de   | German               |
+| it   | Italian              |
+| ru   | Russian              |
+| zh   | Chinese (Simplified) |
+| ja   | Japanese             |
 
 The English catalog (`src/i18n/locales/en.json`) is the source of truth. The workflow mirrors that file into each target locale by invoking the OpenAI API with the `gpt-4o-mini` model (overridable via `OPENAI_TRANSLATION_MODEL`).
 

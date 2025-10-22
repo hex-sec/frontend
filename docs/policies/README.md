@@ -7,9 +7,11 @@ Files:
 - `enterprise-policy.md` — enterprise-level rules for routing, CI, secrets, and translation automation.
 - `site-policy.md` — rules for site-level (tenant) projects that inherit enterprise policies.
 - `developer-guidelines.md` — practical developer conventions, workflow hints, and pre-PR checklist.
+- `developer-guidelines.md` — practical developer conventions, workflow hints, and pre-PR checklist. This file includes formatting rules and the repository's preference for a space inside parentheses (see `STYLE_CONTRACT.md`).
 - `i18n-translation-policy.md` — detailed policy for running automated translations using `scripts/translate_locales.py`.
 
 Enforcement:
+
 - Add CI checks to run lint/typecheck/tests and to scan for banned route patterns.
 - Add code review and translation review steps for i18n PRs.
 

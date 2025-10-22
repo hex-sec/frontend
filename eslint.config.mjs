@@ -15,17 +15,17 @@ export default tseslint.config(
       parser: tseslint.parser,
       parserOptions: {
         ecmaVersion: 2022,
-        sourceType: 'module'
-      }
+        sourceType: 'module',
+      },
     },
     plugins: {
       react: reactPlugin,
       'react-hooks': reactHooks,
-      'unused-imports': unusedImports
+      'unused-imports': unusedImports,
     },
     rules: {
       // enforce semicolons consistently (use TypeScript-aware rule)
-      'semi': 'off',
+      semi: 'off',
       '@typescript-eslint/semi': ['error', 'always'],
       'no-extra-semi': 'error',
       // Estilo + limpieza
@@ -45,12 +45,12 @@ export default tseslint.config(
       'comma-spacing': ['error', { before: false, after: true }],
 
       // React
-      'react/react-in-jsx-scope': 'off'
+      'react/react-in-jsx-scope': 'off',
     },
     settings: {
-      react: { version: 'detect' }
-    }
+      react: { version: 'detect' },
+    },
   },
   // Desactiva reglas que chocan con Prettier (sin sobreescribir tu espaciado en paréntesis)
-  eslintConfigPrettier
+  eslintConfigPrettier,
 )

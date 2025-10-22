@@ -203,7 +203,7 @@
   },
   "settings": {
     "title": "Settings",
-  "searchPlaceholder": "Search settings...",
+    "searchPlaceholder": "Search settings...",
     "noResults": "No settings match your search.",
     "optional": "Optional",
     "signInPrompt": "Please sign in to view your settings.",
