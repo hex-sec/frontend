@@ -114,11 +114,11 @@ export default function SitesPage() {
         </Paper>
       ) : null}
 
-      <Grid container spacing={2} columns={{ xs: 12, sm: 12, md: 12, lg: 12 }}>
+      <Grid container spacing={2} sx={{ px: { xs: 1.5, sm: 2 }, py: { xs: 1.5, sm: 2 } }}>
         {sites.map((site) => {
           const isCurrent = current?.id === site.id
           return (
-            <Grid item key={site.id} xs={12} sm={6} md={6} lg={4} xl={3}>
+            <Grid item key={site.id} xs={12} sm={6} md={4} lg={3}>
               <SiteCard
                 name={site.name}
                 href={`/admin/sites/${site.slug}`}

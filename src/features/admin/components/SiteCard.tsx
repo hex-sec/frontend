@@ -1,21 +1,19 @@
 import { type ReactNode } from 'react'
 import {
-  alpha,
   Box,
   Button,
-  Card,
-  CardActions,
-  CardContent,
   Chip,
   Divider,
-  Grid,
   Link as MLink,
+  Paper,
   Stack,
   Typography,
   type ChipProps,
 } from '@mui/material'
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import LaunchIcon from '@mui/icons-material/Launch'
-import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt'
+import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined'
+import SwapHorizOutlinedIcon from '@mui/icons-material/SwapHorizOutlined'
 import { Link as RouterLink } from 'react-router-dom'
 
 export type SiteCardDetail = {
@@ -71,157 +69,205 @@ export default function SiteCard({
   const showMetrics = metrics.length > 0
 
   return (
-    <Card
-      variant="outlined"
-      sx={(muiTheme) => ({
-        height: '100%',
+    <Paper
+      elevation={3}
+      sx={(theme) => ({
+        p: { xs: 1.5, sm: 2 },
+        borderRadius: 2,
         display: 'flex',
         flexDirection: 'column',
-        position: 'relative',
-        borderColor: isCurrent ? muiTheme.palette.primary.main : muiTheme.palette.divider,
-        boxShadow: isCurrent
-          ? `0 0 0 1px ${alpha(muiTheme.palette.primary.main, 0.24)}, 0 10px 24px ${alpha(
-              muiTheme.palette.primary.main,
-              0.14,
-            )}`
-          : 'none',
-        backgroundImage:
-          muiTheme.palette.mode === 'light'
-            ? 'radial-gradient(circle at top, rgba(25,118,210,0.06), transparent 55%)'
-            : 'radial-gradient(circle at top, rgba(144,202,249,0.12), transparent 55%)',
-        transition: muiTheme.transitions.create(['transform', 'box-shadow'], {
-          duration: muiTheme.transitions.duration.short,
-        }),
+        gap: { xs: 1, sm: 1.5 },
+        height: '100%',
+        border: '1px solid',
+        borderColor: isCurrent ? 'primary.main' : 'divider',
+        transition: theme.transitions.create(['box-shadow', 'transform'], { duration: 180 }),
+        '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
         '&:hover': {
-          transform: 'translateY(-2px)',
-          boxShadow: isCurrent
-            ? `0 0 0 1px ${alpha(muiTheme.palette.primary.main, 0.24)}, 0 14px 32px ${alpha(
-                muiTheme.palette.primary.main,
-                0.2,
-              )}`
-            : muiTheme.shadows[4],
+          [theme.breakpoints.up('md')]: {
+            transform: 'translateY(-3px)',
+            boxShadow: theme.shadows[6],
+          },
         },
       })}
     >
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Stack spacing={1.5}>
-          <Stack
-            direction="row"
-            alignItems="flex-start"
-            justifyContent="space-between"
-            spacing={1.5}
-          >
-            <Stack spacing={0.5} sx={{ minWidth: 0 }}>
-              <MLink
-                component={RouterLink}
-                to={href}
-                underline="hover"
-                color="inherit"
+      <Stack spacing={{ xs: 1, sm: 1.5 }} sx={{ flexGrow: 1 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+          <Stack direction="row" alignItems="center" gap={1} sx={{ minWidth: 0 }}>
+            <HomeOutlinedIcon fontSize="small" />
+            <MLink
+              component={RouterLink}
+              to={href}
+              underline="hover"
+              color="inherit"
+              sx={{ minWidth: 0 }}
+            >
+              <Typography
                 variant="h6"
-                sx={{ fontWeight: 600, lineHeight: 1.2 }}
+                component="span"
+                sx={(theme) => ({
+                  display: 'block',
+                  fontWeight: 600,
+                  maxWidth: { xs: 220, sm: 260, md: 300 },
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  fontSize: {
+                    xs: theme.typography.subtitle1.fontSize,
+                    md: theme.typography.h6.fontSize,
+                  },
+                })}
               >
                 {name}
-              </MLink>
-              {description ? (
-                <Typography variant="body2" color="text.secondary">
-                  {description}
-                </Typography>
-              ) : null}
-            </Stack>
-            <Stack spacing={0.5} alignItems="flex-end">
-              <Chip size="small" label={statusLabel} color={statusColor} />
-              {showHeaderBadge ? (
-                <Chip size="small" variant="outlined" label={currentLabel} />
-              ) : null}
-            </Stack>
+              </Typography>
+            </MLink>
           </Stack>
+          <Stack direction="row" alignItems="center" gap={0.5} sx={{ flexShrink: 0 }}>
+            <Chip size="small" label={statusLabel} color={statusColor} />
+            {showHeaderBadge ? (
+              <Chip size="small" variant="outlined" label={currentLabel} color="primary" />
+            ) : null}
+          </Stack>
+        </Stack>
 
-          {showDetails ? (
-            <Stack spacing={0.75}>
-              {details.map((detail, index) => (
-                <Stack
-                  key={`${detail.label ?? 'detail'}-${index}`}
-                  direction="row"
-                  spacing={1}
-                  justifyContent="space-between"
-                  alignItems="baseline"
+        {description ? (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            noWrap
+            sx={{ textOverflow: 'ellipsis' }}
+          >
+            {description}
+          </Typography>
+        ) : null}
+
+        {showDetails ? (
+          <Stack spacing={0.75}>
+            {details.map((detail, index) => (
+              <Stack
+                key={`${detail.label ?? 'detail'}-${index}`}
+                direction="row"
+                spacing={0.75}
+                justifyContent="space-between"
+                alignItems="baseline"
+                sx={{ minWidth: 0 }}
+              >
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  noWrap
+                  sx={{ textOverflow: 'ellipsis' }}
                 >
-                  <Typography variant="caption" color="text.secondary">
-                    {detail.label}
-                  </Typography>
-                  <Typography variant="body2" fontWeight={500} sx={{ textAlign: 'right' }}>
-                    {detail.value}
-                  </Typography>
+                  {detail.label}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  fontWeight={500}
+                  noWrap
+                  sx={{ textAlign: 'right', textOverflow: 'ellipsis' }}
+                >
+                  {detail.value}
+                </Typography>
+              </Stack>
+            ))}
+          </Stack>
+        ) : null}
+
+        {showMetrics ? (
+          <Stack spacing={1}>
+            <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: 0.4 }}>
+              {metricsLabel}
+            </Typography>
+            <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+              {metrics.map((metric, index) => (
+                <Stack
+                  key={`${metric.label ?? 'metric'}-${index}`}
+                  direction="row"
+                  spacing={0.75}
+                  alignItems="center"
+                  sx={{
+                    minWidth: 0,
+                    maxWidth: { xs: '100%', sm: '48%' },
+                  }}
+                >
+                  {metric.icon ? <Box sx={{ color: 'text.secondary' }}>{metric.icon}</Box> : null}
+                  <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      noWrap
+                      sx={{ textOverflow: 'ellipsis' }}
+                    >
+                      {metric.value}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      noWrap
+                      sx={{ textOverflow: 'ellipsis' }}
+                    >
+                      {metric.label}
+                    </Typography>
+                  </Stack>
                 </Stack>
               ))}
             </Stack>
-          ) : null}
-
-          {showMetrics ? (
-            <Box>
-              <Typography
-                variant="overline"
-                component="div"
-                color="text.secondary"
-                sx={{ letterSpacing: 0.5 }}
-              >
-                {metricsLabel}
-              </Typography>
-              <Grid container spacing={1.5} columns={12} sx={{ mt: 0.5 }}>
-                {metrics.map((metric, index) => (
-                  <Grid item xs={6} key={`${metric.label ?? 'metric'}-${index}`}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      {metric.icon ? (
-                        <Box sx={{ color: 'text.secondary' }}>{metric.icon}</Box>
-                      ) : null}
-                      <Stack spacing={0.25} sx={{ minWidth: 0 }}>
-                        <Typography variant="body1" fontWeight={600} noWrap>
-                          {metric.value}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" noWrap>
-                          {metric.label}
-                        </Typography>
-                      </Stack>
-                    </Stack>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          ) : null}
-        </Stack>
-      </CardContent>
-      <Divider sx={{ borderStyle: 'dashed', mx: 3 }} />
-      <CardActions sx={{ px: 3, pb: 3 }}>
-        <Stack spacing={1.5} sx={{ width: '100%' }}>
-          {actionsLabel ? (
-            <Typography variant="caption" color="text.secondary">
-              {actionsLabel}
-            </Typography>
-          ) : null}
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={1}
-            alignItems={{ xs: 'stretch', sm: 'center' }}
-          >
-            <Button variant="outlined" startIcon={<PersonAddAltIcon />} onClick={onInvite}>
-              {inviteLabel}
-            </Button>
-            <Button variant="outlined" onClick={onSetCurrent}>
-              {setCurrentLabel}
-            </Button>
           </Stack>
+        ) : null}
+      </Stack>
+
+      <Divider />
+
+      <Stack spacing={1.25}>
+        {actionsLabel ? (
+          <Typography variant="caption" color="text.secondary">
+            {actionsLabel}
+          </Typography>
+        ) : null}
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={1}
+          alignItems={{ xs: 'stretch', md: 'center' }}
+        >
+          <Button
+            variant="outlined"
+            size="small"
+            fullWidth
+            startIcon={<PersonAddOutlinedIcon />}
+            onClick={onInvite}
+            aria-label={inviteLabel}
+            sx={{ minHeight: 40 }}
+          >
+            {inviteLabel}
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            fullWidth
+            startIcon={<SwapHorizOutlinedIcon />}
+            onClick={onSetCurrent}
+            aria-label={setCurrentLabel}
+            sx={{ minHeight: 40 }}
+          >
+            {setCurrentLabel}
+          </Button>
+        </Stack>
+
+        <Divider />
+
+        <Box>
           <MLink
             component={RouterLink}
             to={href}
             underline="hover"
-            color="primary"
-            sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, fontWeight: 500 }}
+            sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
           >
-            {viewLabel}
-            <LaunchIcon fontSize="small" sx={{ fontSize: 16 }} />
+            <Typography variant="body2" fontWeight={600}>
+              {viewLabel}
+            </Typography>
+            <LaunchIcon fontSize="small" />
           </MLink>
-        </Stack>
-      </CardActions>
-    </Card>
+        </Box>
+      </Stack>
+    </Paper>
   )
 }
