@@ -631,6 +631,103 @@
           }
         }
       }
+    },
+    "reportsPage": {
+      "snapshots": {
+        "generatedAt": "{{value}}",
+        "portfolioFallback": "Portafolio",
+        "portfolioLongFallback": "El portafolio",
+        "daily": {
+          "title": "Resumen diario",
+          "focus": "Facturación y eventos",
+          "dateRange": "{{date}}",
+          "billing": {
+            "invoices": {
+              "label": "Facturas emitidas hoy",
+              "trend": "5% más que ayer"
+            },
+            "payments": {
+              "label": "Pagos cobrados",
+              "trend": "92% de cobro el mismo día"
+            },
+            "outstanding": {
+              "label": "Saldo pendiente",
+              "trend": "5 hogares marcados para seguimiento"
+            },
+            "eventRevenue": {
+              "label": "Ingresos por eventos",
+              "trend": "Incluye 2 depósitos de eventos"
+            }
+          },
+          "events": {
+            "vendorSession": {
+              "label": "Sesión de incorporación de proveedores",
+              "timeframe": "09:30 – 10:15",
+              "impact": "Instalaciones y Finanzas alinearon la facturación automática para proveedores de mantenimiento."
+            },
+            "movieNight": {
+              "label": "Noche de cine comunitaria",
+              "timeframe": "19:00 – 21:00",
+              "impact": "215 confirmados • Seguridad confirmó el recorrido perimetral y el desvío de estacionamiento para invitados."
+            },
+            "emergencyMaintenance": {
+              "label": "Mantenimiento de emergencia en la puerta",
+              "timeframe": "Programado 22:30",
+              "impact": "El equipo de guardias Bravo en guardia • Se suspendieron cargos a los residentes afectados."
+            }
+          },
+          "insights": {
+            "recoveries": "{{target}} recuperó 3 facturas vencidas con recordatorios automáticos.",
+            "portalUsage": "El uso del portal de autoservicio alcanzó su pico a las 18:40 tras el aviso nocturno.",
+            "chargebacks": "No se registraron contracargos en las últimas 48 horas."
+          }
+        },
+        "monthly": {
+          "title": "Resumen mensual",
+          "focus": "Facturación y eventos",
+          "dateRange": "{{start}} – {{end}}",
+          "billing": {
+            "totalInvoiced": {
+              "label": "Total facturado",
+              "trend": "7% más que el mes anterior"
+            },
+            "payments": {
+              "label": "Pagos cobrados",
+              "trend": "90% de tasa de cobro"
+            },
+            "outstanding": {
+              "label": "Saldo pendiente",
+              "trend": "12% menos que el mes anterior"
+            },
+            "eventRevenue": {
+              "label": "Ingresos por eventos",
+              "trend": "Incluye 4 alquileres corporativos"
+            }
+          },
+          "events": {
+            "gala": {
+              "label": "Fin de semana de gala otoñal",
+              "timeframe": "11 – 13 oct",
+              "impact": "Generó 6,2 k$ en patrocinios • Sin escalaciones registradas."
+            },
+            "fireDrills": {
+              "label": "Simulacros contra incendios",
+              "timeframe": "3 oct / 17 oct",
+              "impact": "Todos los turnos de guardias cumplieron • Se levantaron los bloqueos de facturación para los proveedores participantes."
+            },
+            "marketPrep": {
+              "label": "Preparación para el mercado navideño",
+              "timeframe": "21 – 30 oct",
+              "impact": "La incorporación temprana de proveedores reduce en 18% el tiempo de conciliación de depósitos."
+            }
+          },
+          "insights": {
+            "paymentRate": "{{target}} mantuvo una tasa de pago puntual del 94% en cargos recurrentes.",
+            "attendance": "La asistencia a eventos supera en 22% a la de octubre pasado, impulsada por iniciativas de residentes.",
+            "receivables": "Las cuentas por cobrar proyectadas para el próximo mes están 11% por debajo del mismo periodo del año pasado."
+          }
+        }
+      }
     }
   },
   "usersPage": {

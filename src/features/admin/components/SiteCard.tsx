@@ -138,9 +138,9 @@ export default function SiteCard({
 
           {showDetails ? (
             <Stack spacing={0.75}>
-              {details.map((detail) => (
+              {details.map((detail, index) => (
                 <Stack
-                  key={`${detail.label}-${detail.value}`}
+                  key={`${detail.label ?? 'detail'}-${index}`}
                   direction="row"
                   spacing={1}
                   justifyContent="space-between"
@@ -168,8 +168,8 @@ export default function SiteCard({
                 {metricsLabel}
               </Typography>
               <Grid container spacing={1.5} columns={12} sx={{ mt: 0.5 }}>
-                {metrics.map((metric) => (
-                  <Grid item xs={6} key={`${metric.label}-${metric.value}`}>
+                {metrics.map((metric, index) => (
+                  <Grid item xs={6} key={`${metric.label ?? 'metric'}-${index}`}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       {metric.icon ? (
                         <Box sx={{ color: 'text.secondary' }}>{metric.icon}</Box>

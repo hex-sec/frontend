@@ -50,7 +50,7 @@ export default function SitesPage() {
   const navigate = useNavigate()
   const actionsLabel = t('admin.sitesPage.sections.actions', {
     lng: language,
-    defaultValue: 'Acciones',
+    defaultValue: 'Actions',
   })
 
   return (

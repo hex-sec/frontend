@@ -631,6 +631,103 @@
           }
         }
       }
+    },
+    "reportsPage": {
+      "snapshots": {
+        "generatedAt": "{{value}}",
+        "portfolioFallback": "Portfolio",
+        "portfolioLongFallback": "The portfolio",
+        "daily": {
+          "title": "Daily Snapshot",
+          "focus": "Billing & Events",
+          "dateRange": "{{date}}",
+          "billing": {
+            "invoices": {
+              "label": "Invoices issued today",
+              "trend": "Up 5% vs yesterday"
+            },
+            "payments": {
+              "label": "Payments collected",
+              "trend": "92% same-day capture rate"
+            },
+            "outstanding": {
+              "label": "Outstanding balance",
+              "trend": "5 households flagged for follow-up"
+            },
+            "eventRevenue": {
+              "label": "Event-related revenue",
+              "trend": "Includes 2 venue deposits"
+            }
+          },
+          "events": {
+            "vendorSession": {
+              "label": "Vendor onboarding session",
+              "timeframe": "09:30 – 10:15",
+              "impact": "Facilities and Finance aligned on auto-billing for maintenance vendors."
+            },
+            "movieNight": {
+              "label": "Community movie night",
+              "timeframe": "19:00 – 21:00",
+              "impact": "215 RSVPs • Security confirmed perimeter sweep and guest parking overflow."
+            },
+            "emergencyMaintenance": {
+              "label": "Emergency gate maintenance",
+              "timeframe": "Scheduled 22:30",
+              "impact": "Guard team Bravo on standby • Billing holds waived for affected residents."
+            }
+          },
+          "insights": {
+            "recoveries": "{{target}} recovered 3 past-due invoices with automated reminders.",
+            "portalUsage": "Self-service portal usage peaked at 18:40 after the evening broadcast.",
+            "chargebacks": "No chargebacks reported in the last 48 hours."
+          }
+        },
+        "monthly": {
+          "title": "Monthly Overview",
+          "focus": "Billing & Events",
+          "dateRange": "{{start}} – {{end}}",
+          "billing": {
+            "totalInvoiced": {
+              "label": "Total invoiced",
+              "trend": "Up 7% vs prior month"
+            },
+            "payments": {
+              "label": "Payments collected",
+              "trend": "90% collection rate"
+            },
+            "outstanding": {
+              "label": "Outstanding balance",
+              "trend": "Down 12% vs prior month"
+            },
+            "eventRevenue": {
+              "label": "Event revenue",
+              "trend": "Includes 4 corporate rentals"
+            }
+          },
+          "events": {
+            "gala": {
+              "label": "Fall gala weekend",
+              "timeframe": "Oct 11 – 13",
+              "impact": "Generated $6.2k in sponsorships • Zero escalations logged."
+            },
+            "fireDrills": {
+              "label": "Fire safety drills",
+              "timeframe": "Oct 3 / Oct 17",
+              "impact": "All guard shifts compliant • Billing holds lifted for participating vendors."
+            },
+            "marketPrep": {
+              "label": "Holiday market preparation",
+              "timeframe": "Oct 21 – 30",
+              "impact": "Early vendor onboarding cuts deposit reconciliation time by 18%."
+            }
+          },
+          "insights": {
+            "paymentRate": "{{target}} sustained a 94% on-time payment rate across recurring charges.",
+            "attendance": "Event attendance is 22% above last October, driven by resident-led initiatives.",
+            "receivables": "Projected receivables for next month sit 11% below the same period last year."
+          }
+        }
+      }
     }
   },
   "usersPage": {
