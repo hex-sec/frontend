@@ -49,6 +49,7 @@
       "version": "{{version}} • Última sincronización hace {{minutes}} min"
     },
     "accountMenu": {
+      "welcome": "Bienvenido, {{name}}",
       "defaultName": "Cuenta",
       "profile": "Perfil",
       "billing": "Facturación",

@@ -1,5 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import {
+  Avatar,
   Box,
   Chip,
   Divider,
@@ -12,9 +13,8 @@ import {
   ListItemText,
   Paper,
   Stack,
-  Typography,
-  Avatar,
   Tooltip,
+  Typography,
   Button,
 } from '@mui/material'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
@@ -34,7 +34,7 @@ import { useSiteStore } from '@store/site.store'
 import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
 
 const surfaceCard: SxProps<Theme> = {
-  p: 3,
+  p: 2,
   borderRadius: 2,
   border: '1px solid',
   borderColor: 'divider',
@@ -83,7 +83,7 @@ export default function DashboardPage() {
         accent: 'warning.main',
       },
     ],
-    [language, t, mode, current, siteBase],
+    [language, t],
   )
 
   const timelineItems = useMemo(
@@ -116,7 +116,7 @@ export default function DashboardPage() {
         chipColor: 'default' as const,
       },
     ],
-    [language, t, mode, current, siteBase],
+    [language, t],
   )
 
   const alertCards = useMemo(
@@ -176,7 +176,7 @@ export default function DashboardPage() {
         }),
       },
     ],
-    [language, t],
+    [language, t, mode, current],
   )
 
   const navShortcuts = useMemo(
@@ -250,213 +250,197 @@ export default function DashboardPage() {
   )
 
   return (
-    <Grid container spacing={2} sx={{ p: { xs: 1, md: 2 } }}>
-      <Grid item xs={12} md={8} lg={9}>
-        <Stack spacing={2}>
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            justifyContent="space-between"
-            alignItems={{ xs: 'flex-start', sm: 'center' }}
-            spacing={1}
-          >
-            <Box>
-              <Typography variant="h5" fontWeight={600}>
-                {t('admin.dashboard.title', { lng: language })}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {t('admin.dashboard.subtitle', { lng: language })}
-              </Typography>
-            </Box>
-            <Button variant="contained" endIcon={<LaunchIcon />} sx={{ borderRadius: 999 }}>
-              {t('admin.dashboard.actions.viewLiveMonitoring', { lng: language })}
-            </Button>
-          </Stack>
-
-          <Box
-            sx={{
-              display: 'grid',
-              gap: { xs: 2, lg: 2.5 },
-              gridTemplateColumns: {
-                xs: '1fr',
-                sm: 'minmax(0, 1fr) minmax(0, 1.6fr)',
-                lg: 'minmax(0, 1fr) minmax(0, 2fr)',
-              },
-              alignItems: 'stretch',
-            }}
-          >
-            <Paper sx={{ ...surfaceCard, height: '100%' }}>
-              <Stack spacing={2}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  {t('admin.dashboard.sections.kpi', { lng: language })}
-                </Typography>
-                <Stack spacing={1.5}>
-                  {kpiData.map((kpi) => (
-                    <Box
-                      key={kpi.label}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        borderRadius: 2,
-                        p: 2,
-                      }}
-                    >
-                      <Stack spacing={0.5}>
-                        <Typography variant="overline" color="text.secondary">
-                          {kpi.label}
-                        </Typography>
-                        <Typography variant="h5">{kpi.value}</Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {kpi.sublabel}
-                        </Typography>
-                      </Stack>
-                      <Stack alignItems="flex-end" spacing={1}>
-                        <Chip
-                          size="small"
-                          color="success"
-                          variant="outlined"
-                          label={kpi.delta}
-                          icon={<TrendingUpIcon fontSize="small" />}
-                          sx={{ '& .MuiChip-icon': { color: 'success.main' } }}
-                        />
-                        <Avatar
-                          variant="rounded"
-                          sx={{ bgcolor: `${kpi.accent}`, color: 'common.white' }}
-                        >
-                          {kpi.icon}
-                        </Avatar>
-                      </Stack>
-                    </Box>
-                  ))}
-                </Stack>
-              </Stack>
-            </Paper>
-
-            <Paper sx={{ ...surfaceCard, height: '100%' }}>
-              <Stack spacing={2}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  {t('admin.dashboard.sections.operationalStatus', { lng: language })}
-                </Typography>
-                <Stack spacing={2}>
-                  <Box>
-                    <Typography variant="subtitle1">
-                      {t('admin.dashboard.timeline.title', { lng: language })}
-                    </Typography>
-                    <List dense sx={{ mt: 1 }}>
-                      {timelineItems.map((item, index) => {
-                        const isLast = index === timelineItems.length - 1
-                        return (
-                          <Box key={item.key}>
-                            <ListItem disableGutters>
-                              <ListItemAvatar>
-                                <Avatar sx={item.avatarSx}>{item.icon}</Avatar>
-                              </ListItemAvatar>
-                              <ListItemText primary={item.primary} secondary={item.secondary} />
-                              <Chip size="small" color={item.chipColor} label={item.chipLabel} />
-                            </ListItem>
-                            {isLast ? null : <Divider flexItem variant="middle" sx={{ my: 1 }} />}
-                          </Box>
-                        )
-                      })}
-                    </List>
-                  </Box>
-
-                  <Divider />
-
-                  <Box>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between">
-                      <Typography variant="subtitle1">
-                        {t('admin.dashboard.alerts.title', { lng: language })}
-                      </Typography>
-                      <Button size="small" endIcon={<ArrowForwardIcon />}>
-                        {t('admin.dashboard.actions.viewBoard', { lng: language })}
-                      </Button>
-                    </Stack>
-                    <Stack spacing={1.5} sx={{ mt: 1 }}>
-                      {alertCards.map((card) => (
-                        <Box
-                          key={card.key}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            borderRadius: 1,
-                            border: '1px dashed',
-                            borderColor: card.borderColor,
-                            p: 1.5,
-                          }}
-                        >
-                          <Stack spacing={0.5}>
-                            <Typography variant="body2">{card.title}</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {card.description}
-                            </Typography>
-                          </Stack>
-                          <Button size="small" color={card.actionColor}>
-                            {card.actionLabel}
-                          </Button>
-                        </Box>
-                      ))}
-                    </Stack>
-                  </Box>
-                </Stack>
-              </Stack>
-            </Paper>
+    <Box sx={{ px: { xs: 1, md: 2 }, pb: { xs: 6, md: 8 } }}>
+      <Paper sx={{ ...surfaceCard, mb: 2 }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          spacing={1.5}
+        >
+          <Box>
+            <Typography variant="h5" fontWeight={600}>
+              {t('admin.dashboard.title', { lng: language })}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('admin.dashboard.subtitle', { lng: language })}
+            </Typography>
           </Box>
+          <Button variant="contained" endIcon={<LaunchIcon />} sx={{ borderRadius: 999 }}>
+            {t('admin.dashboard.actions.viewLiveMonitoring', { lng: language })}
+          </Button>
+        </Stack>
+      </Paper>
 
-          <Paper sx={{ ...surfaceCard }}>
-            <Stack spacing={2}>
-              <Stack
-                direction={{ xs: 'column', md: 'row' }}
-                justifyContent="space-between"
-                spacing={2}
-              >
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    {t('admin.dashboard.sections.income', { lng: language })}
-                  </Typography>
-                  <Typography variant="h6">
-                    {financialSnapshot.mrr}
-                    <Typography
-                      component="span"
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ ml: 1 }}
-                    >
-                      {t('admin.dashboard.income.mrr', { lng: language })}
-                    </Typography>
-                  </Typography>
-                </Box>
-                <Stack direction="row" spacing={2}>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">
-                      {t('admin.dashboard.income.arrProjected', { lng: language })}
-                    </Typography>
-                    <Typography variant="subtitle1">{financialSnapshot.arr}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">
-                      {t('admin.dashboard.income.upcomingRenewals', { lng: language })}
-                    </Typography>
-                    <Typography variant="subtitle1">
-                      {financialSnapshot.upcomingRenewals}
-                      <Typography
-                        component="span"
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ ml: 0.5 }}
-                      >
-                        {t('admin.dashboard.income.contractsSuffix', { lng: language })}
-                      </Typography>
-                    </Typography>
-                  </Box>
-                </Stack>
+      <Grid container spacing={2}>
+        <Grid item xs={12} lg={3}>
+          <Stack spacing={2} position={{ lg: 'sticky' }} top={{ lg: 88 }} sx={{ zIndex: 1 }}>
+            <Paper sx={{ ...surfaceCard }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="subtitle2" color="text.secondary">
+                  {t('admin.dashboard.sections.quickAccess', { lng: language })}
+                </Typography>
+                <Tooltip
+                  title={t('admin.dashboard.quickActions.customizeTooltip', { lng: language })}
+                >
+                  <IconButton size="small" color="primary">
+                    <AddIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </Stack>
+              <Stack spacing={1.5} sx={{ mt: 2 }}>
+                {quickActions.map((action) => (
+                  <Paper
+                    key={action.key}
+                    variant="outlined"
+                    sx={{ p: 1.5, borderRadius: 2, borderColor: 'divider' }}
+                  >
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Avatar sx={{ bgcolor: 'primary.main', color: 'common.white' }}>
+                        {action.icon}
+                      </Avatar>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2" fontWeight={600}>
+                          {action.label}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {action.description}
+                        </Typography>
+                      </Box>
+                      <IconButton size="small" color="primary" href={action.href}>
+                        <ArrowForwardIcon fontSize="small" />
+                      </IconButton>
+                    </Stack>
+                  </Paper>
+                ))}
+              </Stack>
+            </Paper>
 
+            <Paper sx={{ ...surfaceCard }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                {t('admin.dashboard.sections.navigation', { lng: language })}
+              </Typography>
+              <Stack spacing={1.5} sx={{ mt: 2 }}>
+                {navShortcuts.map((item) => (
+                  <Paper
+                    key={item.key}
+                    variant="outlined"
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      borderColor: 'divider',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="body2" fontWeight={600}>
+                        {item.label}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {item.caption}
+                      </Typography>
+                    </Box>
+                    <IconButton size="small" color="primary" href={item.href}>
+                      <ArrowForwardIcon fontSize="small" />
+                    </IconButton>
+                  </Paper>
+                ))}
+              </Stack>
+            </Paper>
+
+            <Paper sx={{ ...surfaceCard }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="subtitle2" color="text.secondary">
+                  {t('admin.dashboard.sections.agenda', { lng: language })}
+                </Typography>
+                <Chip
+                  size="small"
+                  label={t('admin.dashboard.agenda.today', { lng: language })}
+                  color="primary"
+                />
+              </Stack>
+              <List dense sx={{ mt: 1 }}>
+                {agendaItems.map((item, index) => (
+                  <Box key={item.key} component="li" sx={{ listStyle: 'none' }}>
+                    <ListItem disableGutters>
+                      <ListItemAvatar>
+                        <Avatar>{item.icon}</Avatar>
+                      </ListItemAvatar>
+                      <ListItemText primary={item.primary} secondary={item.secondary} />
+                    </ListItem>
+                    {index === agendaItems.length - 1 ? null : <Divider flexItem component="div" />}
+                  </Box>
+                ))}
+              </List>
+            </Paper>
+          </Stack>
+        </Grid>
+
+        <Grid item xs={12} lg={6}>
+          <Stack spacing={2}>
+            <Paper sx={{ ...surfaceCard }}>
+              <SectionHeader title={t('admin.dashboard.timeline.title', { lng: language })} />
+              <List dense>
+                {timelineItems.map((item, index) => (
+                  <Box key={item.key}>
+                    <ListItem disableGutters>
+                      <ListItemAvatar>
+                        <Avatar sx={item.avatarSx}>{item.icon}</Avatar>
+                      </ListItemAvatar>
+                      <ListItemText primary={item.primary} secondary={item.secondary} />
+                      <Chip size="small" color={item.chipColor} label={item.chipLabel} />
+                    </ListItem>
+                    {index === timelineItems.length - 1 ? null : <Divider sx={{ my: 1 }} />}
+                  </Box>
+                ))}
+              </List>
+            </Paper>
+
+            <Paper sx={{ ...surfaceCard }}>
+              <SectionHeader
+                title={t('admin.dashboard.alerts.title', { lng: language })}
+                ctaLabel={t('admin.dashboard.actions.viewBoard', { lng: language })}
+                ctaIcon={<ArrowForwardIcon fontSize="small" />}
+              />
+              <Stack spacing={1.5}>
+                {alertCards.map((card) => (
+                  <Stack
+                    key={card.key}
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="flex-start"
+                    sx={{
+                      borderRadius: 2,
+                      border: '1px dashed',
+                      borderColor: card.borderColor,
+                      p: 1.5,
+                    }}
+                  >
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body2" fontWeight={600}>
+                        {card.title}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {card.description}
+                      </Typography>
+                    </Box>
+                    <Button size="small" color={card.actionColor}>
+                      {card.actionLabel}
+                    </Button>
+                  </Stack>
+                ))}
+              </Stack>
+            </Paper>
+
+            <Paper sx={{ ...surfaceCard }}>
+              <SectionHeader
+                title={t('admin.dashboard.sections.income', { lng: language })}
+                leadingIcon={<InsightsOutlinedIcon fontSize="small" color="info" />}
+              />
               <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={6}>
                   <Stack spacing={1}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <CurrencyExchangeOutlinedIcon color="primary" />
@@ -478,7 +462,7 @@ export default function DashboardPage() {
                     </Typography>
                   </Stack>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={6}>
                   <Stack spacing={1}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <ReceiptLongOutlinedIcon color="success" />
@@ -506,140 +490,176 @@ export default function DashboardPage() {
                     ))}
                   </Stack>
                 </Grid>
-                <Grid item xs={12} md={4}>
-                  <Stack spacing={1}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <InsightsOutlinedIcon color="info" />
-                      <Typography variant="body2">
-                        {t('admin.dashboard.income.marginVsLastMonth', { lng: language })}
-                      </Typography>
-                    </Stack>
-                    <Typography variant="h4">
-                      {financialSnapshot.topLineVsLastMonth}%
-                      <Typography
-                        component="span"
-                        variant="caption"
-                        color="success.main"
-                        sx={{ ml: 0.5 }}
-                      >
-                        ↑
-                      </Typography>
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {t('admin.dashboard.income.growthNote', { lng: language })}
+                <Grid item xs={12}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <TrendingUpIcon color="success" />
+                    <Typography variant="body2">
+                      {t('admin.dashboard.income.marginVsLastMonth', { lng: language })}
                     </Typography>
                   </Stack>
+                  <Typography variant="h4" sx={{ mt: 1 }}>
+                    {financialSnapshot.topLineVsLastMonth}%
+                    <Typography
+                      component="span"
+                      variant="caption"
+                      color="success.main"
+                      sx={{ ml: 0.5 }}
+                    >
+                      ↑
+                    </Typography>
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {t('admin.dashboard.income.growthNote', { lng: language })}
+                  </Typography>
                 </Grid>
               </Grid>
-            </Stack>
-          </Paper>
-        </Stack>
-      </Grid>
+            </Paper>
+          </Stack>
+        </Grid>
 
-      <Grid item xs={12} md={4} lg={3}>
-        <Stack spacing={2}>
-          <Paper sx={{ ...surfaceCard }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography variant="subtitle2" color="text.secondary">
-                {t('admin.dashboard.sections.quickAccess', { lng: language })}
+        <Grid item xs={12} lg={3}>
+          <Stack spacing={2}>
+            <Paper sx={{ ...surfaceCard }}>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+                {t('admin.dashboard.sections.kpi', { lng: language })}
               </Typography>
-              <Tooltip
-                title={t('admin.dashboard.quickActions.customizeTooltip', { lng: language })}
-              >
-                <IconButton size="small" color="primary">
-                  <AddIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-            <Stack spacing={1.5} sx={{ mt: 2 }}>
-              {quickActions.map((action) => (
-                <Paper
-                  key={action.key}
-                  variant="outlined"
-                  sx={{ p: 1.5, borderRadius: 2, borderColor: 'divider' }}
-                >
-                  <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Avatar sx={{ bgcolor: 'primary.main', color: 'common.white' }}>
-                      {action.icon}
+              <Stack spacing={1.5}>
+                {kpiData.map((kpi) => (
+                  <Box
+                    key={kpi.label}
+                    sx={{
+                      borderRadius: 2,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      p: 1.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                    }}
+                  >
+                    <Avatar
+                      sx={{ bgcolor: kpi.accent, color: 'common.white', width: 40, height: 40 }}
+                    >
+                      {kpi.icon}
                     </Avatar>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="body2" fontWeight={600}>
-                        {action.label}
+                      <Typography variant="subtitle2">{kpi.value}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {kpi.label}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {action.description}
+                        {kpi.sublabel}
                       </Typography>
                     </Box>
-                    <IconButton size="small" color="primary" href={action.href}>
-                      <ArrowForwardIcon fontSize="small" />
-                    </IconButton>
-                  </Stack>
-                </Paper>
-              ))}
-            </Stack>
-          </Paper>
-
-          <Paper sx={{ ...surfaceCard }}>
-            <Typography variant="subtitle2" color="text.secondary">
-              {t('admin.dashboard.sections.navigation', { lng: language })}
-            </Typography>
-            <Stack spacing={1.5} sx={{ mt: 2 }}>
-              {navShortcuts.map((item) => (
-                <Paper
-                  key={item.key}
-                  variant="outlined"
-                  sx={{
-                    p: 1.5,
-                    borderRadius: 2,
-                    borderColor: 'divider',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <Box>
-                    <Typography variant="body2" fontWeight={600}>
-                      {item.label}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {item.caption}
-                    </Typography>
+                    <Chip
+                      size="small"
+                      color="success"
+                      variant="outlined"
+                      label={kpi.delta}
+                      icon={<TrendingUpIcon fontSize="small" />}
+                      sx={{ '& .MuiChip-icon': { color: 'success.main' } }}
+                    />
                   </Box>
-                  <IconButton size="small" color="primary" href={item.href}>
-                    <ArrowForwardIcon fontSize="small" />
-                  </IconButton>
-                </Paper>
-              ))}
-            </Stack>
-          </Paper>
+                ))}
+              </Stack>
+            </Paper>
 
-          <Paper sx={{ ...surfaceCard }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography variant="subtitle2" color="text.secondary">
-                {t('admin.dashboard.sections.agenda', { lng: language })}
+            <Paper sx={{ ...surfaceCard }}>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+                {t('admin.dashboard.sections.income', { lng: language })}
               </Typography>
-              <Chip
-                size="small"
-                label={t('admin.dashboard.agenda.today', { lng: language })}
-                color="primary"
-              />
-            </Stack>
-            <List dense sx={{ mt: 1 }}>
-              {agendaItems.map((item, index) => (
-                <Box key={item.key} component="li" sx={{ listStyle: 'none' }}>
-                  <ListItem disableGutters>
-                    <ListItemAvatar>
-                      <Avatar>{item.icon}</Avatar>
-                    </ListItemAvatar>
-                    <ListItemText primary={item.primary} secondary={item.secondary} />
-                  </ListItem>
-                  {index === agendaItems.length - 1 ? null : <Divider flexItem component="div" />}
-                </Box>
-              ))}
-            </List>
-          </Paper>
-        </Stack>
+              <Stack spacing={1.5}>
+                <Stack spacing={0.5}>
+                  <Typography variant="h6">{financialSnapshot.mrr}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {t('admin.dashboard.income.mrr', { lng: language })}
+                  </Typography>
+                </Stack>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={2}
+                  sx={{ flexWrap: 'wrap' }}
+                >
+                  <MetricPill
+                    label={t('admin.dashboard.income.arrProjected', { lng: language })}
+                    value={financialSnapshot.arr}
+                  />
+                  <MetricPill
+                    label={t('admin.dashboard.income.upcomingRenewals', { lng: language })}
+                    value={`${financialSnapshot.upcomingRenewals} ${t('admin.dashboard.income.contractsSuffix', { lng: language })}`}
+                  />
+                </Stack>
+                <Divider />
+                <Stack spacing={1}>
+                  <Typography variant="caption" color="text.secondary">
+                    {t('admin.dashboard.income.monthlyCollections', { lng: language })}
+                  </Typography>
+                  <Typography variant="subtitle1">{financialSnapshot.collectionRate}%</Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={financialSnapshot.collectionRate}
+                    sx={{ height: 6, borderRadius: 6 }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    {t('admin.dashboard.income.overdueInvoices', {
+                      lng: language,
+                      count: financialSnapshot.overdueInvoices,
+                    })}
+                  </Typography>
+                </Stack>
+              </Stack>
+            </Paper>
+          </Stack>
+        </Grid>
       </Grid>
-    </Grid>
+    </Box>
+  )
+}
+
+function SectionHeader({
+  title,
+  leadingIcon,
+  ctaLabel,
+  ctaIcon,
+}: {
+  title: string
+  leadingIcon?: ReactNode
+  ctaLabel?: string
+  ctaIcon?: ReactNode
+}) {
+  return (
+    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+      <Stack direction="row" spacing={1} alignItems="center">
+        {leadingIcon ? <Box sx={{ color: 'text.secondary' }}>{leadingIcon}</Box> : null}
+        <Typography variant="subtitle1" fontWeight={600}>
+          {title}
+        </Typography>
+      </Stack>
+      {ctaLabel ? (
+        <Button size="small" endIcon={ctaIcon}>
+          {ctaLabel}
+        </Button>
+      ) : null}
+    </Stack>
+  )
+}
+
+function MetricPill({ label, value }: { label: string; value: string }) {
+  return (
+    <Stack
+      spacing={0.5}
+      sx={{
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        p: 1.5,
+        minWidth: 0,
+      }}
+    >
+      <Typography variant="caption" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography variant="subtitle2">{value}</Typography>
+    </Stack>
   )
 }

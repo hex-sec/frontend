@@ -50,7 +50,6 @@ import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled'
 import BadgeOutlinedIcon from '@mui/icons-material/Badge'
 import Badge from '@mui/material/Badge'
 import SearchIcon from '@mui/icons-material/Search'
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import type { ButtonProps } from '@mui/material/Button'
 import { alpha } from '@mui/material/styles'
 import { useAuthStore } from '@app/auth/auth.store'
@@ -96,6 +95,24 @@ function getUserInitials(source?: string): string {
   const parts = trimmed.split(/\s+/)
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
   return `${parts[0][0] ?? ''}${parts[parts.length - 1][0] ?? ''}`.toUpperCase()
+}
+
+function LogoMark({ size = 36 }: { size?: number }) {
+  return (
+    <Box
+      component="svg"
+      viewBox="0 0 64 64"
+      sx={{
+        width: size,
+        height: size,
+        color: 'primary.main',
+      }}
+    >
+      <polygon points="32 4 56 18 56 46 32 60 8 46 8 18" fill="currentColor" opacity={0.9} />
+      <polygon points="32 16 44 23 44 41 32 48 20 41 20 23" fill="#ffffff" opacity={0.25} />
+      <polygon points="32 24 38 28 38 36 32 40 26 36 26 28" fill="#ffffff" opacity={0.55} />
+    </Box>
+  )
 }
 
 export default function TopBar() {
@@ -654,256 +671,314 @@ export default function TopBar() {
             minHeight: 64,
             px: { xs: 2, sm: 3 },
             color: toolbarTextColor,
+            position: 'relative',
+            flexWrap: 'nowrap',
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              width: '100%',
+              gap: { xs: 1, sm: 1.5 },
+            }}
+          >
             <IconButton
               edge="start"
               color="inherit"
               onClick={() => setDrawerOpen(true)}
               aria-label={t('topnav.drawer.openMenu')}
+              sx={{ flexShrink: 0 }}
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" fontWeight={600} component="div">
-              Hex Access
-            </Typography>
-          </Box>
 
-          <Box sx={{ flexGrow: 1 }} />
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <IconButton
-              color="inherit"
-              aria-label={t('topnav.notifications.aria')}
-              onClick={(event) => setNotificationsAnchor(event.currentTarget)}
-            >
-              <Badge
-                badgeContent={unreadCount}
-                color={hasCritical ? 'error' : 'secondary'}
-                invisible={!topbarBadges || unreadCount === 0}
-              >
-                <NotificationsNoneIcon sx={{ color: 'inherit' }} />
-              </Badge>
-            </IconButton>
-
-            <IconButton
-              color="inherit"
-              aria-label={t('topnav.searchAria', { defaultValue: 'Search' })}
-            >
-              <SearchIcon />
-            </IconButton>
-
-            <Button
-              color="inherit"
-              endIcon={<ArrowDropDownIcon />}
-              onClick={openUserMenu}
-              sx={{ textTransform: 'none', fontWeight: 500 }}
-              aria-haspopup="true"
-              aria-controls={userAnchor ? 'topbar-account-menu' : undefined}
-              aria-expanded={userAnchor ? 'true' : undefined}
-            >
-              {t('topnav.accountMenu.welcome', { name: accountDisplayName })}
-            </Button>
-          </Box>
-
-          <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
             <Box
-              sx={(muiTheme) => ({
-                width: 320,
-                height: '100%',
+              component={RouterLink}
+              to="/"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: { xs: 'center', sm: 'flex-start' },
+                flexGrow: 1,
+                textDecoration: 'none',
+                color: 'inherit',
+                minWidth: 0,
+              }}
+            >
+              <LogoMark size={34} />
+            </Box>
+
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: { xs: 1, sm: 1.5 },
+                flexShrink: 0,
+                ml: { xs: 0, sm: 'auto' },
+              }}
+            >
+              <IconButton
+                color="inherit"
+                aria-label={t('topnav.notifications.aria')}
+                onClick={(event) => setNotificationsAnchor(event.currentTarget)}
+              >
+                <Badge
+                  badgeContent={unreadCount}
+                  color={hasCritical ? 'error' : 'secondary'}
+                  invisible={!topbarBadges || unreadCount === 0}
+                >
+                  <NotificationsNoneIcon sx={{ color: 'inherit' }} />
+                </Badge>
+              </IconButton>
+
+              <IconButton
+                color="inherit"
+                aria-label={t('topnav.searchAria', { defaultValue: 'Search' })}
+                sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+              >
+                <SearchIcon />
+              </IconButton>
+
+              <IconButton
+                color="inherit"
+                aria-label={t('topnav.accountMenu.defaultName')}
+                onClick={openUserMenu}
+                sx={{ display: { xs: 'inline-flex', lg: 'none' } }}
+                aria-haspopup="true"
+                aria-controls={userAnchor ? 'topbar-account-menu' : undefined}
+                aria-expanded={userAnchor ? 'true' : undefined}
+              >
+                <AccountCircleIcon />
+              </IconButton>
+
+              <Button
+                color="inherit"
+                startIcon={<AccountCircleIcon />}
+                onClick={openUserMenu}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  display: { xs: 'none', lg: 'inline-flex' },
+                  maxWidth: 240,
+                  justifyContent: 'flex-start',
+                }}
+                aria-haspopup="true"
+                aria-controls={userAnchor ? 'topbar-account-menu' : undefined}
+                aria-expanded={userAnchor ? 'true' : undefined}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    display: 'block',
+                  }}
+                >
+                  {t('topnav.accountMenu.welcome', { name: accountDisplayName })}
+                </Box>
+              </Button>
+            </Box>
+          </Box>
+        </Toolbar>
+
+        <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+          <Box
+            sx={(muiTheme) => ({
+              width: 320,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundColor: muiTheme.palette.background.paper,
+            })}
+          >
+            <Box
+              sx={{
+                px: 3,
+                pt: 3,
+                pb: 2,
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: muiTheme.palette.background.paper,
-              })}
+                gap: 2,
+                borderBottom: (muiTheme) => `1px solid ${alpha(muiTheme.palette.divider, 0.6)}`,
+              }}
             >
-              <Box
-                sx={{
-                  px: 3,
-                  pt: 3,
-                  pb: 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
-                  borderBottom: (muiTheme) => `1px solid ${alpha(muiTheme.palette.divider, 0.6)}`,
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar
-                    sx={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 2,
-                      bgcolor: (muiTheme) => muiTheme.palette.primary.main,
-                      color: (muiTheme) =>
-                        muiTheme.palette.getContrastText(muiTheme.palette.primary.main),
-                      fontWeight: 600,
-                    }}
-                  >
-                    {userInitials}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      {accountDisplayName}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {accountRoleLabel}
-                    </Typography>
-                  </Box>
-                </Box>
-
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Avatar
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 2,
+                    bgcolor: (muiTheme) => muiTheme.palette.primary.main,
+                    color: (muiTheme) =>
+                      muiTheme.palette.getContrastText(muiTheme.palette.primary.main),
+                    fontWeight: 600,
+                  }}
+                >
+                  {userInitials}
+                </Avatar>
                 <Box>
-                  <Typography variant="overline" color="text.secondary">
-                    {t('topnav.workspace.focus')}
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    {accountDisplayName}
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                    <Chip
-                      label={
-                        mode === 'enterprise'
-                          ? t('topnav.workspace.mode.enterprise')
-                          : t('topnav.workspace.mode.site')
-                      }
-                      size="small"
-                      color={mode === 'enterprise' ? 'primary' : 'secondary'}
-                    />
-                    <Button
-                      variant="text"
-                      size="small"
-                      startIcon={<SwapHorizIcon fontSize="small" />}
-                      onClick={() => setModeDialogOpen(true)}
-                    >
-                      {t('topnav.workspace.changeMode')}
-                    </Button>
-                  </Box>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: 'block', mt: 0.75 }}
-                  >
-                    {mode === 'enterprise'
-                      ? t('topnav.workspace.hints.enterprise')
-                      : current
-                        ? t('topnav.workspace.hints.site', { siteName: current.name })
-                        : t('topnav.workspace.hints.empty')}
+                  <Typography variant="caption" color="text.secondary">
+                    {accountRoleLabel}
                   </Typography>
                 </Box>
               </Box>
 
-              <List
-                component="nav"
-                subheader={
-                  <ListSubheader
-                    component="div"
-                    disableSticky
-                    sx={{
-                      px: 3,
-                      py: 1.5,
-                      typography: 'overline',
-                      color: 'text.secondary',
-                      letterSpacing: 0.8,
-                    }}
+              <Box>
+                <Typography variant="overline" color="text.secondary">
+                  {t('topnav.workspace.focus')}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                  <Chip
+                    label={
+                      mode === 'enterprise'
+                        ? t('topnav.workspace.mode.enterprise')
+                        : t('topnav.workspace.mode.site')
+                    }
+                    size="small"
+                    color={mode === 'enterprise' ? 'primary' : 'secondary'}
+                  />
+                  <Button
+                    variant="text"
+                    size="small"
+                    startIcon={<SwapHorizIcon fontSize="small" />}
+                    onClick={() => setModeDialogOpen(true)}
                   >
-                    {t('topnav.drawer.navigation')}
-                  </ListSubheader>
-                }
-                sx={{ px: 1.5, flex: 1, overflowY: 'auto' }}
-              >
-                {items.map((item) => {
-                  const Icon = item.Icon
-                  const isActive =
-                    location.pathname === item.to ||
-                    (item.to !== '/' && location.pathname.startsWith(`${item.to}/`))
-                  return (
-                    <ListItemButton
-                      key={item.to}
-                      component={RouterLink}
-                      to={item.to}
-                      onClick={() => setDrawerOpen(false)}
-                      selected={isActive}
-                      sx={{
-                        borderRadius: 2,
-                        mb: 0.5,
-                        alignItems: 'center',
-                        px: 2,
-                        py: 1.25,
-                        transition: (muiTheme) =>
-                          muiTheme.transitions.create(['background-color', 'transform'], {
-                            duration: muiTheme.transitions.duration.shorter,
-                          }),
-                        ...(isActive
-                          ? {
-                              backgroundColor: (muiTheme) =>
-                                alpha(
-                                  muiTheme.palette.primary.main,
-                                  muiTheme.palette.mode === 'dark' ? 0.25 : 0.12,
-                                ),
-                              color: 'primary.main',
-                              '& .MuiListItemIcon-root': { color: 'primary.main' },
-                            }
-                          : {
-                              color: 'text.primary',
-                              '& .MuiListItemIcon-root': { color: 'text.secondary' },
-                              '&:hover': {
-                                backgroundColor: (muiTheme) =>
-                                  alpha(muiTheme.palette.primary.main, 0.08),
-                              },
-                            }),
-                      }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <Icon fontSize="small" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={item.label}
-                        secondary={item.description}
-                        primaryTypographyProps={{ fontWeight: 600, fontSize: 14 }}
-                        secondaryTypographyProps={{ fontSize: 12 }}
-                      />
-                    </ListItemButton>
-                  )
-                })}
-              </List>
-
-              <Box sx={{ px: 3, pb: 3, pt: 2, backgroundColor: 'background.default' }}>
-                <Divider sx={{ mb: 2 }} />
-                <List dense disablePadding>
-                  <ListItemButton
-                    onClick={() => {
-                      setOpenSettings(true)
-                      setDrawerOpen(false)
-                    }}
-                    sx={{ borderRadius: 1.5, mb: 0.5 }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 32, color: 'text.secondary' }}>
-                      <SettingsIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={t('topnav.drawer.workspaceSettings')}
-                      primaryTypographyProps={{ fontSize: 13 }}
-                    />
-                  </ListItemButton>
-                  <ListItemButton
-                    component={RouterLink}
-                    to="/billing"
-                    onClick={() => setDrawerOpen(false)}
-                    sx={{ borderRadius: 1.5, mb: 0.5 }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 32, color: 'text.secondary' }}>
-                      <CreditCardIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={t('topnav.drawer.billing')}
-                      primaryTypographyProps={{ fontSize: 13 }}
-                    />
-                  </ListItemButton>
-                </List>
-                <Typography variant="caption" color="text.secondary">
-                  {t('topnav.drawer.version', { version: 'v1.0.0', minutes: 4 })}
+                    {t('topnav.workspace.changeMode')}
+                  </Button>
+                </Box>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', mt: 0.75 }}
+                >
+                  {mode === 'enterprise'
+                    ? t('topnav.workspace.hints.enterprise')
+                    : current
+                      ? t('topnav.workspace.hints.site', { siteName: current.name })
+                      : t('topnav.workspace.hints.empty')}
                 </Typography>
               </Box>
             </Box>
-          </Drawer>
-        </Toolbar>
+
+            <List
+              component="nav"
+              subheader={
+                <ListSubheader
+                  component="div"
+                  disableSticky
+                  sx={{
+                    px: 3,
+                    py: 1.5,
+                    typography: 'overline',
+                    color: 'text.secondary',
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  {t('topnav.drawer.navigation')}
+                </ListSubheader>
+              }
+              sx={{ px: 1.5, flex: 1, overflowY: 'auto' }}
+            >
+              {items.map((item) => {
+                const Icon = item.Icon
+                const isActive =
+                  location.pathname === item.to ||
+                  (item.to !== '/' && location.pathname.startsWith(`${item.to}/`))
+                return (
+                  <ListItemButton
+                    key={item.to}
+                    component={RouterLink}
+                    to={item.to}
+                    onClick={() => setDrawerOpen(false)}
+                    selected={isActive}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      alignItems: 'center',
+                      px: 2,
+                      py: 1.25,
+                      transition: (muiTheme) =>
+                        muiTheme.transitions.create(['background-color', 'transform'], {
+                          duration: muiTheme.transitions.duration.shorter,
+                        }),
+                      ...(isActive
+                        ? {
+                            backgroundColor: (muiTheme) =>
+                              alpha(
+                                muiTheme.palette.primary.main,
+                                muiTheme.palette.mode === 'dark' ? 0.25 : 0.12,
+                              ),
+                            color: 'primary.main',
+                            '& .MuiListItemIcon-root': { color: 'primary.main' },
+                          }
+                        : {
+                            color: 'text.primary',
+                            '& .MuiListItemIcon-root': { color: 'text.secondary' },
+                            '&:hover': {
+                              backgroundColor: (muiTheme) =>
+                                alpha(muiTheme.palette.primary.main, 0.08),
+                            },
+                          }),
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <Icon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={item.label}
+                      secondary={item.description}
+                      primaryTypographyProps={{ fontWeight: 600, fontSize: 14 }}
+                      secondaryTypographyProps={{ fontSize: 12 }}
+                    />
+                  </ListItemButton>
+                )
+              })}
+            </List>
+
+            <Box sx={{ px: 3, pb: 3, pt: 2, backgroundColor: 'background.default' }}>
+              <Divider sx={{ mb: 2 }} />
+              <List dense disablePadding>
+                <ListItemButton
+                  onClick={() => {
+                    setOpenSettings(true)
+                    setDrawerOpen(false)
+                  }}
+                  sx={{ borderRadius: 1.5, mb: 0.5 }}
+                >
+                  <ListItemIcon sx={{ minWidth: 32, color: 'text.secondary' }}>
+                    <SettingsIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={t('topnav.drawer.workspaceSettings')}
+                    primaryTypographyProps={{ fontSize: 13 }}
+                  />
+                </ListItemButton>
+                <ListItemButton
+                  component={RouterLink}
+                  to="/billing"
+                  onClick={() => setDrawerOpen(false)}
+                  sx={{ borderRadius: 1.5, mb: 0.5 }}
+                >
+                  <ListItemIcon sx={{ minWidth: 32, color: 'text.secondary' }}>
+                    <CreditCardIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={t('topnav.drawer.billing')}
+                    primaryTypographyProps={{ fontSize: 13 }}
+                  />
+                </ListItemButton>
+              </List>
+              <Typography variant="caption" color="text.secondary">
+                {t('topnav.drawer.version', { version: 'v1.0.0', minutes: 4 })}
+              </Typography>
+            </Box>
+          </Box>
+        </Drawer>
         <Menu
           anchorEl={notificationsAnchor}
           open={Boolean(notificationsAnchor)}

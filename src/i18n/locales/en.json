@@ -49,6 +49,7 @@
       "version": "{{version}} • Last sync {{minutes}}m ago"
     },
     "accountMenu": {
+      "welcome": "Welcome, {{name}}",
       "defaultName": "Account",
       "profile": "Profile",
       "billing": "Billing",

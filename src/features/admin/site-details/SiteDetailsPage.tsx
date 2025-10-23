@@ -514,43 +514,6 @@ export default function SiteDetailsPage() {
         <Grid item xs={12} lg={3}>
           <Stack spacing={2} position="sticky" top={88}>
             <Paper sx={{ p: 2 }}>
-              <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                {translate('siteDetails.hero.title')}
-              </Typography>
-              <Stack spacing={1.5}>
-                {heroMetrics.map(({ key, label, value, delta, Icon }) => (
-                  <Box
-                    key={key}
-                    sx={(theme) => ({
-                      borderRadius: 2,
-                      p: 1.5,
-                      border: `1px solid ${theme.palette.divider}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                      background: alpha(theme.palette.primary.main, 0.04),
-                    })}
-                  >
-                    <Avatar sx={{ width: 34, height: 34 }}>
-                      <Icon fontSize="small" />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="subtitle2" color="text.secondary">
-                        {label}
-                      </Typography>
-                      <Typography variant="h6" fontWeight={600}>
-                        {value}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {delta}
-                      </Typography>
-                    </Box>
-                  </Box>
-                ))}
-              </Stack>
-            </Paper>
-
-            <Paper sx={{ p: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 {translate('siteDetails.context.title')}
               </Typography>
@@ -563,29 +526,21 @@ export default function SiteDetailsPage() {
                     value={value}
                   />
                 ))}
-                <Divider flexItem sx={{ my: 1 }} />
-                <Typography variant="caption" color="text.secondary">
-                  {translate('siteDetails.context.shortcuts')}
-                </Typography>
-                <Stack spacing={1}>
-                  {quickLinksWithCopy.slice(0, 2).map((link, idx) => {
-                    const { key, label, Icon } = link
-                    const target = quickLinkTargets[idx]
-                    return (
-                      <Button
-                        key={key}
-                        variant="outlined"
-                        size="small"
-                        startIcon={<Icon fontSize="small" />}
-                        component={RouterLink}
-                        to={target}
-                        sx={{ justifyContent: 'flex-start' }}
-                      >
-                        {label}
-                      </Button>
-                    )
-                  })}
-                </Stack>
+              </Stack>
+            </Paper>
+
+            <Paper sx={{ p: 2 }}>
+              <SectionHeader title={translate('siteDetails.sections.panelShortcuts.title')} />
+              <Stack spacing={1.25}>
+                {panelShortcutsWithCopy.map(({ key, label, description, Icon }, idx) => (
+                  <PanelShortcut
+                    key={key}
+                    label={label}
+                    description={description}
+                    to={panelShortcutTargets[idx]}
+                    Icon={Icon}
+                  />
+                ))}
               </Stack>
             </Paper>
           </Stack>
@@ -672,40 +627,6 @@ export default function SiteDetailsPage() {
                 </Stack>
               </Stack>
             </Paper>
-          </Stack>
-        </Grid>
-
-        <Grid item xs={12} lg={3}>
-          <Stack spacing={2}>
-            <Paper sx={{ p: 2 }}>
-              <SectionHeader title={translate('siteDetails.sections.quickNavigation.title')} />
-              <Stack spacing={1}>
-                {quickLinksWithCopy.map(({ key, label, description, Icon }, idx) => (
-                  <QuickLink
-                    key={key}
-                    label={label}
-                    description={description}
-                    Icon={Icon}
-                    to={quickLinkTargets[idx]}
-                  />
-                ))}
-              </Stack>
-            </Paper>
-
-            <Paper sx={{ p: 2 }}>
-              <SectionHeader title={translate('siteDetails.sections.panelShortcuts.title')} />
-              <Stack spacing={1.25}>
-                {panelShortcutsWithCopy.map(({ key, label, description, Icon }, idx) => (
-                  <PanelShortcut
-                    key={key}
-                    label={label}
-                    description={description}
-                    to={panelShortcutTargets[idx]}
-                    Icon={Icon}
-                  />
-                ))}
-              </Stack>
-            </Paper>
 
             <Paper sx={{ p: 2 }}>
               <SectionHeader
@@ -729,14 +650,70 @@ export default function SiteDetailsPage() {
               </Stack>
             </Paper>
 
-            <Paper sx={{ p: 2 }}>
+            <Paper sx={{ p: 3 }}>
               <SectionHeader
                 title={translate('siteDetails.sections.guardRoster.title')}
                 actionLabel={translate('siteDetails.sections.guardRoster.action')}
               />
-              <Stack spacing={1}>
+              <Stack spacing={1.5}>
                 {guardRoster.map((guard) => (
                   <GuardRow key={guard.name} {...guard} />
+                ))}
+              </Stack>
+            </Paper>
+          </Stack>
+        </Grid>
+
+        <Grid item xs={12} lg={3}>
+          <Stack spacing={2}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                {translate('siteDetails.hero.title')}
+              </Typography>
+              <Stack spacing={1.5}>
+                {heroMetrics.map(({ key, label, value, delta, Icon }) => (
+                  <Box
+                    key={key}
+                    sx={(theme) => ({
+                      borderRadius: 2,
+                      p: 1.5,
+                      border: `1px solid ${theme.palette.divider}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      background: alpha(theme.palette.primary.main, 0.04),
+                    })}
+                  >
+                    <Avatar sx={{ width: 34, height: 34 }}>
+                      <Icon fontSize="small" />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        {label}
+                      </Typography>
+                      <Typography variant="h6" fontWeight={600}>
+                        {value}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {delta}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
+            </Paper>
+
+            <Paper sx={{ p: 2 }}>
+              <SectionHeader title={translate('siteDetails.sections.quickNavigation.title')} />
+              <Stack spacing={1}>
+                {quickLinksWithCopy.map(({ key, label, description, Icon }, idx) => (
+                  <QuickLink
+                    key={key}
+                    label={label}
+                    description={description}
+                    Icon={Icon}
+                    to={quickLinkTargets[idx]}
+                  />
                 ))}
               </Stack>
             </Paper>

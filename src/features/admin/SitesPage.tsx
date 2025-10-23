@@ -4,19 +4,20 @@ import {
   Paper,
   Stack,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   IconButton,
-  Chip,
-  Link as MLink,
   type ChipProps,
+  useTheme,
+  useMediaQuery,
+  Grid,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
-import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import RefreshIcon from '@mui/icons-material/Refresh'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import { useSiteStore } from '@store/site.store'
+import { useNavigate } from 'react-router-dom'
+import { useTranslate } from '../../i18n/useTranslate'
+import { useI18nStore } from '@store/i18n.store'
+import SiteCard from './components/SiteCard'
 import { useSitesQuery, useCreateSiteMutation, useInviteMutation } from './sites.api'
 import { SiteFormDialog } from './components/SiteFormDialog'
 import { InviteDialog } from './components/InviteDialog'
@@ -27,10 +28,6 @@ const STATUS_CHIP_COLOR: Record<SiteStatus, ChipProps['color']> = {
   trial: 'warning',
   suspended: 'default',
 }
-import { useSiteStore } from '@store/site.store'
-import { Link } from 'react-router-dom'
-import { useTranslate } from '../../i18n/useTranslate'
-import { useI18nStore } from '@store/i18n.store'
 
 export default function SitesPage() {
   const { t } = useTranslate()
@@ -48,96 +45,111 @@ export default function SitesPage() {
   }, [hydrate])
 
   const sites = useMemo(() => data ?? [], [data])
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const navigate = useNavigate()
+  const actionsLabel = t('admin.sitesPage.sections.actions', {
+    lng: language,
+    defaultValue: 'Acciones',
+  })
 
   return (
     <Stack gap={2}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="h6">{t('admin.sitesPage.title', { lng: language })}</Typography>
-        <Stack direction="row" spacing={1}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        spacing={1}
+        flexWrap="wrap"
+      >
+        <Stack direction="row" spacing={1} alignItems="center">
+          {isMobile ? (
+            <IconButton
+              edge="start"
+              onClick={() => navigate(-1)}
+              aria-label={t('common.back', { lng: language, defaultValue: 'Back' })}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+          ) : null}
+          <Typography variant={isMobile ? 'h6' : 'h5'}>
+            {t('admin.sitesPage.title', { lng: language })}
+          </Typography>
+        </Stack>
+        <Stack direction="row" spacing={isMobile ? 0.5 : 1} alignItems="center">
           <IconButton
             onClick={() => refetch()}
             aria-label={t('admin.sitesPage.actions.refreshAria', { lng: language })}
           >
             <RefreshIcon />
           </IconButton>
-          <Button startIcon={<AddIcon />} variant="contained" onClick={() => setOpenCreate(true)}>
-            {t('admin.sitesPage.actions.create', { lng: language })}
-          </Button>
+          {isMobile ? (
+            <IconButton
+              color="primary"
+              onClick={() => setOpenCreate(true)}
+              aria-label={t('admin.sitesPage.actions.create', { lng: language })}
+            >
+              <AddIcon />
+            </IconButton>
+          ) : (
+            <Button startIcon={<AddIcon />} variant="contained" onClick={() => setOpenCreate(true)}>
+              {t('admin.sitesPage.actions.create', { lng: language })}
+            </Button>
+          )}
         </Stack>
       </Stack>
+      {isLoading ? (
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            {t('admin.sitesPage.state.loading', { lng: language })}
+          </Typography>
+        </Paper>
+      ) : null}
 
-      <Paper>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('admin.sitesPage.table.name', { lng: language })}</TableCell>
-              <TableCell>{t('admin.sitesPage.table.slug', { lng: language })}</TableCell>
-              <TableCell>{t('admin.sitesPage.table.plan', { lng: language })}</TableCell>
-              <TableCell>{t('admin.sitesPage.table.status', { lng: language })}</TableCell>
-              <TableCell align="right">
-                {t('admin.sitesPage.table.actions', { lng: language })}
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {isLoading && (
-              <TableRow>
-                <TableCell colSpan={5}>
-                  {t('admin.sitesPage.state.loading', { lng: language })}
-                </TableCell>
-              </TableRow>
-            )}
-            {!isLoading && sites.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5}>
-                  {t('admin.sitesPage.state.empty', { lng: language })}
-                </TableCell>
-              </TableRow>
-            )}
-            {sites.map((s) => (
-              <TableRow key={s.id} hover selected={current?.id === s.id}>
-                <TableCell>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <MLink component={Link} to={`/admin/sites/${s.slug}`} underline="hover">
-                      <Typography fontWeight={600}>{s.name}</Typography>
-                    </MLink>
-                    {current?.id === s.id && (
-                      <Chip
-                        size="small"
-                        label={t('admin.sitesPage.badges.current', { lng: language })}
-                      />
-                    )}
-                  </Stack>
-                </TableCell>
-                <TableCell>{s.slug}</TableCell>
-                <TableCell>{s.plan ?? '—'}</TableCell>
-                <TableCell>
-                  <Chip
-                    size="small"
-                    label={t(`admin.sitesPage.statuses.${s.status}`, { lng: language })}
-                    color={STATUS_CHIP_COLOR[s.status]}
-                  />
-                </TableCell>
-                <TableCell align="right">
-                  <Stack direction="row" spacing={1} justifyContent="flex-end">
-                    <Button size="small" variant="outlined" onClick={() => setCurrent(s)}>
-                      {t('admin.sitesPage.actions.setCurrent', { lng: language })}
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<PersonAddIcon />}
-                      onClick={() => setInviteFor(s)}
-                    >
-                      {t('admin.sitesPage.actions.invite', { lng: language })}
-                    </Button>
-                  </Stack>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
+      {!isLoading && sites.length === 0 ? (
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            {t('admin.sitesPage.state.empty', { lng: language })}
+          </Typography>
+        </Paper>
+      ) : null}
+
+      <Grid container spacing={2} columns={{ xs: 12, sm: 12, md: 12, lg: 12 }}>
+        {sites.map((site) => {
+          const isCurrent = current?.id === site.id
+          return (
+            <Grid item key={site.id} xs={12} sm={6} md={6} lg={4} xl={3}>
+              <SiteCard
+                name={site.name}
+                href={`/admin/sites/${site.slug}`}
+                statusLabel={t(`admin.sitesPage.statuses.${site.status}`, { lng: language })}
+                statusColor={STATUS_CHIP_COLOR[site.status] ?? 'default'}
+                isCurrent={isCurrent}
+                currentLabel={t('admin.sitesPage.badges.current', { lng: language })}
+                details={[
+                  {
+                    label: t('admin.sitesPage.table.plan', { lng: language }),
+                    value: site.plan ?? '—',
+                  },
+                  {
+                    label: t('admin.sitesPage.table.slug', { lng: language }),
+                    value: site.slug,
+                  },
+                ]}
+                actionsLabel={actionsLabel}
+                inviteLabel={t('admin.sitesPage.actions.invite', { lng: language })}
+                setCurrentLabel={t('admin.sitesPage.actions.setCurrent', { lng: language })}
+                viewLabel={t('admin.sitesPage.actions.viewDetails', {
+                  lng: language,
+                  defaultValue: 'Ver detalles',
+                })}
+                onInvite={() => setInviteFor(site)}
+                onSetCurrent={() => setCurrent(site)}
+              />
+            </Grid>
+          )
+        })}
+      </Grid>
 
       <SiteFormDialog
         open={openCreate}
