@@ -369,7 +369,8 @@
       "prefix": "Volver a",
       "backTo": "Volver a {{label}}",
       "backToSite": "Volver a {{siteName}}",
-      "backToSites": "Volver a Sitios"
+      "backToSites": "Volver a Sitios",
+      "backToShort": "Volver"
     }
   },
   "admin": {

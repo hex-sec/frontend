@@ -487,7 +487,14 @@ export default function SiteDetailsPage() {
           </Typography>
         </Stack>
 
-        <Stack direction="row" spacing={1}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}
+          flexWrap="wrap"
+          sx={{ width: '100%', maxWidth: { xs: '100%', md: 'auto' } }}
+        >
           {mode === 'enterprise' ? (
             <Button
               size="small"
@@ -497,14 +504,26 @@ export default function SiteDetailsPage() {
                 setMode('site')
                 navigate(`/site/${site.slug}`)
               }}
+              sx={{ width: { xs: '100%', sm: 'auto' }, minHeight: 40 }}
+              fullWidth
             >
               {switchToSiteModeLabel}
             </Button>
           ) : null}
-          <Button variant="outlined" startIcon={<SettingsIcon />}>
+          <Button
+            variant="outlined"
+            startIcon={<SettingsIcon />}
+            sx={{ width: { xs: '100%', sm: 'auto' }, minHeight: 40 }}
+            fullWidth
+          >
             {siteSettingsLabel}
           </Button>
-          <Button variant="contained" startIcon={<PersonAddIcon />}>
+          <Button
+            variant="contained"
+            startIcon={<PersonAddIcon />}
+            sx={{ width: { xs: '100%', sm: 'auto' }, minHeight: 40 }}
+            fullWidth
+          >
             {inviteUserLabel}
           </Button>
         </Stack>
