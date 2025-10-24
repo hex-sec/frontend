@@ -1,4 +1,5 @@
 import { Outlet, Link as RouterLink, useLocation } from 'react-router-dom'
+import { useEffect, useMemo } from 'react'
 import {
   Box,
   Breadcrumbs,
@@ -38,23 +39,48 @@ export default function AppLayout() {
   const language = useI18nStore((s) => s.language)
   const loc = useLocation()
   const theme = useTheme()
-  const isCompactBreadcrumb = useMediaQuery(theme.breakpoints.down('sm'))
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'), { noSsr: true })
   const parts = loc.pathname.split('/').filter(Boolean)
   const crumbs = parts.map((p, i, arr) => ({ segment: p, to: '/' + arr.slice(0, i + 1).join('/') }))
   const previousCrumb = crumbs.length > 1 ? crumbs[crumbs.length - 2] : undefined
   const homeLabel = t('layout.breadcrumbs.home', { lng: language })
   const previousMeta = previousCrumb ? getCrumbMeta(previousCrumb.segment) : undefined
-  const mobileBackLabel = t('layout.backNavigation.backToShort', {
-    lng: language,
-    defaultValue: language?.toLowerCase().startsWith('es') ? 'Volver' : 'Back',
-  })
-  const mobileBackHref = previousCrumb ? previousCrumb.to : '/'
-  const mobileBackAriaLabel = previousMeta
-    ? t('layout.backNavigation.backTo', {
-        lng: language,
-        label: previousMeta.label,
-      })
-    : mobileBackLabel
+  const backHref = previousCrumb ? previousCrumb.to : '/'
+  const backTargetLabel = previousMeta?.label ?? homeLabel
+  const backLabel = useMemo(() => {
+    console.log('isMobile:', isMobile, 'language:', language, 'backTargetLabel:', backTargetLabel)
+    return buildBackLabel({
+      isMobile,
+      language,
+      targetLabel: backTargetLabel,
+      translate: t,
+    })
+  }, [isMobile, language, backTargetLabel, t])
+
+  useEffect(() => {
+    console.log('[AppLayout] Back label computed', {
+      isMobile,
+      language,
+      backTargetLabel,
+      backLabel,
+    })
+  }, [isMobile, language, backTargetLabel, backLabel])
+
+  useEffect(() => {
+    console.log('[AppLayout] Mounted')
+  }, [])
+
+  useEffect(() => {
+    console.log('[AppLayout] isMobile changed', isMobile)
+  }, [isMobile])
+
+  useEffect(() => {
+    console.log('[AppLayout] language changed', language)
+  }, [language])
+
+  useEffect(() => {
+    console.log('[AppLayout] backTargetLabel changed', backTargetLabel)
+  }, [backTargetLabel])
 
   function getCrumbMeta(segment: string) {
     const s = segment.toLowerCase()
@@ -74,13 +100,13 @@ export default function AppLayout() {
       <TopBar />
       <Toolbar sx={{ minHeight: 64 }} />
       <Box sx={{ p: 2 }}>
-        {isCompactBreadcrumb ? (
+        {isMobile ? (
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1, minHeight: 32 }}>
             <IconButton
               size="small"
               component={RouterLink}
-              to={mobileBackHref}
-              aria-label={mobileBackAriaLabel}
+              to={backHref}
+              aria-label={backLabel}
               sx={{
                 border: '1px solid',
                 borderColor: 'divider',
@@ -96,13 +122,13 @@ export default function AppLayout() {
               noWrap
               sx={{ textTransform: 'capitalize' }}
             >
-              {mobileBackLabel}
+              {backLabel}
             </Typography>
           </Stack>
         ) : (
           <Box
             sx={{
-              display: !isCompactBreadcrumb ? 'flex' : 'none',
+              display: { xs: 'none', sm: 'inline-flex' },
               alignItems: 'center',
               justifyContent: 'flex-start',
               gap: 2,
@@ -154,4 +180,24 @@ export default function AppLayout() {
       </Box>
     </Box>
   )
+}
+
+type BackLabelConfig = {
+  isMobile: boolean
+  language?: string
+  targetLabel: string
+  translate: ReturnType<typeof useTranslate>['t']
+}
+
+function buildBackLabel({ isMobile, language, targetLabel, translate }: BackLabelConfig) {
+  const isSpanish = language?.toLowerCase().startsWith('es')
+  const defaultShort = isSpanish ? 'Volver' : 'Back'
+  const defaultLong = isSpanish ? `Volver a ${targetLabel}` : `Back to ${targetLabel}`
+  const key = isMobile ? 'layout.backNavigation.backToShort' : 'layout.backNavigation.backTo'
+  const defaultValue = isMobile ? defaultShort : defaultLong
+  return translate(key, {
+    lng: language,
+    label: targetLabel,
+    defaultValue,
+  })
 }

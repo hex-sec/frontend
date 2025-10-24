@@ -25,7 +25,7 @@ import PaletteIcon from '@mui/icons-material/Palette'
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined'
-import { alpha } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 
 type OptionType = 'switch' | 'select' | 'slider' | 'checkbox'
 
@@ -379,6 +379,23 @@ export default function SettingsModal({
   onSave,
   initialValues,
 }: SettingsModalProps) {
+  const theme = useTheme()
+  const isDarkMode = theme.palette.mode === 'dark'
+  const surfaceColor = alpha(theme.palette.background.paper, isDarkMode ? 0.94 : 0.98)
+  const backdropColor = alpha(theme.palette.background.default, isDarkMode ? 0.8 : 0.5)
+  const headerGradient = `linear-gradient(90deg, ${alpha(
+    theme.palette.primary.main,
+    isDarkMode ? 0.28 : 0.18,
+  )}, ${alpha(theme.palette.primary.light, isDarkMode ? 0.12 : 0.08)})`
+  const sidebarSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.72 : 0.9)
+  const contentSurface = alpha(theme.palette.background.paper, isDarkMode ? 0.6 : 0.86)
+  const borderShade = alpha(theme.palette.divider, isDarkMode ? 0.6 : 0.25)
+  const subtleBorder = `1px solid ${borderShade}`
+  const searchFieldBg = alpha(theme.palette.background.paper, isDarkMode ? 0.52 : 0.92)
+  const searchIconColor = alpha(theme.palette.text.secondary, isDarkMode ? 0.9 : 0.7)
+  const sliderShadow = `0 0 0 4px ${alpha(theme.palette.primary.main, 0.2)}`
+  const hoverBorderColor = alpha(theme.palette.primary.main, isDarkMode ? 0.5 : 0.35)
+
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>(SETTINGS_SCHEMA[0]?.key ?? '')
   const [values, setValues] = useState<Record<string, boolean | number | string>>(() => ({
@@ -549,8 +566,11 @@ export default function SettingsModal({
                 mt: 0.5,
                 maxWidth: 240,
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: alpha('#0d1d2e', 0.4),
-                  color: 'common.white',
+                  backgroundColor: searchFieldBg,
+                  color: theme.palette.text.primary,
+                  '& fieldset': { borderColor: borderShade },
+                  '&:hover fieldset': { borderColor: hoverBorderColor },
+                  '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main },
                 },
               }}
             >
@@ -587,7 +607,7 @@ export default function SettingsModal({
                 handleValueChange(optionKey, Array.isArray(value) ? value[0] : value)
               }
               sx={{
-                '& .MuiSlider-thumb': { boxShadow: '0 0 0 4px rgba(99, 154, 255, 0.25)' },
+                '& .MuiSlider-thumb': { boxShadow: sliderShadow },
               }}
             />
             {option.description ? (
@@ -617,17 +637,17 @@ export default function SettingsModal({
           transition: dragState.current ? 'none' : 'transform 0.2s ease-out',
           borderRadius: 3,
           overflow: 'hidden',
-          background: 'linear-gradient(135deg, rgba(17,29,41,0.95), rgba(10,16,24,0.85))',
-          border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 30px 80px rgba(0,0,0,0.4)',
-          color: 'common.white',
+          backgroundColor: surfaceColor,
+          border: subtleBorder,
+          boxShadow: theme.shadows[24],
+          color: theme.palette.text.primary,
           backdropFilter: 'blur(18px)',
         },
       }}
       slotProps={{
         backdrop: {
           sx: {
-            backgroundColor: 'rgba(4,8,12,0.65)',
+            backgroundColor: backdropColor,
             backdropFilter: 'blur(6px)',
           },
         },
@@ -643,7 +663,7 @@ export default function SettingsModal({
           py: 2,
           cursor: dragState.current ? 'grabbing' : 'grab',
           userSelect: 'none',
-          background: 'linear-gradient(90deg, rgba(99,99,255,0.12), rgba(42,165,255,0.05))',
+          background: headerGradient,
         }}
       >
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -653,7 +673,7 @@ export default function SettingsModal({
           <CloseIcon />
         </IconButton>
       </Box>
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+      <Divider sx={{ borderColor: borderShade }} />
       <DialogContent sx={{ px: 3, py: 3 }}>
         <Stack spacing={3}>
           <TextField
@@ -665,18 +685,18 @@ export default function SettingsModal({
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: 'rgba(255,255,255,0.6)' }} />
+                  <SearchIcon sx={{ color: searchIconColor }} />
                 </InputAdornment>
               ),
             }}
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: alpha('#0d1d2e', 0.5),
+                backgroundColor: searchFieldBg,
                 borderRadius: 2,
-                color: 'common.white',
+                color: theme.palette.text.primary,
                 '& fieldset': { borderColor: 'transparent' },
-                '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
-                '&.Mui-focused fieldset': { borderColor: 'primary.main' },
+                '&:hover fieldset': { borderColor: hoverBorderColor },
+                '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main },
               },
             }}
           />
@@ -686,9 +706,9 @@ export default function SettingsModal({
               sx={{
                 width: { xs: '100%', md: 260 },
                 flexShrink: 0,
-                backgroundColor: alpha('#0d1d2e', 0.45),
+                backgroundColor: sidebarSurface,
                 borderRadius: 2,
-                border: '1px solid rgba(255,255,255,0.05)',
+                border: subtleBorder,
               }}
             >
               <List disablePadding>
@@ -706,9 +726,33 @@ export default function SettingsModal({
                         alignItems: 'center',
                         px: 2.5,
                         py: 1.5,
+                        borderRadius: 2,
+                        transition: theme.transitions.create('background-color', {
+                          duration: theme.transitions.duration.shorter,
+                        }),
                         '&.Mui-selected': {
-                          background:
-                            'linear-gradient(120deg, rgba(66,120,255,0.25), rgba(64,143,255,0.15))',
+                          backgroundColor: alpha(
+                            theme.palette.primary.main,
+                            isDarkMode ? 0.28 : 0.16,
+                          ),
+                        },
+                        '&.Mui-selected .MuiTypography-root': {
+                          color: theme.palette.primary.main,
+                        },
+                        '&.Mui-selected svg': {
+                          color: theme.palette.primary.main,
+                        },
+                        '&:not(.Mui-selected):hover': {
+                          backgroundColor: alpha(
+                            theme.palette.primary.main,
+                            isDarkMode ? 0.18 : 0.1,
+                          ),
+                        },
+                        '& .MuiTypography-root': {
+                          color: theme.palette.text.primary,
+                        },
+                        '& svg': {
+                          color: theme.palette.text.secondary,
                         },
                         '&.Mui-disabled': {
                           opacity: 0.4,
@@ -738,9 +782,9 @@ export default function SettingsModal({
             <Box
               sx={{
                 flexGrow: 1,
-                backgroundColor: alpha('#0d1d2e', 0.35),
+                backgroundColor: contentSurface,
                 borderRadius: 2,
-                border: '1px solid rgba(255,255,255,0.05)',
+                border: subtleBorder,
                 px: { xs: 2, md: 3 },
                 py: { xs: 2, md: 3 },
                 display: 'flex',
@@ -793,7 +837,7 @@ export default function SettingsModal({
           </Stack>
         </Stack>
       </DialogContent>
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+      <Divider sx={{ borderColor: borderShade }} />
       <DialogActions sx={{ px: 3, py: 2.5, gap: 1.5 }}>
         <Button onClick={onClose} color="inherit">
           Cancelar
