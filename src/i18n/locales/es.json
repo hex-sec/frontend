@@ -3,7 +3,8 @@
     "close": "Cerrar",
     "save": "Guardar",
     "cancel": "Cancelar",
-    "apply": "Aplicar"
+    "apply": "Aplicar",
+    "saveChanges": "Guardar cambios"
   },
   "languages": {
     "en": "Inglés",
@@ -11,6 +12,7 @@
     "fr": "Francés",
     "de": "Alemán",
     "it": "Italiano",
+    "pt": "Portugués",
     "ru": "Ruso",
     "zh": "Chino",
     "ja": "Japonés"
@@ -206,6 +208,10 @@
     "title": "Configuración",
     "searchPlaceholder": "Buscar en la configuración...",
     "noResults": "No hay configuraciones que coincidan con tu búsqueda.",
+    "emptyState": {
+      "title": "Sin coincidencias",
+      "description": "Ajusta tu búsqueda para encontrar configuraciones disponibles."
+    },
     "optional": "Opcional",
     "signInPrompt": "Inicia sesión para ver tu configuración.",
     "openThemeEditor": "Abrir editor de temas",
@@ -254,10 +260,6 @@
       "appearanceGeneral": {
         "title": "Apariencia general",
         "description": "Controles de tema, densidad y editor."
-      },
-      "topbar": {
-        "title": "Barra superior",
-        "description": "Personaliza el patrón detrás de la navegación."
       },
       "webhooks": {
         "title": "Webhooks",
@@ -309,13 +311,154 @@
         "label": "Densidad",
         "description": "Elige la separación en tablas y listados."
       },
-      "topbarPattern": {
-        "label": "Patrón de la barra superior",
-        "description": "Patrón de fondo aplicado a la barra de navegación."
-      },
       "webhookUrl": {
         "label": "URL del webhook",
         "helper": "Enviaremos eventos a este endpoint HTTPS."
+      }
+    },
+    "account": {
+      "profile": {
+        "title": "Preferencias de perfil",
+        "description": "Controla cómo se muestra tu perfil a otros miembros.",
+        "profileVisibility": {
+          "label": "Visibilidad del perfil",
+          "description": "Muestra los detalles de tu perfil a los miembros del espacio de trabajo."
+        },
+        "digestLanguage": {
+          "label": "Idioma del resumen",
+          "description": "Elige el idioma usado en los correos de resumen."
+        }
+      },
+      "privacy": {
+        "title": "Controles de privacidad",
+        "description": "Configura retención de datos y políticas de sesión.",
+        "auditTrail": {
+          "label": "Bitácoras de auditoría",
+          "description": "Conserva un registro de actividad y cambios administrativos."
+        },
+        "sessionTimeout": {
+          "label": "Tiempo de expiración de sesión",
+          "description": "Cierra sesiones inactivas después del periodo seleccionado.",
+          "choices": {
+            "15": "15 minutos",
+            "30": "30 minutos",
+            "60": "60 minutos"
+          }
+        }
+      }
+    },
+    "notifications": {
+      "alerts": {
+        "title": "Alertas de incidentes",
+        "description": "Define qué eventos operativos deben generar alertas.",
+        "criticalIncidents": {
+          "label": "Incidentes críticos",
+          "description": "Avísame cuando se escalen incidentes urgentes."
+        },
+        "visitorArrivals": {
+          "label": "Llegadas de visitantes",
+          "description": "Notifica cuando lleguen visitantes sin preaprobación."
+        }
+      },
+      "channels": {
+        "title": "Canales de notificación",
+        "description": "Elige cómo se entregan las alertas.",
+        "channelEmail": {
+          "label": "Alertas por correo",
+          "description": "Envía las notificaciones a mi bandeja de entrada."
+        },
+        "channelSms": {
+          "label": "Alertas por SMS",
+          "description": "Envía notificaciones importantes por mensaje de texto."
+        },
+        "channelPush": {
+          "label": "Alertas push",
+          "description": "Entrega notificaciones mediante la app móvil."
+        }
+      }
+    },
+    "security": {
+      "auth": {
+        "title": "Autenticación",
+        "description": "Refuerza el inicio de sesión con controles adicionales.",
+        "mfa": {
+          "label": "Autenticación multifactor",
+          "description": "Solicita un segundo factor al iniciar sesión."
+        },
+        "passwordRotation": {
+          "label": "Rotación de contraseña",
+          "description": "Obliga a restablecer contraseñas con esta frecuencia.",
+          "choices": {
+            "30": "Cada 30 días",
+            "60": "Cada 60 días",
+            "90": "Cada 90 días"
+          }
+        }
+      },
+      "sessions": {
+        "title": "Gestión de sesiones",
+        "description": "Limita el acceso concurrente y por ubicación.",
+        "sessionLimit": {
+          "label": "Límite de sesiones activas",
+          "description": "Número máximo de dispositivos que pueden mantenerse conectados."
+        },
+        "geoLock": {
+          "label": "Bloqueo geográfico",
+          "description": "Restringe nuevas sesiones a regiones de confianza."
+        }
+      }
+    },
+    "appearance": {
+      "generalLook": {
+        "title": "Apariencia general",
+        "description": "Personaliza el tema y la densidad principales.",
+        "themeMode": {
+          "label": "Modo de tema",
+          "description": "Selecciona el tema aplicado en toda la plataforma.",
+          "choices": {
+            "auto": "Coincidir con el sistema",
+            "light": "Claro",
+            "dark": "Oscuro"
+          }
+        },
+        "density": {
+          "label": "Densidad",
+          "description": "Controla el espaciado en tablas y navegación.",
+          "choices": {
+            "comfortable": "Cómoda",
+            "standard": "Estándar",
+            "compact": "Compacta"
+          }
+        }
+      },
+      "topbar": {
+        "title": "Barra superior",
+        "description": "Ajusta efectos y distintivos de la navegación.",
+        "topbarBlur": {
+          "label": "Desenfoque de la barra superior",
+          "description": "Controla la intensidad del efecto translúcido."
+        },
+        "topbarBadges": {
+          "label": "Mostrar distintivos en la barra",
+          "description": "Muestra insignias de notificación junto a la navegación."
+        }
+      },
+      "charts": {
+        "title": "Gráficas",
+        "description": "Elige paletas y animaciones para los informes.",
+        "chartPalette": {
+          "label": "Paleta de gráficas",
+          "description": "Selecciona la familia de colores usada en las gráficas.",
+          "choices": {
+            "brand": "Marca",
+            "viz": "Visualización de datos",
+            "mono": "Monocromática"
+          }
+        },
+        "chartAnimation": {
+          "label": "Animación de gráficas",
+          "description": "Activa animaciones cuando los datos cambian."
+        }
       }
     },
     "toggles": {

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useThemeStore } from '@store/theme.store'
 import { lightTheme, darkTheme, highContrastTheme, makeBrandTheme } from './themePresets'
 import ContextCacheProvider from '@app/context/ContextCache'
+import { loadThemePresets, presetToMuiTheme } from './theme.utils'
 
 // Behavior:
 // - If user selects 'system' we follow the browser's prefers-color-scheme media query.
@@ -10,11 +11,20 @@ import ContextCacheProvider from '@app/context/ContextCache'
 // - Brand and high-contrast explicitly override system preference.
 
 export default function AppThemeProvider({ children }: { children: React.ReactNode }) {
-  const { kind, brandConfig, hydrate } = useThemeStore()
+  const { kind, brandConfig, hydrate, presets, setPresets, currentPreset, currentId } =
+    useThemeStore()
   const [systemPrefersDark, setSystemPrefersDark] = useState<boolean | null>(null)
 
   useEffect(() => {
     hydrate()
+    // load presets from JSON (only once)
+    try {
+      const loaded = loadThemePresets()
+      if (loaded && loaded.length > 0) setPresets(loaded)
+    } catch (e) {
+      // non-fatal
+      console.warn('Failed to load theme presets', e)
+    }
   }, [hydrate])
 
   useEffect(() => {
@@ -48,11 +58,15 @@ export default function AppThemeProvider({ children }: { children: React.ReactNo
   }, [kind, systemPrefersDark])
 
   const theme = useMemo(() => {
+    // Prefer a selected preset if available
+    const preset = currentPreset()
+    if (preset) return presetToMuiTheme(preset)
+
     if (effectiveKind === 'dark') return darkTheme
     if (effectiveKind === 'high-contrast') return highContrastTheme
     if (effectiveKind === 'brand' && brandConfig) return makeBrandTheme(brandConfig)
     return lightTheme
-  }, [effectiveKind, brandConfig])
+  }, [effectiveKind, brandConfig, presets, currentId])
 
   return (
     <ThemeProvider theme={theme}>

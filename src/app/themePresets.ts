@@ -1,4 +1,4 @@
-import { createTheme, alpha } from '@mui/material/styles'
+import { createTheme, alpha, lighten } from '@mui/material/styles'
 import type { Theme } from '@mui/material/styles'
 import type { BrandThemeConfig } from './theme.types'
 
@@ -25,8 +25,6 @@ export const lightTheme = createTheme({
           color: theme.palette.text.primary,
           boxShadow: 'none',
           borderBottom: `1px solid ${theme.palette.divider}`,
-          backgroundImage: `linear-gradient(135deg, ${alpha(theme.palette.getContrastText(theme.palette.background.paper), 0.02)} 25%, transparent 25%, transparent 50%, ${alpha(theme.palette.getContrastText(theme.palette.background.paper), 0.02)} 50%, ${alpha(theme.palette.getContrastText(theme.palette.background.paper), 0.02)} 75%, transparent 75%, transparent)`,
-          backgroundSize: '28px 28px',
         }),
       },
     },
@@ -51,6 +49,15 @@ export const lightTheme = createTheme({
         }),
       },
     },
+    MuiCssBaseline: {
+      styleOverrides: (theme) => ({
+        a: {
+          '&:visited': {
+            color: lighten(theme.palette.primary.main, 0.2),
+          },
+        },
+      }),
+    },
   },
 })
 
@@ -72,8 +79,6 @@ export const darkTheme = createTheme({
           color: theme.palette.text.primary,
           boxShadow: 'none',
           borderBottom: `1px solid ${theme.palette.divider}`,
-          backgroundImage: `linear-gradient(135deg, ${alpha(theme.palette.getContrastText(theme.palette.background.paper), 0.02)} 25%, transparent 25%, transparent 50%, ${alpha(theme.palette.getContrastText(theme.palette.background.paper), 0.02)} 50%, ${alpha(theme.palette.getContrastText(theme.palette.background.paper), 0.02)} 75%, transparent 75%, transparent)`,
-          backgroundSize: '28px 28px',
         }),
       },
     },
@@ -100,6 +105,15 @@ export const darkTheme = createTheme({
           color: theme.palette.getContrastText(theme.palette.primary.main),
         }),
       },
+    },
+    MuiCssBaseline: {
+      styleOverrides: (theme) => ({
+        a: {
+          '&:visited': {
+            color: theme.palette.grey[400],
+          },
+        },
+      }),
     },
   },
 })
@@ -129,8 +143,6 @@ export const highContrastTheme = createTheme({
           color: theme.palette.text.primary,
           boxShadow: 'none',
           borderBottom: `2px solid ${theme.palette.divider}`,
-          backgroundImage: `linear-gradient(135deg, ${alpha(theme.palette.getContrastText(theme.palette.background.paper), 0.04)} 25%, transparent 25%, transparent 50%, ${alpha(theme.palette.getContrastText(theme.palette.background.paper), 0.04)} 50%, ${alpha(theme.palette.getContrastText(theme.palette.background.paper), 0.04)} 75%, transparent 75%, transparent)`,
-          backgroundSize: '24px 24px',
         }),
       },
     },

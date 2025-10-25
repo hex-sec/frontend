@@ -3,7 +3,8 @@
     "close": "Close",
     "save": "Save",
     "cancel": "Cancel",
-    "apply": "Apply"
+    "apply": "Apply",
+    "saveChanges": "Save changes"
   },
   "languages": {
     "en": "English",
@@ -11,6 +12,7 @@
     "fr": "French",
     "de": "German",
     "it": "Italian",
+    "pt": "Portuguese",
     "ru": "Russian",
     "zh": "Chinese",
     "ja": "Japanese"
@@ -206,6 +208,10 @@
     "title": "Settings",
     "searchPlaceholder": "Search settings...",
     "noResults": "No settings match your search.",
+    "emptyState": {
+      "title": "No matches found",
+      "description": "Adjust your search to discover available settings."
+    },
     "optional": "Optional",
     "signInPrompt": "Please sign in to view your settings.",
     "openThemeEditor": "Open theme editor",
@@ -254,10 +260,6 @@
       "appearanceGeneral": {
         "title": "General appearance",
         "description": "Theme, density and editor controls."
-      },
-      "topbar": {
-        "title": "Top bar appearance",
-        "description": "Customize the pattern behind the navigation bar."
       },
       "webhooks": {
         "title": "Webhooks",
@@ -309,13 +311,154 @@
         "label": "Density",
         "description": "Choose spacing density for tables and layouts."
       },
-      "topbarPattern": {
-        "label": "Top bar pattern",
-        "description": "Background pattern applied to the navigation bar."
-      },
       "webhookUrl": {
         "label": "Webhook URL",
         "helper": "We'll send event payloads to this HTTPS endpoint."
+      }
+    },
+    "account": {
+      "profile": {
+        "title": "Profile preferences",
+        "description": "Control how your profile appears to other members.",
+        "profileVisibility": {
+          "label": "Profile visibility",
+          "description": "Display your profile details to teammates across the workspace."
+        },
+        "digestLanguage": {
+          "label": "Digest language",
+          "description": "Select the language used for summary emails."
+        }
+      },
+      "privacy": {
+        "title": "Privacy controls",
+        "description": "Configure retention and session safety policies.",
+        "auditTrail": {
+          "label": "Audit trails",
+          "description": "Keep a log of account activity and administrator changes."
+        },
+        "sessionTimeout": {
+          "label": "Session timeout",
+          "description": "Log out inactive sessions after the selected duration.",
+          "choices": {
+            "15": "15 minutes",
+            "30": "30 minutes",
+            "60": "60 minutes"
+          }
+        }
+      }
+    },
+    "notifications": {
+      "alerts": {
+        "title": "Incident alerts",
+        "description": "Pick the operational events that should trigger alerts.",
+        "criticalIncidents": {
+          "label": "Critical incidents",
+          "description": "Notify me when urgent incidents are escalated."
+        },
+        "visitorArrivals": {
+          "label": "Visitor arrivals",
+          "description": "Alert me when visitors arrive without pre-approval."
+        }
+      },
+      "channels": {
+        "title": "Notification channels",
+        "description": "Choose how alerts are delivered to you.",
+        "channelEmail": {
+          "label": "Email alerts",
+          "description": "Send notifications to my inbox."
+        },
+        "channelSms": {
+          "label": "SMS alerts",
+          "description": "Send important notifications by text message."
+        },
+        "channelPush": {
+          "label": "Push alerts",
+          "description": "Deliver notifications via push to the mobile app."
+        }
+      }
+    },
+    "security": {
+      "auth": {
+        "title": "Authentication",
+        "description": "Strengthen sign-in with layered security controls.",
+        "mfa": {
+          "label": "Multi-factor authentication",
+          "description": "Require a second factor during sign-in."
+        },
+        "passwordRotation": {
+          "label": "Password rotation",
+          "description": "Force users to reset passwords on this cadence.",
+          "choices": {
+            "30": "Every 30 days",
+            "60": "Every 60 days",
+            "90": "Every 90 days"
+          }
+        }
+      },
+      "sessions": {
+        "title": "Session management",
+        "description": "Limit concurrent access and location usage.",
+        "sessionLimit": {
+          "label": "Active session limit",
+          "description": "Maximum number of devices that can stay signed in."
+        },
+        "geoLock": {
+          "label": "Geographic locking",
+          "description": "Restrict new sessions to trusted regions."
+        }
+      }
+    },
+    "appearance": {
+      "generalLook": {
+        "title": "General appearance",
+        "description": "Customize core theme and density preferences.",
+        "themeMode": {
+          "label": "Theme mode",
+          "description": "Select the theme applied throughout the product.",
+          "choices": {
+            "auto": "Match system",
+            "light": "Light",
+            "dark": "Dark"
+          }
+        },
+        "density": {
+          "label": "Density",
+          "description": "Control spacing for data grids and navigation.",
+          "choices": {
+            "comfortable": "Comfortable",
+            "standard": "Standard",
+            "compact": "Compact"
+          }
+        }
+      },
+      "topbar": {
+        "title": "Top bar",
+        "description": "Tune the navigation bar effects and badges.",
+        "topbarBlur": {
+          "label": "Top bar blur",
+          "description": "Adjust the frosted glass effect strength."
+        },
+        "topbarBadges": {
+          "label": "Show top bar badges",
+          "description": "Display notification badges alongside navigation."
+        }
+      },
+      "charts": {
+        "title": "Charts",
+        "description": "Pick palettes and motion for analytics visuals.",
+        "chartPalette": {
+          "label": "Chart palette",
+          "description": "Choose the color family used for charts.",
+          "choices": {
+            "brand": "Brand",
+            "viz": "Data visualization",
+            "mono": "Monochrome"
+          }
+        },
+        "chartAnimation": {
+          "label": "Chart animation",
+          "description": "Animate charts when data updates."
+        }
       }
     },
     "toggles": {

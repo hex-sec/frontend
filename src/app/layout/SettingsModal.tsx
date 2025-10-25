@@ -18,6 +18,7 @@ import {
   Typography,
   FormControlLabel,
   MenuItem,
+  ListSubheader,
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import SearchIcon from '@mui/icons-material/Search'
@@ -25,16 +26,25 @@ import PaletteIcon from '@mui/icons-material/Palette'
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined'
+import { useTranslate } from '@i18n/useTranslate'
 import { alpha, useTheme } from '@mui/material/styles'
+import { useThemeStore } from '@store/theme.store'
 
 type OptionType = 'switch' | 'select' | 'slider' | 'checkbox'
 
+type SettingsOptionChoice = {
+  value: string
+  labelKey?: string
+  label?: string
+  group?: string
+}
+
 type SettingsOption = {
   key: string
-  label: string
-  description?: string
+  labelKey: string
+  descriptionKey?: string
   type: OptionType
-  choices?: Array<{ value: string; label: string }>
+  choices?: SettingsOptionChoice[]
   min?: number
   max?: number
   step?: number
@@ -42,14 +52,14 @@ type SettingsOption = {
 
 type SettingsGroup = {
   key: string
-  label: string
-  description?: string
+  labelKey: string
+  descriptionKey?: string
   options: SettingsOption[]
 }
 
 type SettingsCategory = {
   key: string
-  label: string
+  labelKey: string
   icon: JSX.Element
   groups: SettingsGroup[]
 }
@@ -62,56 +72,56 @@ type SettingsModalProps = {
   initialValues?: Record<string, boolean | number | string>
 }
 
-const SETTINGS_SCHEMA: SettingsCategory[] = [
+const BASE_SETTINGS_SCHEMA: SettingsCategory[] = [
   {
     key: 'account',
-    label: 'Cuenta',
+    labelKey: 'settings.categories.account',
     icon: <PersonOutlinedIcon fontSize="small" />,
     groups: [
       {
         key: 'profile',
-        label: 'Perfil',
-        description: 'Controla cómo se muestra tu perfil a otros administradores y guardias.',
+        labelKey: 'settings.account.profile.title',
+        descriptionKey: 'settings.account.profile.description',
         options: [
           {
             key: 'profileVisibility',
-            label: 'Visibilidad del perfil',
-            description: 'Permite que otros gestores vean tu nombre y foto.',
+            labelKey: 'settings.account.profile.profileVisibility.label',
+            descriptionKey: 'settings.account.profile.profileVisibility.description',
             type: 'switch',
           },
           {
             key: 'digestLanguage',
-            label: 'Idioma del resumen semanal',
-            description: 'Selecciona el idioma en el que recibes reportes y resúmenes.',
+            labelKey: 'settings.account.profile.digestLanguage.label',
+            descriptionKey: 'settings.account.profile.digestLanguage.description',
             type: 'select',
             choices: [
-              { value: 'es', label: 'Español' },
-              { value: 'en', label: 'Inglés' },
-              { value: 'pt', label: 'Portugués' },
+              { value: 'es', labelKey: 'languages.es' },
+              { value: 'en', labelKey: 'languages.en' },
+              { value: 'pt', labelKey: 'languages.pt' },
             ],
           },
         ],
       },
       {
         key: 'privacy',
-        label: 'Privacidad',
-        description: 'Configura el manejo de tus datos personales y auditorías.',
+        labelKey: 'settings.account.privacy.title',
+        descriptionKey: 'settings.account.privacy.description',
         options: [
           {
             key: 'auditTrail',
-            label: 'Registrar auditorías de cambios',
-            description: 'Guarda un historial detallado de ajustes realizados en tu cuenta.',
+            labelKey: 'settings.account.privacy.auditTrail.label',
+            descriptionKey: 'settings.account.privacy.auditTrail.description',
             type: 'switch',
           },
           {
             key: 'sessionTimeout',
-            label: 'Cierre de sesión automático',
-            description: 'Tiempo de inactividad antes de cerrar sesión por seguridad.',
+            labelKey: 'settings.account.privacy.sessionTimeout.label',
+            descriptionKey: 'settings.account.privacy.sessionTimeout.description',
             type: 'select',
             choices: [
-              { value: '15', label: '15 minutos' },
-              { value: '30', label: '30 minutos' },
-              { value: '60', label: '1 hora' },
+              { value: '15', labelKey: 'settings.account.privacy.sessionTimeout.choices.15' },
+              { value: '30', labelKey: 'settings.account.privacy.sessionTimeout.choices.30' },
+              { value: '60', labelKey: 'settings.account.privacy.sessionTimeout.choices.60' },
             ],
           },
         ],
@@ -120,49 +130,49 @@ const SETTINGS_SCHEMA: SettingsCategory[] = [
   },
   {
     key: 'notifications',
-    label: 'Notificaciones',
+    labelKey: 'settings.categories.notifications',
     icon: <NotificationsActiveIcon fontSize="small" />,
     groups: [
       {
         key: 'alerts',
-        label: 'Alertas',
-        description: 'Define qué alertas se entregan en tiempo real.',
+        labelKey: 'settings.notifications.alerts.title',
+        descriptionKey: 'settings.notifications.alerts.description',
         options: [
           {
             key: 'criticalIncidents',
-            label: 'Incidentes críticos',
-            description: 'Recibir alertas prioritarias cuando un guardia marca un incidente.',
+            labelKey: 'settings.notifications.alerts.criticalIncidents.label',
+            descriptionKey: 'settings.notifications.alerts.criticalIncidents.description',
             type: 'switch',
           },
           {
             key: 'visitorArrivals',
-            label: 'Llegadas de visitantes',
-            description: 'Avisos cuando un visitante llega sin autorización previa.',
+            labelKey: 'settings.notifications.alerts.visitorArrivals.label',
+            descriptionKey: 'settings.notifications.alerts.visitorArrivals.description',
             type: 'switch',
           },
         ],
       },
       {
         key: 'channels',
-        label: 'Canales',
-        description: 'Escoge los canales por los que recibes notificaciones.',
+        labelKey: 'settings.notifications.channels.title',
+        descriptionKey: 'settings.notifications.channels.description',
         options: [
           {
             key: 'channelEmail',
-            label: 'Correo electrónico',
-            description: 'Enviar copias de alertas clave al correo.',
+            labelKey: 'settings.notifications.channels.channelEmail.label',
+            descriptionKey: 'settings.notifications.channels.channelEmail.description',
             type: 'switch',
           },
           {
             key: 'channelSms',
-            label: 'Mensajes SMS',
-            description: 'Enviar un SMS cuando se active una alerta urgente.',
+            labelKey: 'settings.notifications.channels.channelSms.label',
+            descriptionKey: 'settings.notifications.channels.channelSms.description',
             type: 'switch',
           },
           {
             key: 'channelPush',
-            label: 'Notificaciones push',
-            description: 'Recibir notificaciones push en la aplicación móvil.',
+            labelKey: 'settings.notifications.channels.channelPush.label',
+            descriptionKey: 'settings.notifications.channels.channelPush.description',
             type: 'switch',
           },
         ],
@@ -171,42 +181,42 @@ const SETTINGS_SCHEMA: SettingsCategory[] = [
   },
   {
     key: 'security',
-    label: 'Seguridad',
+    labelKey: 'settings.categories.security',
     icon: <ShieldOutlinedIcon fontSize="small" />,
     groups: [
       {
         key: 'auth',
-        label: 'Autenticación',
-        description: 'Fortalece el acceso a la plataforma.',
+        labelKey: 'settings.security.auth.title',
+        descriptionKey: 'settings.security.auth.description',
         options: [
           {
             key: 'mfa',
-            label: 'Autenticación multifactor obligatoria',
-            description: 'Solicita un segundo factor en cada inicio de sesión.',
+            labelKey: 'settings.security.auth.mfa.label',
+            descriptionKey: 'settings.security.auth.mfa.description',
             type: 'switch',
           },
           {
             key: 'passwordRotation',
-            label: 'Rotación de contraseñas',
-            description: 'Frecuencia con la que se exige un cambio de contraseña.',
+            labelKey: 'settings.security.auth.passwordRotation.label',
+            descriptionKey: 'settings.security.auth.passwordRotation.description',
             type: 'select',
             choices: [
-              { value: '30', label: 'Cada 30 días' },
-              { value: '60', label: 'Cada 60 días' },
-              { value: '90', label: 'Cada 90 días' },
+              { value: '30', labelKey: 'settings.security.auth.passwordRotation.choices.30' },
+              { value: '60', labelKey: 'settings.security.auth.passwordRotation.choices.60' },
+              { value: '90', labelKey: 'settings.security.auth.passwordRotation.choices.90' },
             ],
           },
         ],
       },
       {
         key: 'sessions',
-        label: 'Sesiones activas',
-        description: 'Controla la permanencia de sesiones y dispositivos conectados.',
+        labelKey: 'settings.security.sessions.title',
+        descriptionKey: 'settings.security.sessions.description',
         options: [
           {
             key: 'sessionLimit',
-            label: 'Sesiones simultáneas permitidas',
-            description: 'Cantidad máxima de dispositivos conectados a la vez.',
+            labelKey: 'settings.security.sessions.sessionLimit.label',
+            descriptionKey: 'settings.security.sessions.sessionLimit.description',
             type: 'slider',
             min: 1,
             max: 10,
@@ -214,8 +224,8 @@ const SETTINGS_SCHEMA: SettingsCategory[] = [
           },
           {
             key: 'geoLock',
-            label: 'Bloqueo geográfico',
-            description: 'Restringe el acceso desde ubicaciones fuera de tu país.',
+            labelKey: 'settings.security.sessions.geoLock.label',
+            descriptionKey: 'settings.security.sessions.geoLock.description',
             type: 'switch',
           },
         ],
@@ -224,47 +234,59 @@ const SETTINGS_SCHEMA: SettingsCategory[] = [
   },
   {
     key: 'appearance',
-    label: 'Apariencia',
+    labelKey: 'settings.categories.appearance',
     icon: <PaletteIcon fontSize="small" />,
     groups: [
       {
         key: 'generalLook',
-        label: 'General',
-        description: 'Ajusta la temática visual de toda la aplicación.',
+        labelKey: 'settings.appearance.generalLook.title',
+        descriptionKey: 'settings.appearance.generalLook.description',
         options: [
           {
             key: 'themeMode',
-            label: 'Modo de color',
-            description: 'Define si se fuerza modo claro, oscuro o dinámico.',
+            labelKey: 'settings.appearance.generalLook.themeMode.label',
+            descriptionKey: 'settings.appearance.generalLook.themeMode.description',
             type: 'select',
             choices: [
-              { value: 'auto', label: 'Automático' },
-              { value: 'light', label: 'Claro' },
-              { value: 'dark', label: 'Oscuro' },
+              { value: 'auto', labelKey: 'settings.appearance.generalLook.themeMode.choices.auto' },
+              {
+                value: 'light',
+                labelKey: 'settings.appearance.generalLook.themeMode.choices.light',
+              },
+              { value: 'dark', labelKey: 'settings.appearance.generalLook.themeMode.choices.dark' },
             ],
           },
           {
             key: 'density',
-            label: 'Densidad de contenido',
-            description: 'Controla el espaciado entre filas y cards.',
+            labelKey: 'settings.appearance.generalLook.density.label',
+            descriptionKey: 'settings.appearance.generalLook.density.description',
             type: 'select',
             choices: [
-              { value: 'comfortable', label: 'Cómodo' },
-              { value: 'standard', label: 'Estándar' },
-              { value: 'compact', label: 'Compacto' },
+              {
+                value: 'comfortable',
+                labelKey: 'settings.appearance.generalLook.density.choices.comfortable',
+              },
+              {
+                value: 'standard',
+                labelKey: 'settings.appearance.generalLook.density.choices.standard',
+              },
+              {
+                value: 'compact',
+                labelKey: 'settings.appearance.generalLook.density.choices.compact',
+              },
             ],
           },
         ],
       },
       {
         key: 'topbar',
-        label: 'Barra superior',
-        description: 'Personaliza el encabezado para la operación diaria.',
+        labelKey: 'settings.appearance.topbar.title',
+        descriptionKey: 'settings.appearance.topbar.description',
         options: [
           {
             key: 'topbarBlur',
-            label: 'Intensidad del blur',
-            description: 'Nivel de desenfoque aplicado a la barra superior.',
+            labelKey: 'settings.appearance.topbar.topbarBlur.label',
+            descriptionKey: 'settings.appearance.topbar.topbarBlur.description',
             type: 'slider',
             min: 0,
             max: 20,
@@ -272,32 +294,32 @@ const SETTINGS_SCHEMA: SettingsCategory[] = [
           },
           {
             key: 'topbarBadges',
-            label: 'Mostrar contadores de actividad',
-            description: 'Activa globos con conteo de tareas pendientes.',
+            labelKey: 'settings.appearance.topbar.topbarBadges.label',
+            descriptionKey: 'settings.appearance.topbar.topbarBadges.description',
             type: 'switch',
           },
         ],
       },
       {
         key: 'charts',
-        label: 'Gráficas',
-        description: 'Elige cómo se visualizan las métricas clave.',
+        labelKey: 'settings.appearance.charts.title',
+        descriptionKey: 'settings.appearance.charts.description',
         options: [
           {
             key: 'chartPalette',
-            label: 'Paleta de color',
-            description: 'Juego de colores aplicado a gráficas y KPIs.',
+            labelKey: 'settings.appearance.charts.chartPalette.label',
+            descriptionKey: 'settings.appearance.charts.chartPalette.description',
             type: 'select',
             choices: [
-              { value: 'brand', label: 'Brand' },
-              { value: 'viz', label: 'Analítica' },
-              { value: 'mono', label: 'Monocromático' },
+              { value: 'brand', labelKey: 'settings.appearance.charts.chartPalette.choices.brand' },
+              { value: 'viz', labelKey: 'settings.appearance.charts.chartPalette.choices.viz' },
+              { value: 'mono', labelKey: 'settings.appearance.charts.chartPalette.choices.mono' },
             ],
           },
           {
             key: 'chartAnimation',
-            label: 'Animaciones suaves',
-            description: 'Activa transiciones suaves al cargar gráficas.',
+            labelKey: 'settings.appearance.charts.chartAnimation.label',
+            descriptionKey: 'settings.appearance.charts.chartAnimation.description',
             type: 'switch',
           },
         ],
@@ -367,9 +389,22 @@ type StructuredCategory = {
     key: string
     label: string
     description?: string
-    options: SettingsOption[]
+    options: OptionPresentation[]
     matchCount: number
   }>
+}
+
+type OptionPresentationChoice = {
+  value: string
+  label: string
+  group?: string
+}
+
+type OptionPresentation = {
+  option: SettingsOption
+  label: string
+  description?: string
+  choices?: OptionPresentationChoice[]
 }
 
 export default function SettingsModal({
@@ -381,6 +416,9 @@ export default function SettingsModal({
 }: SettingsModalProps) {
   const theme = useTheme()
   const isDarkMode = theme.palette.mode === 'dark'
+  const { t } = useTranslate()
+  const presets = useThemeStore((state) => state.presets)
+  const currentPresetId = useThemeStore((state) => state.currentId)
   const surfaceColor = alpha(theme.palette.background.paper, isDarkMode ? 0.94 : 0.98)
   const backdropColor = alpha(theme.palette.background.default, isDarkMode ? 0.8 : 0.5)
   const headerGradient = `linear-gradient(90deg, ${alpha(
@@ -397,7 +435,50 @@ export default function SettingsModal({
   const hoverBorderColor = alpha(theme.palette.primary.main, isDarkMode ? 0.5 : 0.35)
 
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string>(SETTINGS_SCHEMA[0]?.key ?? '')
+  const schemaWithPresets = useMemo(() => {
+    if (!presets.length) return BASE_SETTINGS_SCHEMA
+
+    const groupedPresets = [
+      {
+        key: 'light',
+        label: 'Temas claros',
+        items: presets.filter((preset) => preset.palette.mode !== 'dark'),
+      },
+      {
+        key: 'dark',
+        label: 'Temas oscuros',
+        items: presets.filter((preset) => preset.palette.mode === 'dark'),
+      },
+    ].filter((group) => group.items.length > 0)
+
+    return BASE_SETTINGS_SCHEMA.map((category) => {
+      if (category.key !== 'appearance') return category
+      return {
+        ...category,
+        groups: category.groups.map((group) => {
+          if (group.key !== 'generalLook') return group
+          return {
+            ...group,
+            options: group.options.map((option) => {
+              if (option.key !== 'themeMode') return option
+              return {
+                ...option,
+                choices: groupedPresets.flatMap((modeGroup) =>
+                  modeGroup.items.map((preset) => ({
+                    value: preset.id,
+                    label: preset.label,
+                    group: modeGroup.label,
+                  })),
+                ),
+              }
+            }),
+          }
+        }),
+      }
+    })
+  }, [presets])
+
+  const [selectedCategory, setSelectedCategory] = useState<string>(schemaWithPresets[0]?.key ?? '')
   const [values, setValues] = useState<Record<string, boolean | number | string>>(() => ({
     ...SETTINGS_DEFAULT_VALUES,
   }))
@@ -414,26 +495,69 @@ export default function SettingsModal({
 
   useEffect(() => {
     if (!open) return
-    setValues({ ...SETTINGS_DEFAULT_VALUES, ...(initialValues ?? {}) })
-    setSelectedCategory(SETTINGS_SCHEMA[0]?.key ?? '')
-  }, [open, initialValues])
+    const baseValues = { ...SETTINGS_DEFAULT_VALUES, ...(initialValues ?? {}) }
+
+    if (schemaWithPresets === BASE_SETTINGS_SCHEMA) {
+      setValues(baseValues)
+      setSelectedCategory(schemaWithPresets[0]?.key ?? '')
+      return
+    }
+
+    const availablePresetIds = presets.map((preset) => preset.id)
+    const initialThemeValue = baseValues['appearance.generalLook.themeMode']
+    const normalizedThemeValue =
+      typeof initialThemeValue === 'string' && availablePresetIds.includes(initialThemeValue)
+        ? initialThemeValue
+        : availablePresetIds.includes(currentPresetId)
+          ? currentPresetId
+          : availablePresetIds[0]
+
+    if (normalizedThemeValue) {
+      baseValues['appearance.generalLook.themeMode'] = normalizedThemeValue
+    }
+
+    setValues(baseValues)
+    setSelectedCategory(schemaWithPresets[0]?.key ?? '')
+  }, [open, initialValues, schemaWithPresets, presets, currentPresetId])
 
   const structuredCategories: StructuredCategory[] = useMemo(() => {
-    return SETTINGS_SCHEMA.map((category) => {
+    return schemaWithPresets.map((category) => {
+      const categoryLabel = t(category.labelKey)
+
       const groups = category.groups.map((group) => {
-        const matchingOptions = group.options.filter((option) => {
+        const groupLabel = t(group.labelKey)
+        const groupDescription = group.descriptionKey ? t(group.descriptionKey) : undefined
+
+        const translatedOptions: OptionPresentation[] = group.options.map((option) => ({
+          option,
+          label: t(option.labelKey),
+          description: option.descriptionKey ? t(option.descriptionKey) : undefined,
+          choices: option.choices?.map((choice: SettingsOptionChoice) => {
+            const choiceLabel = choice.labelKey
+              ? t(choice.labelKey)
+              : (choice.label ?? choice.value)
+            return {
+              value: choice.value,
+              label: choiceLabel,
+              group: choice.group,
+            }
+          }),
+        }))
+
+        const matchingOptions = translatedOptions.filter(({ label, description }) => {
           if (!normalizedQuery) return true
-          const haystack = `${option.label} ${option.description ?? ''}`.toLowerCase()
+          const haystack = `${label} ${description ?? ''}`.toLowerCase()
           return haystack.includes(normalizedQuery)
         })
 
-        const matchCount = normalizedQuery ? matchingOptions.length : group.options.length
+        const visibleOptions = normalizedQuery ? matchingOptions : translatedOptions
+        const matchCount = normalizedQuery ? matchingOptions.length : translatedOptions.length
 
         return {
           key: group.key,
-          label: group.label,
-          description: group.description,
-          options: normalizedQuery ? matchingOptions : group.options,
+          label: groupLabel,
+          description: groupDescription,
+          options: visibleOptions,
           matchCount,
         }
       })
@@ -446,13 +570,13 @@ export default function SettingsModal({
 
       return {
         key: category.key,
-        label: category.label,
+        label: categoryLabel,
         icon: category.icon,
         totalMatches,
         groups: visibleGroups,
       }
     })
-  }, [normalizedQuery])
+  }, [normalizedQuery, t, schemaWithPresets])
 
   useEffect(() => {
     if (!open) {
@@ -522,7 +646,12 @@ export default function SettingsModal({
     onSave?.(values)
   }
 
-  const renderOptionControl = (categoryKey: string, groupKey: string, option: SettingsOption) => {
+  const renderOptionControl = (
+    categoryKey: string,
+    groupKey: string,
+    presented: OptionPresentation,
+  ) => {
+    const { option, label, description, choices } = presented
     const optionKey = buildOptionKey(categoryKey, groupKey, option.key)
     const currentValue = values[optionKey]
 
@@ -540,12 +669,10 @@ export default function SettingsModal({
             }
             label={
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                <Typography variant="subtitle2">
-                  {highlightMatch(option.label, searchTerm)}
-                </Typography>
-                {option.description ? (
+                <Typography variant="subtitle2">{highlightMatch(label, searchTerm)}</Typography>
+                {description ? (
                   <Typography variant="caption" color="text.secondary">
-                    {highlightMatch(option.description, searchTerm)}
+                    {highlightMatch(description, searchTerm)}
                   </Typography>
                 ) : null}
               </Box>
@@ -556,7 +683,7 @@ export default function SettingsModal({
       case 'select':
         return (
           <Box key={optionKey} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            <Typography variant="subtitle2">{highlightMatch(option.label, searchTerm)}</Typography>
+            <Typography variant="subtitle2">{highlightMatch(label, searchTerm)}</Typography>
             <TextField
               select
               size="small"
@@ -574,15 +701,31 @@ export default function SettingsModal({
                 },
               }}
             >
-              {option.choices?.map((choice) => (
-                <MenuItem key={choice.value} value={choice.value}>
-                  {highlightMatch(choice.label, searchTerm)}
-                </MenuItem>
-              ))}
+              {(() => {
+                if (!choices) return null
+                const nodes: React.ReactNode[] = []
+                let lastGroup: string | undefined
+                choices.forEach((choice) => {
+                  if (choice.group && choice.group !== lastGroup) {
+                    nodes.push(
+                      <ListSubheader key={`header-${choice.group}`} disableSticky>
+                        {choice.group}
+                      </ListSubheader>,
+                    )
+                    lastGroup = choice.group
+                  }
+                  nodes.push(
+                    <MenuItem key={choice.value} value={choice.value}>
+                      {highlightMatch(choice.label, searchTerm)}
+                    </MenuItem>,
+                  )
+                })
+                return nodes
+              })()}
             </TextField>
-            {option.description ? (
+            {description ? (
               <Typography variant="caption" color="text.secondary">
-                {highlightMatch(option.description, searchTerm)}
+                {highlightMatch(description, searchTerm)}
               </Typography>
             ) : null}
           </Box>
@@ -591,9 +734,7 @@ export default function SettingsModal({
         return (
           <Box key={optionKey} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="subtitle2">
-                {highlightMatch(option.label, searchTerm)}
-              </Typography>
+              <Typography variant="subtitle2">{highlightMatch(label, searchTerm)}</Typography>
               <Typography variant="caption" color="text.secondary">
                 {Number(currentValue ?? option.min ?? 0)}
               </Typography>
@@ -610,9 +751,9 @@ export default function SettingsModal({
                 '& .MuiSlider-thumb': { boxShadow: sliderShadow },
               }}
             />
-            {option.description ? (
+            {description ? (
               <Typography variant="caption" color="text.secondary">
-                {highlightMatch(option.description, searchTerm)}
+                {highlightMatch(description, searchTerm)}
               </Typography>
             ) : null}
           </Box>
@@ -667,7 +808,7 @@ export default function SettingsModal({
         }}
       >
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          Configuración
+          {t('settings.title')}
         </Typography>
         <IconButton onClick={onClose} color="inherit" size="small">
           <CloseIcon />
@@ -679,7 +820,7 @@ export default function SettingsModal({
           <TextField
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Buscar ajustes"
+            placeholder={t('settings.searchPlaceholder')}
             fullWidth
             variant="outlined"
             InputProps={{
@@ -806,8 +947,8 @@ export default function SettingsModal({
                       ) : null}
                     </Box>
                     <Stack spacing={2}>
-                      {group.options.map((option) =>
-                        renderOptionControl(activeCategory.key, group.key, option),
+                      {group.options.map((optionPresentation) =>
+                        renderOptionControl(activeCategory.key, group.key, optionPresentation),
                       )}
                     </Stack>
                   </Box>
@@ -826,10 +967,10 @@ export default function SettingsModal({
                   }}
                 >
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Sin coincidencias
+                    {t('settings.emptyState.title')}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Ajusta tu búsqueda para encontrar configuraciones disponibles.
+                    {t('settings.emptyState.description')}
                   </Typography>
                 </Box>
               )}
@@ -840,16 +981,16 @@ export default function SettingsModal({
       <Divider sx={{ borderColor: borderShade }} />
       <DialogActions sx={{ px: 3, py: 2.5, gap: 1.5 }}>
         <Button onClick={onClose} color="inherit">
-          Cancelar
+          {t('common.cancel')}
         </Button>
         <Box sx={{ flexGrow: 1 }} />
         {onApply ? (
           <Button variant="outlined" color="inherit" onClick={handleApply}>
-            Aplicar
+            {t('common.apply')}
           </Button>
         ) : null}
         <Button variant="contained" onClick={handleSave}>
-          Guardar cambios
+          {t('common.saveChanges')}
         </Button>
       </DialogActions>
     </Dialog>

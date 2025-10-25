@@ -1,0 +1,94 @@
+{
+  "themes": [
+    {
+      "id": "securityBlue",
+      "label": "Security Blue (Light)",
+      "palette": {
+        "mode": "light",
+        "primary": { "main": "#1976D2", "light": "#63A4FF", "dark": "#004BA0" },
+        "secondary": { "main": "#26A69A", "light": "#80CBC4", "dark": "#004D40" },
+        "background": { "default": "#F5F7FA", "paper": "#FFFFFF" },
+        "text": { "primary": "#0D1B2A", "secondary": "#546E7A" },
+        "success": { "main": "#43A047" },
+        "warning": { "main": "#FFA726" },
+        "error": { "main": "#E53935" },
+        "links": { "default": "#1976D2", "visited": "#0F4CAD" }
+      }
+    },
+    {
+      "id": "darkSentinel",
+      "label": "Dark Sentinel (Dark)",
+      "palette": {
+        "mode": "dark",
+        "primary": { "main": "#63A4FF" },
+        "secondary": { "main": "#26A69A" },
+        "background": { "default": "#121212", "paper": "#1E1E1E" },
+        "text": { "primary": "#E0E0E0", "secondary": "#A0A0A0" },
+        "success": { "main": "#00C853" },
+        "warning": { "main": "#FFD54F" },
+        "error": { "main": "#EF5350" },
+        "links": { "default": "#80C5FF", "visited": "#9AD7FF" }
+      }
+    },
+    {
+      "id": "guardianTeal",
+      "label": "Guardian Teal (Light)",
+      "palette": {
+        "mode": "light",
+        "primary": { "main": "#00695C", "light": "#26A69A", "dark": "#004D40" },
+        "secondary": { "main": "#607D8B" },
+        "background": { "default": "#ECEFF1", "paper": "#FFFFFF" },
+        "text": { "primary": "#0D1B2A", "secondary": "#546E7A" },
+        "success": { "main": "#43A047" },
+        "warning": { "main": "#FFB300" },
+        "error": { "main": "#E53935" },
+        "links": { "default": "#00695C", "visited": "#004D40" }
+      }
+    },
+    {
+      "id": "cobaltAmber",
+      "label": "Cobalt Amber (Light)",
+      "palette": {
+        "mode": "light",
+        "primary": { "main": "#1E3A8A", "light": "#3B82F6", "dark": "#172554" },
+        "secondary": { "main": "#F59E0B" },
+        "background": { "default": "#F9FAFB", "paper": "#FFFFFF" },
+        "text": { "primary": "#0F172A", "secondary": "#475569" },
+        "success": { "main": "#22C55E" },
+        "warning": { "main": "#FBBF24" },
+        "error": { "main": "#DC2626" },
+        "links": { "default": "#3B82F6", "visited": "#1E3A8A" }
+      }
+    },
+    {
+      "id": "midnightCobalt",
+      "label": "Midnight Cobalt (Dark)",
+      "palette": {
+        "mode": "dark",
+        "primary": { "main": "#4C8BF5", "light": "#6EA2FF", "dark": "#1E4ECF" },
+        "secondary": { "main": "#8E99F3", "light": "#B3B9FF", "dark": "#4B4F8C" },
+        "background": { "default": "#0B1220", "paper": "#141B2C" },
+        "text": { "primary": "#E5ECFF", "secondary": "#A4B1D2" },
+        "success": { "main": "#00C9A7" },
+        "warning": { "main": "#FFB74D" },
+        "error": { "main": "#FF6F61" },
+        "links": { "default": "#6EA2FF", "visited": "#9AAEFF" }
+      }
+    },
+    {
+      "id": "emberGuard",
+      "label": "Ember Guard (Dark)",
+      "palette": {
+        "mode": "dark",
+        "primary": { "main": "#FF8A65", "light": "#FFAB91", "dark": "#E65100" },
+        "secondary": { "main": "#FFD54F", "light": "#FFE082", "dark": "#FFA000" },
+        "background": { "default": "#1A1410", "paper": "#231710" },
+        "text": { "primary": "#FFF3E0", "secondary": "#FFCCBC" },
+        "success": { "main": "#66BB6A" },
+        "warning": { "main": "#FFB300" },
+        "error": { "main": "#F4511E" },
+        "links": { "default": "#FFAB91", "visited": "#FFCCBC" }
+      }
+    }
+  ]
+}

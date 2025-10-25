@@ -40,7 +40,6 @@ import { useI18nStore } from '@store/i18n.store'
 import type { SupportedLanguage } from '@i18n/i18n'
 import { useTranslate } from '../../i18n/useTranslate'
 import { LanguageMenu } from '../../app/layout/LanguageMenu'
-import PatternSelector from './PatternSelector'
 
 type UserSettingsShape = {
   locale?: string
@@ -48,8 +47,8 @@ type UserSettingsShape = {
   receiveEmails?: boolean
   receiveSms?: boolean
   twoFactorEnabled?: boolean
-  themePreference?: 'light' | 'dark' | 'system' | 'brand'
-  density?: 'comfortable' | 'compact'
+  themePreference?: 'light' | 'dark' | 'system' | 'brand' | 'high-contrast'
+  density?: 'comfortable' | 'compact' | 'standard'
   displayName?: string
   webhookUrl?: string
 }
@@ -70,7 +69,6 @@ type GroupId =
   | 'delivery'
   | 'authentication'
   | 'appearanceGeneral'
-  | 'topbar'
   | 'webhooks'
 
 type SettingFieldKey =
@@ -85,7 +83,6 @@ type SettingFieldKey =
   | 'themePreference'
   | 'themeEditor'
   | 'density'
-  | 'topbarPattern'
   | 'webhookUrl'
 
 type SettingFieldMeta = {
@@ -160,10 +157,6 @@ const GROUP_LABEL_KEYS: Record<GroupId, { title: string; description?: string }>
     title: 'settings.groups.appearanceGeneral.title',
     description: 'settings.groups.appearanceGeneral.description',
   },
-  topbar: {
-    title: 'settings.groups.topbar.title',
-    description: 'settings.groups.topbar.description',
-  },
   webhooks: {
     title: 'settings.groups.webhooks.title',
     description: 'settings.groups.webhooks.description',
@@ -213,7 +206,6 @@ const SETTINGS_STRUCTURE: Array<{
         id: 'appearanceGeneral',
         fields: ['themeFollowSystem', 'themePreference', 'themeEditor', 'density'],
       },
-      { id: 'topbar', fields: ['topbarPattern'] },
     ],
   },
   {
@@ -267,10 +259,6 @@ const FIELD_META: Record<SettingFieldKey, SettingFieldMeta> = {
   density: {
     label: 'settings.fields.density.label',
     description: 'settings.fields.density.description',
-  },
-  topbarPattern: {
-    label: 'settings.fields.topbarPattern.label',
-    description: 'settings.fields.topbarPattern.description',
   },
   webhookUrl: {
     label: 'settings.fields.webhookUrl.label',
@@ -697,8 +685,6 @@ export default function SettingsPage({
             <MenuItem value="compact">{t('settings.densityOptions.compact')}</MenuItem>
           </TextField>
         )
-      case 'topbarPattern':
-        return <PatternSelector embedded />
       case 'webhookUrl':
         return (
           <TextField

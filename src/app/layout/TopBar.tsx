@@ -55,6 +55,7 @@ import { alpha } from '@mui/material/styles'
 import { useAuthStore } from '@app/auth/auth.store'
 import { useUIStore } from '@store/ui.store'
 import { useI18nStore } from '@store/i18n.store'
+import { SUPPORTED_LANGUAGES, type SupportedLanguage } from '@i18n/i18n'
 import SettingsModal, { SETTINGS_DEFAULT_VALUES } from './SettingsModal'
 import { useTranslate } from '../../i18n/useTranslate'
 import { useSiteStore, type SiteMode, type Site } from '@store/site.store'
@@ -119,7 +120,10 @@ export default function TopBar() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const { t } = useTranslate()
-  const language = useI18nStore((s) => s.language)
+  const { language, setLanguage } = useI18nStore((s) => ({
+    language: s.language,
+    setLanguage: s.setLanguage,
+  }))
   const patternEnabled = useUIStore((s) => s.patternEnabled)
   const patternKind = useUIStore((s) => s.patternKind)
   const patternOpacity = useUIStore((s) => s.patternOpacity)
@@ -136,6 +140,9 @@ export default function TopBar() {
   const { load: loadUserSettings, save: saveUserSettings } = useUserSettings()
   const themeKind = useThemeStore((s) => s.kind)
   const setThemeKind = useThemeStore((s) => s.setKind)
+  const themePresets = useThemeStore((s) => s.presets)
+  const themePresetId = useThemeStore((s) => s.currentId)
+  const setThemePreset = useThemeStore((s) => s.setCurrent)
   const [settingsModalInitialValues, setSettingsModalInitialValues] = useState<
     Record<string, boolean | number | string>
   >(() => ({ ...SETTINGS_DEFAULT_VALUES }))
@@ -363,6 +370,8 @@ export default function TopBar() {
     }
     if (stored?.locale) {
       derived['account.profile.digestLanguage'] = stored.locale
+    } else {
+      derived['account.profile.digestLanguage'] = language
     }
     if (typeof stored?.receiveEmails === 'boolean') {
       derived['notifications.channels.channelEmail'] = stored.receiveEmails
@@ -376,9 +385,24 @@ export default function TopBar() {
     if (stored?.density) {
       derived['appearance.generalLook.density'] = stored.density
     }
-    const themePreference = stored?.themePreference ?? themeKind
-    derived['appearance.generalLook.themeMode'] =
-      themePreference === 'system' ? 'auto' : themePreference
+    const presetIds = themePresets.map((preset) => preset.id)
+    if (presetIds.length > 0) {
+      const storedModalTheme = stored?.modalSettings?.['appearance.generalLook.themeMode']
+      const storedThemeId =
+        typeof storedModalTheme === 'string' && presetIds.includes(storedModalTheme)
+          ? storedModalTheme
+          : undefined
+      const fallbackPreset =
+        storedThemeId ??
+        (presetIds.includes(themePresetId) ? themePresetId : (presetIds[0] ?? undefined))
+      if (fallbackPreset) {
+        derived['appearance.generalLook.themeMode'] = fallbackPreset
+      }
+    } else {
+      const themePreference = stored?.themePreference ?? themeKind
+      derived['appearance.generalLook.themeMode'] =
+        themePreference === 'system' ? 'auto' : themePreference
+    }
     derived['appearance.topbar.topbarBlur'] = topbarBlur
     derived['appearance.topbar.topbarBadges'] = topbarBadges
     setSettingsModalInitialValues(derived)
@@ -386,9 +410,12 @@ export default function TopBar() {
     openSettings,
     loadUserSettings,
     themeKind,
+    themePresets,
+    themePresetId,
     topbarBlur,
     topbarBadges,
     setSettingsModalInitialValues,
+    language,
   ])
 
   const handleSettingsClose = useCallback(() => {
@@ -399,14 +426,36 @@ export default function TopBar() {
     (nextValues: Record<string, boolean | number | string>) => {
       const stored = loadUserSettings()
 
-      const defaultThemeMode = stored?.themePreference
-        ? stored.themePreference === 'system'
-          ? 'auto'
-          : stored.themePreference
-        : SETTINGS_DEFAULT_VALUES['appearance.generalLook.themeMode']
-      const rawTheme = String(nextValues['appearance.generalLook.themeMode'] ?? defaultThemeMode)
-      const resolvedThemePreference: ThemeKind =
-        rawTheme === 'auto' ? 'system' : (rawTheme as ThemeKind)
+      const presetIds = themePresets.map((preset) => preset.id)
+      const defaultThemeSelection = (() => {
+        const storedModalTheme = stored?.modalSettings?.['appearance.generalLook.themeMode']
+        const storedThemeId =
+          typeof storedModalTheme === 'string' && presetIds.includes(storedModalTheme)
+            ? storedModalTheme
+            : undefined
+        if (presetIds.length > 0) {
+          if (storedThemeId) return storedThemeId
+          if (presetIds.includes(themePresetId)) return themePresetId
+          return presetIds[0]
+        }
+        if (stored?.themePreference) {
+          return stored.themePreference === 'system' ? 'auto' : stored.themePreference
+        }
+        return SETTINGS_DEFAULT_VALUES['appearance.generalLook.themeMode']
+      })()
+
+      const rawTheme = String(
+        nextValues['appearance.generalLook.themeMode'] ?? defaultThemeSelection,
+      )
+
+      const matchedPreset = themePresets.find((preset) => preset.id === rawTheme)
+      const resolvedThemePreference: ThemeKind = matchedPreset
+        ? matchedPreset.palette.mode === 'dark'
+          ? 'dark'
+          : 'light'
+        : rawTheme === 'auto'
+          ? 'system'
+          : (rawTheme as ThemeKind)
 
       const defaultDensity =
         stored?.density ?? SETTINGS_DEFAULT_VALUES['appearance.generalLook.density']
@@ -416,14 +465,20 @@ export default function TopBar() {
           ? (rawDensity as 'comfortable' | 'compact' | 'standard')
           : stored?.density
 
-      const localeValue =
+      const localeValueRaw =
         typeof nextValues['account.profile.digestLanguage'] === 'string'
           ? nextValues['account.profile.digestLanguage']
-          : stored?.locale
+          : (stored?.locale ?? language)
+
+      const normalizedLocale =
+        typeof localeValueRaw === 'string' &&
+        (SUPPORTED_LANGUAGES as readonly string[]).includes(localeValueRaw)
+          ? (localeValueRaw as SupportedLanguage)
+          : undefined
 
       const nextSettings: UserSettings = {
         ...(stored ?? {}),
-        locale: localeValue,
+        locale: normalizedLocale ?? stored?.locale ?? language,
         receiveEmails: Boolean(nextValues['notifications.channels.channelEmail']),
         receiveSms: Boolean(nextValues['notifications.channels.channelSms']),
         twoFactorEnabled: Boolean(nextValues['security.auth.mfa']),
@@ -433,7 +488,14 @@ export default function TopBar() {
       }
 
       saveUserSettings(nextSettings)
+      if (matchedPreset) {
+        setThemePreset(matchedPreset.id)
+      }
       setThemeKind(resolvedThemePreference)
+
+      if (normalizedLocale && normalizedLocale !== language) {
+        setLanguage(normalizedLocale)
+      }
 
       const blurValueRaw = Number(nextValues['appearance.topbar.topbarBlur'] ?? topbarBlurRadius)
       const normalizedBlur = Number.isFinite(blurValueRaw)
@@ -451,6 +513,9 @@ export default function TopBar() {
     },
     [
       loadUserSettings,
+      themePresets,
+      themePresetId,
+      setThemePreset,
       saveUserSettings,
       setThemeKind,
       setTopbarBlur,
@@ -458,6 +523,8 @@ export default function TopBar() {
       topbarBlurRadius,
       setOpenSettings,
       setSettingsModalInitialValues,
+      language,
+      setLanguage,
     ],
   )
 
