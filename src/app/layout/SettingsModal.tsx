@@ -463,13 +463,16 @@ export default function SettingsModal({
               if (option.key !== 'themeMode') return option
               return {
                 ...option,
-                choices: groupedPresets.flatMap((modeGroup) =>
-                  modeGroup.items.map((preset) => ({
-                    value: preset.id,
-                    label: preset.label,
-                    group: modeGroup.label,
-                  })),
-                ),
+                choices:
+                  groupedPresets.length > 0
+                    ? groupedPresets.flatMap((modeGroup) =>
+                        modeGroup.items.map((preset) => ({
+                          value: preset.id,
+                          label: preset.label,
+                          group: modeGroup.label,
+                        })),
+                      )
+                    : undefined,
               }
             }),
           }

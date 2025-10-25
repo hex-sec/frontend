@@ -1,15 +1,5 @@
 import React, { useMemo } from 'react'
-import {
-  Box,
-  Stack,
-  Typography,
-  TextField,
-  MenuItem,
-  Paper,
-  Divider,
-  Grid,
-  ListSubheader,
-} from '@mui/material'
+import { Box, Stack, Typography, TextField, MenuItem, Paper, Divider, Grid } from '@mui/material'
 import { useThemeStore } from '@store/theme.store'
 
 function Swatch({ color, label }: { color: string; label: string }): JSX.Element {
@@ -80,16 +70,13 @@ export default function ThemeAdminPanel(): JSX.Element {
         value={currentId}
         onChange={(event) => setCurrent(event.target.value)}
       >
-        {groupedPresets.flatMap((group) => [
-          <ListSubheader key={`${group.key}-header`} disableSticky>
-            {group.label}
-          </ListSubheader>,
-          ...group.items.map((preset) => (
+        {groupedPresets.flatMap((group) =>
+          group.items.map((preset) => (
             <MenuItem key={preset.id} value={preset.id}>
               {preset.label}
             </MenuItem>
           )),
-        ])}
+        )}
       </TextField>
 
       {activePreset ? (

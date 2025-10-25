@@ -638,9 +638,6 @@ export default function TopBar() {
     }
   }, [selectedMode, selectedSiteSlug, sites])
 
-  const appBarBackground = alpha('#1b2735', 0.88)
-  const toolbarTextColor = 'rgba(255, 255, 255, 0.92)'
-
   const clampedScale = useMemo(
     () => Math.max(8, Math.min(64, Math.round(patternScale || 28))),
     [patternScale],
@@ -686,34 +683,38 @@ export default function TopBar() {
         position="fixed"
         elevation={0}
         sx={(muiTheme) => {
+          const backgroundTint = alpha(
+            muiTheme.palette.primary.main,
+            muiTheme.palette.mode === 'dark' ? 0.82 : 0.92,
+          )
+          const contrastColor =
+            muiTheme.palette.mode === 'dark'
+              ? muiTheme.palette.common.white
+              : muiTheme.palette.getContrastText(muiTheme.palette.primary.main)
+          const patternStroke = contrastColor
+
           let bgImage: string | undefined
           let bgSize: string | undefined
           if (patternEnabled && patternKind !== 'none') {
             const alphaVal = Math.max(0, Math.min(1, patternOpacity))
             if (patternKind === 'subtle-diagonal') {
               bgImage = `linear-gradient(135deg, ${alpha(
-                muiTheme.palette.getContrastText(appBarBackground),
+                patternStroke,
                 alphaVal,
-              )} 25%, transparent 25%, transparent 50%, ${alpha(
-                muiTheme.palette.getContrastText(appBarBackground),
-                alphaVal,
-              )} 50%, ${alpha(
-                muiTheme.palette.getContrastText(appBarBackground),
+              )} 25%, transparent 25%, transparent 50%, ${alpha(patternStroke, alphaVal)} 50%, ${alpha(
+                patternStroke,
                 alphaVal,
               )} 75%, transparent 75%, transparent)`
               bgSize = `${clampedScale}px ${clampedScale}px`
             } else if (patternKind === 'subtle-dots') {
-              bgImage = `radial-gradient(${alpha(
-                muiTheme.palette.getContrastText(appBarBackground),
-                alphaVal,
-              )} 1px, transparent 1px)`
+              bgImage = `radial-gradient(${alpha(patternStroke, alphaVal)} 1px, transparent 1px)`
               bgSize = `${dotScale}px ${dotScale}px`
             } else if (patternKind === 'geometry') {
               bgImage = `linear-gradient(45deg, ${alpha(
-                muiTheme.palette.getContrastText(appBarBackground),
+                patternStroke,
                 alphaVal,
               )} 25%, transparent 25%), linear-gradient(-45deg, ${alpha(
-                muiTheme.palette.getContrastText(appBarBackground),
+                patternStroke,
                 alphaVal,
               )} 25%, transparent 25%)`
               bgSize = `${clampedScale}px ${clampedScale}px`
@@ -723,11 +724,12 @@ export default function TopBar() {
           return {
             height: 64,
             backdropFilter: `blur(${topbarBlurRadius}px)`,
-            backgroundColor: appBarBackground,
+            backgroundColor: backgroundTint,
             backgroundImage: bgImage,
             backgroundSize: bgSize,
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3)',
+            borderBottom: `1px solid ${alpha(contrastColor, 0.18)}`,
+            boxShadow: muiTheme.shadows[muiTheme.palette.mode === 'dark' ? 8 : 3],
+            color: contrastColor,
           }
         }}
       >
@@ -737,7 +739,6 @@ export default function TopBar() {
             gap: 1.5,
             minHeight: 64,
             px: { xs: 2, sm: 3 },
-            color: toolbarTextColor,
             position: 'relative',
             flexWrap: 'nowrap',
           }}
