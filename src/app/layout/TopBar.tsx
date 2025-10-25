@@ -27,6 +27,7 @@ import {
   Chip,
   ListSubheader,
   MenuList,
+  useMediaQuery,
 } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import HomeIcon from '@mui/icons-material/Home'
@@ -51,7 +52,8 @@ import BadgeOutlinedIcon from '@mui/icons-material/Badge'
 import Badge from '@mui/material/Badge'
 import SearchIcon from '@mui/icons-material/Search'
 import type { ButtonProps } from '@mui/material/Button'
-import { alpha } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
+import CloseIcon from '@mui/icons-material/Close'
 import { useAuthStore } from '@app/auth/auth.store'
 import { useUIStore } from '@store/ui.store'
 import { useI18nStore } from '@store/i18n.store'
@@ -128,6 +130,10 @@ export default function TopBar() {
   const patternKind = useUIStore((s) => s.patternKind)
   const patternOpacity = useUIStore((s) => s.patternOpacity)
   const patternScale = useUIStore((s) => s.patternScale)
+  const setPatternEnabled = useUIStore((s) => s.setPatternEnabled)
+  const setPatternKind = useUIStore((s) => s.setPatternKind)
+  const setPatternOpacity = useUIStore((s) => s.setPatternOpacity)
+  const setPatternScale = useUIStore((s) => s.setPatternScale)
   const topbarBlur = useUIStore((s) => s.topbarBlur)
   const setTopbarBlur = useUIStore((s) => s.setTopbarBlur)
   const topbarBadges = useUIStore((s) => s.topbarBadges)
@@ -405,6 +411,10 @@ export default function TopBar() {
     }
     derived['appearance.topbar.topbarBlur'] = topbarBlur
     derived['appearance.topbar.topbarBadges'] = topbarBadges
+    derived['appearance.topbar.topbarPatternEnabled'] = patternEnabled
+    derived['appearance.topbar.topbarPatternKind'] = patternKind
+    derived['appearance.topbar.topbarPatternOpacity'] = patternOpacity
+    derived['appearance.topbar.topbarPatternScale'] = patternScale
     setSettingsModalInitialValues(derived)
   }, [
     openSettings,
@@ -414,6 +424,10 @@ export default function TopBar() {
     themePresetId,
     topbarBlur,
     topbarBadges,
+    patternEnabled,
+    patternKind,
+    patternOpacity,
+    patternScale,
     setSettingsModalInitialValues,
     language,
   ])
@@ -504,10 +518,38 @@ export default function TopBar() {
       setTopbarBlur(normalizedBlur)
       const badgesEnabled = Boolean(nextValues['appearance.topbar.topbarBadges'])
       setTopbarBadges(badgesEnabled)
+      const patternEnabledSetting = Boolean(nextValues['appearance.topbar.topbarPatternEnabled'])
+      setPatternEnabled(patternEnabledSetting)
+      const rawPatternKind = String(
+        nextValues['appearance.topbar.topbarPatternKind'] ?? patternKind,
+      )
+      const allowedPatternKinds = new Set(['subtle-diagonal', 'subtle-dots', 'geometry', 'none'])
+      const normalizedPatternKind = allowedPatternKinds.has(rawPatternKind)
+        ? rawPatternKind
+        : patternKind
+      setPatternKind(normalizedPatternKind)
+      const rawPatternOpacity = Number(
+        nextValues['appearance.topbar.topbarPatternOpacity'] ?? patternOpacity,
+      )
+      const normalizedPatternOpacity = Number.isFinite(rawPatternOpacity)
+        ? Math.max(0, Math.min(0.4, rawPatternOpacity))
+        : patternOpacity
+      setPatternOpacity(normalizedPatternOpacity)
+      const rawPatternScale = Number(
+        nextValues['appearance.topbar.topbarPatternScale'] ?? patternScale,
+      )
+      const normalizedPatternScale = Number.isFinite(rawPatternScale)
+        ? Math.max(8, Math.min(64, rawPatternScale))
+        : patternScale
+      setPatternScale(normalizedPatternScale)
       setSettingsModalInitialValues({
         ...nextValues,
         'appearance.topbar.topbarBlur': normalizedBlur,
         'appearance.topbar.topbarBadges': badgesEnabled,
+        'appearance.topbar.topbarPatternEnabled': patternEnabledSetting,
+        'appearance.topbar.topbarPatternKind': normalizedPatternKind,
+        'appearance.topbar.topbarPatternOpacity': normalizedPatternOpacity,
+        'appearance.topbar.topbarPatternScale': normalizedPatternScale,
       })
       setOpenSettings(false)
     },
@@ -520,11 +562,18 @@ export default function TopBar() {
       setThemeKind,
       setTopbarBlur,
       setTopbarBadges,
+      setPatternEnabled,
+      setPatternKind,
+      setPatternOpacity,
+      setPatternScale,
       topbarBlurRadius,
       setOpenSettings,
       setSettingsModalInitialValues,
       language,
       setLanguage,
+      patternKind,
+      patternOpacity,
+      patternScale,
     ],
   )
 
@@ -643,6 +692,8 @@ export default function TopBar() {
     [patternScale],
   )
   const dotScale = useMemo(() => Math.max(6, Math.round(clampedScale / 4)), [clampedScale])
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'), { noSsr: true })
 
   const handleApplyMode = () => {
     if (selectedMode === 'enterprise') {
@@ -861,10 +912,21 @@ export default function TopBar() {
               backgroundColor: muiTheme.palette.background.paper,
             })}
           >
+            {isMobile ? (
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 2, pt: 2 }}>
+                <IconButton
+                  aria-label={t('topnav.drawer.closeMenu')}
+                  onClick={() => setDrawerOpen(false)}
+                  size="small"
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            ) : null}
             <Box
               sx={{
                 px: 3,
-                pt: 3,
+                pt: isMobile ? 1 : 3,
                 pb: 2,
                 display: 'flex',
                 flexDirection: 'column',

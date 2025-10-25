@@ -26,6 +26,8 @@ import PaletteIcon from '@mui/icons-material/Palette'
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined'
+import MenuIcon from '@mui/icons-material/Menu'
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import { useTranslate } from '@i18n/useTranslate'
 import { alpha, useTheme } from '@mui/material/styles'
 import { useThemeStore } from '@store/theme.store'
@@ -41,8 +43,10 @@ type SettingsOptionChoice = {
 
 type SettingsOption = {
   key: string
-  labelKey: string
+  labelKey?: string
+  label?: string
   descriptionKey?: string
+  description?: string
   type: OptionType
   choices?: SettingsOptionChoice[]
   min?: number
@@ -298,6 +302,54 @@ const BASE_SETTINGS_SCHEMA: SettingsCategory[] = [
             descriptionKey: 'settings.appearance.topbar.topbarBadges.description',
             type: 'switch',
           },
+          {
+            key: 'topbarPatternEnabled',
+            labelKey: 'settings.appearance.topbar.topbarPatternEnabled.label',
+            descriptionKey: 'settings.appearance.topbar.topbarPatternEnabled.description',
+            type: 'switch',
+          },
+          {
+            key: 'topbarPatternKind',
+            labelKey: 'settings.appearance.topbar.topbarPatternKind.label',
+            descriptionKey: 'settings.appearance.topbar.topbarPatternKind.description',
+            type: 'select',
+            choices: [
+              {
+                value: 'subtle-diagonal',
+                labelKey: 'settings.appearance.topbar.topbarPatternKind.choices.subtle-diagonal',
+              },
+              {
+                value: 'subtle-dots',
+                labelKey: 'settings.appearance.topbar.topbarPatternKind.choices.subtle-dots',
+              },
+              {
+                value: 'geometry',
+                labelKey: 'settings.appearance.topbar.topbarPatternKind.choices.geometry',
+              },
+              {
+                value: 'none',
+                labelKey: 'settings.appearance.topbar.topbarPatternKind.choices.none',
+              },
+            ],
+          },
+          {
+            key: 'topbarPatternOpacity',
+            labelKey: 'settings.appearance.topbar.topbarPatternOpacity.label',
+            descriptionKey: 'settings.appearance.topbar.topbarPatternOpacity.description',
+            type: 'slider',
+            min: 0,
+            max: 0.4,
+            step: 0.01,
+          },
+          {
+            key: 'topbarPatternScale',
+            labelKey: 'settings.appearance.topbar.topbarPatternScale.label',
+            descriptionKey: 'settings.appearance.topbar.topbarPatternScale.description',
+            type: 'slider',
+            min: 8,
+            max: 64,
+            step: 1,
+          },
         ],
       },
       {
@@ -346,6 +398,10 @@ export const SETTINGS_DEFAULT_VALUES: Record<string, boolean | number | string> 
   'appearance.generalLook.density': 'standard',
   'appearance.topbar.topbarBlur': 14,
   'appearance.topbar.topbarBadges': true,
+  'appearance.topbar.topbarPatternEnabled': true,
+  'appearance.topbar.topbarPatternKind': 'subtle-diagonal',
+  'appearance.topbar.topbarPatternOpacity': 0.08,
+  'appearance.topbar.topbarPatternScale': 28,
   'appearance.charts.chartPalette': 'brand',
   'appearance.charts.chartAnimation': true,
 }
@@ -378,6 +434,125 @@ function highlightMatch(text: string, query: string): ReactNode {
         <span key={`${segment}-${index}`}>{segment}</span>
       ),
     )
+}
+
+function TopbarPreview({ values }: { values: Record<string, boolean | number | string> }) {
+  const theme = useTheme()
+  const blurValue = Number(values['appearance.topbar.topbarBlur'] ?? 14)
+  const badgesEnabled = Boolean(values['appearance.topbar.topbarBadges'])
+  const patternEnabled = Boolean(values['appearance.topbar.topbarPatternEnabled'])
+  const rawKind = values['appearance.topbar.topbarPatternKind']
+  const patternKind = typeof rawKind === 'string' ? rawKind : 'subtle-diagonal'
+  const opacityValue = Number(values['appearance.topbar.topbarPatternOpacity'] ?? 0.08)
+  const clampedOpacity = Math.max(0, Math.min(0.4, opacityValue))
+  const scaleValue = Number(values['appearance.topbar.topbarPatternScale'] ?? 28)
+  const clampedScale = Math.max(8, Math.min(64, Math.round(scaleValue || 28)))
+  const dotScale = Math.max(6, Math.round(clampedScale / 4))
+
+  const backgroundTint = alpha(
+    theme.palette.primary.main,
+    theme.palette.mode === 'dark' ? 0.82 : 0.92,
+  )
+  const contrastColor =
+    theme.palette.mode === 'dark'
+      ? theme.palette.common.white
+      : theme.palette.getContrastText(theme.palette.primary.main)
+
+  let bgImage: string | undefined
+  let bgSize: string | undefined
+  if (patternEnabled && patternKind !== 'none' && clampedOpacity > 0) {
+    if (patternKind === 'subtle-diagonal') {
+      bgImage = `linear-gradient(135deg, ${alpha(
+        contrastColor,
+        clampedOpacity,
+      )} 25%, transparent 25%, transparent 50%, ${alpha(contrastColor, clampedOpacity)} 50%, ${alpha(
+        contrastColor,
+        clampedOpacity,
+      )} 75%, transparent 75%, transparent)`
+      bgSize = `${clampedScale}px ${clampedScale}px`
+    } else if (patternKind === 'subtle-dots') {
+      bgImage = `radial-gradient(${alpha(contrastColor, clampedOpacity)} 1px, transparent 1px)`
+      bgSize = `${dotScale}px ${dotScale}px`
+    } else if (patternKind === 'geometry') {
+      bgImage = `linear-gradient(45deg, ${alpha(
+        contrastColor,
+        clampedOpacity,
+      )} 25%, transparent 25%), linear-gradient(-45deg, ${alpha(
+        contrastColor,
+        clampedOpacity,
+      )} 25%, transparent 25%)`
+      bgSize = `${clampedScale}px ${clampedScale}px`
+    }
+  }
+
+  return (
+    <Box
+      sx={{
+        borderRadius: 2,
+        border: `1px solid ${alpha(theme.palette.divider, 0.4)}`,
+        overflow: 'hidden',
+        backgroundColor: alpha(
+          theme.palette.background.paper,
+          theme.palette.mode === 'dark' ? 0.3 : 0.6,
+        ),
+      }}
+    >
+      <Box
+        sx={{
+          height: 52,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          px: 2,
+          backgroundColor: backgroundTint,
+          backgroundImage: bgImage,
+          backgroundSize: bgSize,
+          color: contrastColor,
+          backdropFilter: `blur(${Math.max(0, Math.min(40, blurValue))}px)`,
+          gap: 2,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+          <MenuIcon fontSize="small" />
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: 12 }}>
+            HexSecure
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+          <SearchIcon sx={{ fontSize: 18 }} />
+          <Box
+            sx={{
+              position: 'relative',
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              backgroundColor: alpha(contrastColor, 0.15),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <NotificationsNoneIcon sx={{ fontSize: 16 }} />
+            {badgesEnabled ? (
+              <Box
+                component="span"
+                sx={{
+                  position: 'absolute',
+                  top: -2,
+                  right: -2,
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  backgroundColor: theme.palette.error.main,
+                  border: `1px solid ${contrastColor}`,
+                }}
+              />
+            ) : null}
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  )
 }
 
 type StructuredCategory = {
@@ -533,8 +708,8 @@ export default function SettingsModal({
 
         const translatedOptions: OptionPresentation[] = group.options.map((option) => ({
           option,
-          label: t(option.labelKey),
-          description: option.descriptionKey ? t(option.descriptionKey) : undefined,
+          label: option.labelKey ? t(option.labelKey) : (option.label ?? option.key),
+          description: option.descriptionKey ? t(option.descriptionKey) : option.description,
           choices: option.choices?.map((choice: SettingsOptionChoice) => {
             const choiceLabel = choice.labelKey
               ? t(choice.labelKey)
@@ -733,17 +908,22 @@ export default function SettingsModal({
             ) : null}
           </Box>
         )
-      case 'slider':
+      case 'slider': {
+        const numericValue = Number(currentValue ?? option.min ?? 0)
+        const sliderDisplay =
+          option.max !== undefined && option.max <= 1
+            ? `${Math.round(numericValue * 100)}%`
+            : numericValue
         return (
           <Box key={optionKey} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="subtitle2">{highlightMatch(label, searchTerm)}</Typography>
               <Typography variant="caption" color="text.secondary">
-                {Number(currentValue ?? option.min ?? 0)}
+                {sliderDisplay}
               </Typography>
             </Box>
             <Slider
-              value={Number(currentValue ?? option.min ?? 0)}
+              value={numericValue}
               min={option.min ?? 0}
               max={option.max ?? 10}
               step={option.step ?? 1}
@@ -761,6 +941,7 @@ export default function SettingsModal({
             ) : null}
           </Box>
         )
+      }
       default:
         return null
     }
@@ -780,7 +961,7 @@ export default function SettingsModal({
           transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
           transition: dragState.current ? 'none' : 'transform 0.2s ease-out',
           borderRadius: 3,
-          overflow: 'hidden',
+          overflow: { xs: 'auto', md: 'hidden' },
           backgroundColor: surfaceColor,
           border: subtleBorder,
           boxShadow: theme.shadows[24],
@@ -818,167 +999,210 @@ export default function SettingsModal({
         </IconButton>
       </Box>
       <Divider sx={{ borderColor: borderShade }} />
-      <DialogContent sx={{ px: 3, py: 3 }}>
-        <Stack spacing={3}>
-          <TextField
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder={t('settings.searchPlaceholder')}
-            fullWidth
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: searchIconColor }} />
-                </InputAdornment>
-              ),
-            }}
+      <DialogContent
+        sx={{
+          px: 3,
+          py: 3,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 3,
+          overflow: { xs: 'auto', md: 'hidden' },
+          maxHeight: { xs: 'none', md: 'calc(100vh - 220px)' },
+          height: { xs: 'auto', md: 'calc(100vh - 220px)' },
+        }}
+      >
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={3}
+          sx={{
+            alignItems: { xs: 'stretch', md: 'flex-start' },
+            flex: { xs: 'none', md: 1 },
+            minHeight: 0,
+            height: { xs: 'auto', md: '100%' },
+          }}
+        >
+          <Box
             sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: searchFieldBg,
-                borderRadius: 2,
-                color: theme.palette.text.primary,
-                '& fieldset': { borderColor: 'transparent' },
-                '&:hover fieldset': { borderColor: hoverBorderColor },
-                '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main },
-              },
+              width: { xs: '100%', md: 260 },
+              flexShrink: 0,
+              backgroundColor: sidebarSurface,
+              borderRadius: 2,
+              border: subtleBorder,
+              position: { xs: 'static', md: 'sticky' },
+              top: { xs: 'auto', md: 0 },
+              alignSelf: { xs: 'stretch', md: 'flex-start' },
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              p: 2,
+              maxHeight: { xs: 'none', md: '100%' },
+              overflowY: { xs: 'visible', md: 'auto' },
             }}
-          />
-
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-            <Box
-              sx={{
-                width: { xs: '100%', md: 260 },
-                flexShrink: 0,
-                backgroundColor: sidebarSurface,
-                borderRadius: 2,
-                border: subtleBorder,
+          >
+            <TextField
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder={t('settings.searchPlaceholder')}
+              variant="outlined"
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: searchIconColor }} />
+                  </InputAdornment>
+                ),
               }}
-            >
-              <List disablePadding>
-                {structuredCategories.map((category) => {
-                  const isSelected = selectedCategory === category.key
-                  const hasMatches = normalizedQuery ? category.totalMatches > 0 : true
-                  return (
-                    <ListItemButton
-                      key={category.key}
-                      selected={isSelected}
-                      disabled={!hasMatches}
-                      onClick={() => setSelectedCategory(category.key)}
-                      sx={{
-                        gap: 1.5,
-                        alignItems: 'center',
-                        px: 2.5,
-                        py: 1.5,
-                        borderRadius: 2,
-                        transition: theme.transitions.create('background-color', {
-                          duration: theme.transitions.duration.shorter,
-                        }),
-                        '&.Mui-selected': {
-                          backgroundColor: alpha(
-                            theme.palette.primary.main,
-                            isDarkMode ? 0.28 : 0.16,
-                          ),
-                        },
-                        '&.Mui-selected .MuiTypography-root': {
-                          color: theme.palette.primary.main,
-                        },
-                        '&.Mui-selected svg': {
-                          color: theme.palette.primary.main,
-                        },
-                        '&:not(.Mui-selected):hover': {
-                          backgroundColor: alpha(
-                            theme.palette.primary.main,
-                            isDarkMode ? 0.18 : 0.1,
-                          ),
-                        },
-                        '& .MuiTypography-root': {
-                          color: theme.palette.text.primary,
-                        },
-                        '& svg': {
-                          color: theme.palette.text.secondary,
-                        },
-                        '&.Mui-disabled': {
-                          opacity: 0.4,
-                        },
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {category.icon}
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {highlightMatch(category.label, searchTerm)}
-                        </Typography>
-                      </Box>
-                      {normalizedQuery ? (
-                        <Chip
-                          label={category.totalMatches}
-                          size="small"
-                          color={category.totalMatches > 0 ? 'primary' : 'default'}
-                          sx={{ ml: 'auto' }}
-                        />
-                      ) : null}
-                    </ListItemButton>
-                  )
-                })}
-              </List>
-            </Box>
-
-            <Box
               sx={{
-                flexGrow: 1,
-                backgroundColor: contentSurface,
-                borderRadius: 2,
-                border: subtleBorder,
-                px: { xs: 2, md: 3 },
-                py: { xs: 2, md: 3 },
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 3,
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: searchFieldBg,
+                  borderRadius: 2,
+                  color: theme.palette.text.primary,
+                  '& fieldset': { borderColor: 'transparent' },
+                  '&:hover fieldset': { borderColor: hoverBorderColor },
+                  '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main },
+                },
               }}
-            >
-              {activeCategory && activeCategory.groups.length > 0 ? (
-                activeCategory.groups.map((group) => (
-                  <Box key={group.key} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                        {highlightMatch(group.label, searchTerm)}
+            />
+
+            <List disablePadding>
+              {structuredCategories.map((category) => {
+                const isSelected = selectedCategory === category.key
+                const hasMatches = normalizedQuery ? category.totalMatches > 0 : true
+                return (
+                  <ListItemButton
+                    key={category.key}
+                    selected={isSelected}
+                    disabled={!hasMatches}
+                    onClick={() => setSelectedCategory(category.key)}
+                    sx={{
+                      gap: 1.5,
+                      alignItems: 'center',
+                      px: 2.5,
+                      py: 1.5,
+                      borderRadius: 2,
+                      transition: theme.transitions.create('background-color', {
+                        duration: theme.transitions.duration.shorter,
+                      }),
+                      '&.Mui-selected': {
+                        backgroundColor: alpha(
+                          theme.palette.primary.main,
+                          isDarkMode ? 0.28 : 0.16,
+                        ),
+                      },
+                      '&.Mui-selected .MuiTypography-root': {
+                        color: theme.palette.primary.main,
+                      },
+                      '&.Mui-selected svg': {
+                        color: theme.palette.primary.main,
+                      },
+                      '&:not(.Mui-selected):hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, isDarkMode ? 0.18 : 0.1),
+                      },
+                      '& .MuiTypography-root': {
+                        color: theme.palette.text.primary,
+                      },
+                      '& svg': {
+                        color: theme.palette.text.secondary,
+                      },
+                      '&.Mui-disabled': {
+                        opacity: 0.4,
+                      },
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {category.icon}
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {highlightMatch(category.label, searchTerm)}
                       </Typography>
-                      {group.description ? (
-                        <Typography variant="body2" color="text.secondary">
-                          {highlightMatch(group.description, searchTerm)}
-                        </Typography>
-                      ) : null}
                     </Box>
-                    <Stack spacing={2}>
-                      {group.options.map((optionPresentation) =>
-                        renderOptionControl(activeCategory.key, group.key, optionPresentation),
-                      )}
-                    </Stack>
+                    {normalizedQuery ? (
+                      <Chip
+                        label={category.totalMatches}
+                        size="small"
+                        color={category.totalMatches > 0 ? 'primary' : 'default'}
+                        sx={{ ml: 'auto' }}
+                      />
+                    ) : null}
+                  </ListItemButton>
+                )
+              })}
+            </List>
+          </Box>
+
+          <Box
+            sx={{
+              flexGrow: 1,
+              backgroundColor: contentSurface,
+              borderRadius: 2,
+              border: subtleBorder,
+              px: { xs: 2, md: 3 },
+              py: { xs: 2, md: 3 },
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 3,
+              minHeight: 0,
+              height: { xs: 'auto', md: '100%' },
+              overflowY: { xs: 'visible', md: 'auto' },
+            }}
+          >
+            {activeCategory && activeCategory.groups.length > 0 ? (
+              activeCategory.groups.map((group) => (
+                <Box key={group.key} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      {highlightMatch(group.label, searchTerm)}
+                    </Typography>
+                    {group.description ? (
+                      <Typography variant="body2" color="text.secondary">
+                        {highlightMatch(group.description, searchTerm)}
+                      </Typography>
+                    ) : null}
                   </Box>
-                ))
-              ) : (
-                <Box
-                  sx={{
-                    flexGrow: 1,
-                    minHeight: 220,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textAlign: 'center',
-                    gap: 1,
-                  }}
-                >
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    {t('settings.emptyState.title')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {t('settings.emptyState.description')}
-                  </Typography>
+                  {activeCategory.key === 'appearance' && group.key === 'topbar' ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 600,
+                          letterSpacing: 0.6,
+                          textTransform: 'uppercase',
+                          color: 'text.secondary',
+                        }}
+                      >
+                        {t('settings.appearance.topbar.previewLabel')}
+                      </Typography>
+                      <TopbarPreview values={values} />
+                    </Box>
+                  ) : null}
+                  <Stack spacing={2}>
+                    {group.options.map((optionPresentation) =>
+                      renderOptionControl(activeCategory.key, group.key, optionPresentation),
+                    )}
+                  </Stack>
                 </Box>
-              )}
-            </Box>
-          </Stack>
+              ))
+            ) : (
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  minHeight: 220,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  gap: 1,
+                }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  {t('settings.emptyState.title')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('settings.emptyState.description')}
+                </Typography>
+              </Box>
+            )}
+          </Box>
         </Stack>
       </DialogContent>
       <Divider sx={{ borderColor: borderShade }} />

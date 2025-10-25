@@ -45,6 +45,7 @@
     },
     "drawer": {
       "openMenu": "Abrir menú de navegación",
+      "closeMenu": "Cerrar menú",
       "navigation": "Navegación",
       "workspaceSettings": "Configuración del espacio",
       "billing": "Facturación",
@@ -206,7 +207,7 @@
   },
   "settings": {
     "title": "Configuración",
-    "searchPlaceholder": "Buscar en la configuración...",
+    "searchPlaceholder": "Buscar configuración...",
     "noResults": "No hay configuraciones que coincidan con tu búsqueda.",
     "emptyState": {
       "title": "Sin coincidencias",
@@ -441,7 +442,30 @@
         "topbarBadges": {
           "label": "Mostrar distintivos en la barra",
           "description": "Muestra insignias de notificación junto a la navegación."
-        }
+        },
+        "topbarPatternEnabled": {
+          "label": "Mostrar patrón superpuesto",
+          "description": "Activa el patrón decorativo en el fondo de la barra superior."
+        },
+        "topbarPatternKind": {
+          "label": "Estilo de patrón",
+          "description": "Elige qué motivo aparece detrás de la navegación.",
+          "choices": {
+            "subtle-diagonal": "Diagonal sutil",
+            "subtle-dots": "Puntos suaves",
+            "geometry": "Isométrico",
+            "none": "Ninguno"
+          }
+        },
+        "topbarPatternOpacity": {
+          "label": "Opacidad del patrón",
+          "description": "Controla qué tan visible es el patrón superpuesto."
+        },
+        "topbarPatternScale": {
+          "label": "Escala del patrón",
+          "description": "Define el tamaño de los elementos del patrón."
+        },
+        "previewLabel": "Vista previa"
       },
       "charts": {
         "title": "Gráficas",

@@ -45,6 +45,7 @@
     },
     "drawer": {
       "openMenu": "Open navigation menu",
+      "closeMenu": "Close menu",
       "navigation": "Navigation",
       "workspaceSettings": "Workspace settings",
       "billing": "Billing",
@@ -441,7 +442,30 @@
         "topbarBadges": {
           "label": "Show top bar badges",
           "description": "Display notification badges alongside navigation."
-        }
+        },
+        "topbarPatternEnabled": {
+          "label": "Show pattern overlay",
+          "description": "Enable the decorative pattern on the top bar background."
+        },
+        "topbarPatternKind": {
+          "label": "Pattern style",
+          "description": "Choose which pattern motif appears behind the navigation.",
+          "choices": {
+            "subtle-diagonal": "Subtle diagonal",
+            "subtle-dots": "Soft dots",
+            "geometry": "Isometric",
+            "none": "None"
+          }
+        },
+        "topbarPatternOpacity": {
+          "label": "Pattern opacity",
+          "description": "Control how visible the pattern overlay should be."
+        },
+        "topbarPatternScale": {
+          "label": "Pattern scale",
+          "description": "Set the size of the pattern elements."
+        },
+        "previewLabel": "Preview"
       },
       "charts": {
         "title": "Charts",

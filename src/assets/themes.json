@@ -2,7 +2,7 @@
   "themes": [
     {
       "id": "securityBlue",
-      "label": "Security Blue (Light)",
+      "label": "Security Blue",
       "palette": {
         "mode": "light",
         "primary": { "main": "#1976D2", "light": "#63A4FF", "dark": "#004BA0" },
@@ -17,7 +17,7 @@
     },
     {
       "id": "darkSentinel",
-      "label": "Dark Sentinel (Dark)",
+      "label": "Dark Sentinel",
       "palette": {
         "mode": "dark",
         "primary": { "main": "#63A4FF" },
@@ -32,7 +32,7 @@
     },
     {
       "id": "guardianTeal",
-      "label": "Guardian Teal (Light)",
+      "label": "Guardian Teal",
       "palette": {
         "mode": "light",
         "primary": { "main": "#00695C", "light": "#26A69A", "dark": "#004D40" },
@@ -47,7 +47,7 @@
     },
     {
       "id": "cobaltAmber",
-      "label": "Cobalt Amber (Light)",
+      "label": "Cobalt Amber",
       "palette": {
         "mode": "light",
         "primary": { "main": "#1E3A8A", "light": "#3B82F6", "dark": "#172554" },
@@ -62,7 +62,7 @@
     },
     {
       "id": "midnightCobalt",
-      "label": "Midnight Cobalt (Dark)",
+      "label": "Midnight Cobalt",
       "palette": {
         "mode": "dark",
         "primary": { "main": "#4C8BF5", "light": "#6EA2FF", "dark": "#1E4ECF" },
@@ -77,7 +77,7 @@
     },
     {
       "id": "emberGuard",
-      "label": "Ember Guard (Dark)",
+      "label": "Ember Guard",
       "palette": {
         "mode": "dark",
         "primary": { "main": "#FF8A65", "light": "#FFAB91", "dark": "#E65100" },
