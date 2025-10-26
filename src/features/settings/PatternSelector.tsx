@@ -14,7 +14,7 @@ import {
   InputAdornment,
   Paper,
   Tooltip,
-  Grid,
+  Grid2 as Grid,
   IconButton,
   Stack,
   ToggleButton,
@@ -412,7 +412,7 @@ export default function PatternSelector({
           Topbar appearance
         </Typography>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <Stack direction="row" spacing={1} alignItems="center">
               <Tooltip title="Toggle decorative pattern on the top bar">
                 <FormControlLabel
@@ -458,7 +458,7 @@ export default function PatternSelector({
             </Stack>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel id="pattern-select-label">Pattern</InputLabel>
               <Select
@@ -495,7 +495,7 @@ export default function PatternSelector({
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography variant="caption" color="text.secondary">
                 Opacity
@@ -521,7 +521,7 @@ export default function PatternSelector({
             </Box>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <Box>
               <Typography variant="caption" color="text.secondary">
                 Background
@@ -548,7 +548,7 @@ export default function PatternSelector({
             </Box>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Box>
               <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
                 Live preview

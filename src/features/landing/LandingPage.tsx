@@ -1,5 +1,14 @@
 import { Link as RouterLink } from 'react-router-dom'
-import { Container, Box, Typography, Button, Grid, Card, CardContent, Stack } from '@mui/material'
+import {
+  Container,
+  Box,
+  Typography,
+  Button,
+  Grid2 as Grid,
+  Card,
+  CardContent,
+  Stack,
+} from '@mui/material'
 
 export default function LandingPage() {
   return (
@@ -24,7 +33,7 @@ export default function LandingPage() {
       </Box>
 
       <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card variant="outlined">
             <CardContent>
               <Typography variant="h6">Visitor Kiosk</Typography>
@@ -36,7 +45,7 @@ export default function LandingPage() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card variant="outlined">
             <CardContent>
               <Typography variant="h6">Role-based Access</Typography>
@@ -48,7 +57,7 @@ export default function LandingPage() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card variant="outlined">
             <CardContent>
               <Typography variant="h6">Live Dashboard</Typography>

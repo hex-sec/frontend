@@ -1,5 +1,14 @@
 import React, { useMemo } from 'react'
-import { Box, Stack, Typography, TextField, MenuItem, Paper, Divider, Grid } from '@mui/material'
+import {
+  Box,
+  Stack,
+  Typography,
+  TextField,
+  MenuItem,
+  Paper,
+  Divider,
+  Grid2 as Grid,
+} from '@mui/material'
 import { useThemeStore } from '@store/theme.store'
 
 function Swatch({ color, label }: { color: string; label: string }): JSX.Element {
@@ -86,27 +95,27 @@ export default function ThemeAdminPanel(): JSX.Element {
           </Typography>
           <Divider sx={{ mb: 2 }} />
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <Swatch color={activePreset.palette.primary.main} label="Primary" />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <Swatch color={activePreset.palette.secondary.main} label="Secondary" />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <Swatch color={activePreset.palette.background.default} label="Background" />
             </Grid>
             {activePreset.palette.success ? (
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Swatch color={activePreset.palette.success.main} label="Success" />
               </Grid>
             ) : null}
             {activePreset.palette.warning ? (
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Swatch color={activePreset.palette.warning.main} label="Warning" />
               </Grid>
             ) : null}
             {activePreset.palette.error ? (
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Swatch color={activePreset.palette.error.main} label="Error" />
               </Grid>
             ) : null}

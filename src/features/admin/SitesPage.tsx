@@ -8,7 +8,7 @@ import {
   type ChipProps,
   useTheme,
   useMediaQuery,
-  Grid,
+  Grid2 as Grid,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import RefreshIcon from '@mui/icons-material/Refresh'
@@ -118,7 +118,7 @@ export default function SitesPage() {
         {sites.map((site) => {
           const isCurrent = current?.id === site.id
           return (
-            <Grid item key={site.id} xs={12} sm={6} md={4} lg={3}>
+            <Grid key={site.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
               <SiteCard
                 name={site.name}
                 href={`/admin/sites/${site.slug}`}

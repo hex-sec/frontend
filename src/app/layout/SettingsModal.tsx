@@ -615,6 +615,7 @@ type OptionPresentationChoice = {
   value: string
   label: string
   group?: string
+  disabled?: boolean
 }
 
 type OptionPresentation = {

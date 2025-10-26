@@ -1,17 +1,23 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { Box, Button, Stack, Typography } from '@mui/material'
 import { useEffect } from 'react'
 import { useThemeStore } from '@store/theme.store'
 import { useAuthStore } from '@app/auth/auth.store'
+import { scrollWindowToTop } from './scrollToTop'
 
 export default function GuardKioskLayout() {
   const { setKind } = useThemeStore()
   const { logout, user } = useAuthStore()
   const nav = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     setKind('high-contrast')
   }, [setKind])
+
+  useEffect(() => {
+    scrollWindowToTop()
+  }, [location.pathname, location.search])
 
   return (
     <Box sx={{ p: 2 }}>

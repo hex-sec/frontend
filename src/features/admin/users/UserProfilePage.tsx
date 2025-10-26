@@ -6,7 +6,6 @@ import {
   Button,
   Chip,
   Divider,
-  Grid,
   IconButton,
   LinearProgress,
   Paper,
@@ -14,6 +13,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import Grid from '@mui/material/Grid2'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import EmailIcon from '@mui/icons-material/Email'
 import PhoneIcon from '@mui/icons-material/Phone'
@@ -62,13 +62,13 @@ const TIMELINE_CONFIG: Record<UserRoleTimelineGroup, TimelineEntryConfig[]> = {
       key: 'clockedIn',
       time: '06:00',
       title: 'Clocked in',
-      subtitle: 'Gatehouse kiosk • Shift start',
+      subtitle: 'Gatehouse kiosk - Shift start',
     },
     {
       key: 'visitorApproved',
       time: '07:15',
       title: 'Visitor approved',
-      subtitle: 'Bautista Family • QR scanned',
+      subtitle: 'Bautista Family - QR scanned',
     },
     {
       key: 'incidentLogged',
@@ -207,7 +207,6 @@ export default function UserProfilePage() {
 
   const activeSites = user.sites
   const statusColor = STATUS_COLOR[user.status]
-
   const statusTagKey =
     user.status === 'active' ? 'active' : user.status === 'pending' ? 'pending' : 'suspended'
   const statusTag = translate(
@@ -329,230 +328,278 @@ export default function UserProfilePage() {
   ).slice(0, 3)
 
   return (
-    <Stack spacing={3}>
-      <Paper sx={{ p: { xs: 3, md: 4 }, borderRadius: 3 }}>
-        <Stack
-          direction={{ xs: 'column', md: 'row' }}
-          spacing={3}
-          alignItems={{ xs: 'flex-start', md: 'center' }}
-        >
-          <Avatar sx={{ width: 72, height: 72, fontSize: 28 }}>
-            {user.name
-              .split(' ')
-              .map((part) => part[0])
-              .join('')
-              .slice(0, 2)
-              .toUpperCase()}
-          </Avatar>
-          <Box sx={{ flex: 1 }}>
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={1}
-              alignItems={{ xs: 'flex-start', sm: 'center' }}
-            >
-              <Typography variant="h4" fontWeight={600}>
-                {user.name}
-              </Typography>
-              <Chip size="small" color="primary" label={roleLabel} />
-              <Chip
-                size="small"
-                color={statusColor}
-                label={statusTag}
-                variant={user.status === 'active' ? 'filled' : 'outlined'}
-              />
-            </Stack>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {positionText}
-            </Typography>
-          </Box>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            <Tooltip title={impersonateLabel}>
-              <span>
-                <Button
-                  variant="outlined"
-                  startIcon={<ShieldIcon />}
-                  disabled={user.status !== 'active'}
-                >
-                  {launchKioskLabel}
-                </Button>
-              </span>
-            </Tooltip>
-            <Button
-              variant="contained"
-              startIcon={<ManageAccountsIcon />}
-              component={RouterLink}
-              to={returnPath}
-            >
-              {manageAccessLabel}
-            </Button>
-          </Stack>
-        </Stack>
-      </Paper>
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={7}>
-          <Stack spacing={3}>
-            <Paper sx={{ p: 3, borderRadius: 3 }}>
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
-                {profileSummaryTitle}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {profileNotes}
-              </Typography>
-              <Divider sx={{ my: 2 }} />
-              <Stack spacing={1.5}>
-                {detailItems.map((item) => (
-                  <Stack key={item.key} direction="row" spacing={1.5} alignItems="center">
-                    <Avatar
-                      sx={{ width: 32, height: 32, bgcolor: 'action.hover', color: 'text.primary' }}
-                    >
-                      {item.icon}
-                    </Avatar>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        {item.label}
-                      </Typography>
-                      <Typography variant="body2">{item.value}</Typography>
-                    </Box>
-                  </Stack>
-                ))}
-              </Stack>
-            </Paper>
-
-            <Paper sx={{ p: 3, borderRadius: 3 }}>
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                {activityTitle}
-              </Typography>
-              <Stack spacing={1.5}>
-                {timelineEntries.map((entry) => (
-                  <Stack
-                    key={entry.time + entry.title}
-                    direction="row"
-                    spacing={2}
-                    alignItems="flex-start"
-                  >
-                    <Typography variant="caption" color="text.secondary" sx={{ minWidth: 64 }}>
-                      {entry.time}
-                    </Typography>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="body2" fontWeight={600}>
-                        {entry.title}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {entry.subtitle}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                ))}
-              </Stack>
-            </Paper>
-          </Stack>
-        </Grid>
-        <Grid item xs={12} md={5}>
-          <Stack spacing={3}>
-            <Paper sx={{ p: 3, borderRadius: 3 }}>
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
-                {assignmentsTitle}
-              </Typography>
-              <Stack spacing={1}>
-                {activeSites.map((site) => {
-                  const sitePath = siteRoot(site.slug)
-                  const isFocused = siteScoped && current?.slug === site.slug
-                  return (
-                    <Button
-                      key={site.slug}
-                      component={RouterLink}
-                      to={sitePath}
-                      variant={isFocused ? 'contained' : 'outlined'}
-                      color={isFocused ? 'secondary' : 'inherit'}
-                      endIcon={<LaunchIcon fontSize="small" />}
-                      sx={{ justifyContent: 'space-between' }}
-                    >
-                      {site.name}
-                    </Button>
-                  )
-                })}
-              </Stack>
-              {activeSites.length === 0 ? (
-                <Typography variant="caption" color="text.secondary">
-                  {assignmentsEmpty}
+    <Box sx={{ width: '100%', py: { xs: 2, md: 3 } }}>
+      <Stack
+        spacing={3}
+        sx={{
+          width: '100%',
+          maxWidth: { xs: '100%', xl: 1200 },
+          mx: 'auto',
+          px: { xs: 1.5, sm: 2, xl: 0 },
+        }}
+      >
+        <Paper sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, width: '100%' }}>
+          <Grid
+            container
+            spacing={3}
+            alignItems={{ xs: 'flex-start', md: 'center' }}
+            justifyContent="space-between"
+          >
+            <Grid size={{ xs: 12, md: 'auto' }}>
+              <Avatar sx={{ width: 72, height: 72, fontSize: 28 }}>
+                {user.name
+                  .split(' ')
+                  .map((part) => part[0])
+                  .join('')
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </Avatar>
+            </Grid>
+            <Grid size={{ xs: 12, md: 'grow' }}>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={1}
+                alignItems={{ xs: 'flex-start', sm: 'center' }}
+                sx={{ flexWrap: 'wrap', rowGap: 0.5 }}
+              >
+                <Typography variant="h4" fontWeight={600}>
+                  {user.name}
                 </Typography>
-              ) : null}
-            </Paper>
-
-            <Paper sx={{ p: 3, borderRadius: 3 }}>
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                {relatedTitle}
-              </Typography>
-              <Stack spacing={1.25}>
-                {relatedUsers.length === 0 ? (
-                  <Typography variant="caption" color="text.secondary">
-                    {relatedEmpty}
-                  </Typography>
-                ) : (
-                  relatedUsers.map((member) => (
-                    <Stack key={member.id} direction="row" spacing={1.5} alignItems="center">
-                      <Avatar sx={{ width: 32, height: 32 }}>
-                        {member.name
-                          .split(' ')
-                          .map((part) => part[0])
-                          .join('')
-                          .slice(0, 2)
-                          .toUpperCase()}
-                      </Avatar>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="body2" fontWeight={600}>
-                          {member.name}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {member.sites.map((site) => site.name).join(', ')}
-                        </Typography>
-                      </Box>
-                      <IconButton
-                        size="small"
-                        component={RouterLink}
-                        to={buildPeerLink(member, {
-                          resolvedFilter,
-                          siteScoped,
-                          currentSlug: current?.slug,
-                        })}
-                      >
-                        <LaunchIcon fontSize="small" />
-                      </IconButton>
-                    </Stack>
-                  ))
-                )}
+                <Chip size="small" color="primary" label={roleLabel} />
+                <Chip
+                  size="small"
+                  color={statusColor}
+                  label={statusTag}
+                  variant={user.status === 'active' ? 'filled' : 'outlined'}
+                />
               </Stack>
-            </Paper>
-
-            <Paper
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                {positionText}
+              </Typography>
+            </Grid>
+            <Grid
+              size={{ xs: 12, md: 'auto' }}
               sx={{
-                p: 3,
-                borderRadius: 3,
-                background: (theme) =>
-                  alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.06),
-                border: (theme) => `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                display: 'flex',
+                justifyContent: { xs: 'stretch', md: 'flex-end' },
+                width: '100%',
               }}
             >
-              <Stack direction="row" spacing={2} alignItems="center">
-                <GroupsIcon color="primary" />
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    {quickTipsTitle}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {quickTipsBody}
-                  </Typography>
-                </Box>
-                <Button variant="contained" component={RouterLink} to={returnPath}>
-                  {reviewRosterLabel}
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={1}
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+                justifyContent={{ xs: 'stretch', md: 'flex-end' }}
+                sx={{ width: '100%', maxWidth: { xs: '100%', md: 360 }, rowGap: 1 }}
+              >
+                <Tooltip title={impersonateLabel}>
+                  <Box
+                    component="span"
+                    sx={{
+                      display: 'inline-flex',
+                      width: { xs: '100%', sm: 'auto' },
+                    }}
+                  >
+                    <Button
+                      variant="outlined"
+                      startIcon={<ShieldIcon />}
+                      disabled={user.status !== 'active'}
+                      sx={{ width: { xs: '100%', sm: 'auto' } }}
+                    >
+                      {launchKioskLabel}
+                    </Button>
+                  </Box>
+                </Tooltip>
+                <Button
+                  variant="contained"
+                  startIcon={<ManageAccountsIcon />}
+                  component={RouterLink}
+                  to={returnPath}
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
+                >
+                  {manageAccessLabel}
                 </Button>
               </Stack>
-            </Paper>
-          </Stack>
+            </Grid>
+          </Grid>
+        </Paper>
+
+        <Grid container spacing={3} alignItems="stretch">
+          <Grid size={{ xs: 12, lg: 7 }} sx={{ display: 'flex' }}>
+            <Stack spacing={3} sx={{ width: '100%' }}>
+              <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
+                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
+                  {profileSummaryTitle}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {profileNotes}
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                <Stack spacing={1.5}>
+                  {detailItems.map((item) => (
+                    <Stack key={item.key} direction="row" spacing={1.5} alignItems="center">
+                      <Avatar
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          bgcolor: 'action.hover',
+                          color: 'text.primary',
+                        }}
+                      >
+                        {item.icon}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          {item.label}
+                        </Typography>
+                        <Typography variant="body2">{item.value}</Typography>
+                      </Box>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Paper>
+
+              <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
+                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                  {activityTitle}
+                </Typography>
+                <Stack spacing={1.5}>
+                  {timelineEntries.map((entry) => (
+                    <Stack
+                      key={entry.time + entry.title}
+                      direction="row"
+                      spacing={2}
+                      alignItems="flex-start"
+                    >
+                      <Typography variant="caption" color="text.secondary" sx={{ minWidth: 64 }}>
+                        {entry.time}
+                      </Typography>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2" fontWeight={600}>
+                          {entry.title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {entry.subtitle}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Paper>
+            </Stack>
+          </Grid>
+          <Grid size={{ xs: 12, lg: 5 }} sx={{ display: 'flex' }}>
+            <Stack spacing={3} sx={{ width: '100%' }}>
+              <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
+                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
+                  {assignmentsTitle}
+                </Typography>
+                <Stack spacing={1}>
+                  {activeSites.map((site) => {
+                    const sitePath = siteRoot(site.slug)
+                    const isFocused = siteScoped && current?.slug === site.slug
+                    return (
+                      <Button
+                        key={site.slug}
+                        component={RouterLink}
+                        to={sitePath}
+                        variant={isFocused ? 'contained' : 'outlined'}
+                        color={isFocused ? 'secondary' : 'inherit'}
+                        endIcon={<LaunchIcon fontSize="small" />}
+                        sx={{ justifyContent: 'space-between', width: '100%' }}
+                      >
+                        {site.name}
+                      </Button>
+                    )
+                  })}
+                </Stack>
+                {activeSites.length === 0 ? (
+                  <Typography variant="caption" color="text.secondary">
+                    {assignmentsEmpty}
+                  </Typography>
+                ) : null}
+              </Paper>
+
+              <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
+                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                  {relatedTitle}
+                </Typography>
+                <Stack spacing={1.25}>
+                  {relatedUsers.length === 0 ? (
+                    <Typography variant="caption" color="text.secondary">
+                      {relatedEmpty}
+                    </Typography>
+                  ) : (
+                    relatedUsers.map((member) => (
+                      <Stack key={member.id} direction="row" spacing={1.5} alignItems="center">
+                        <Avatar sx={{ width: 32, height: 32 }}>
+                          {member.name
+                            .split(' ')
+                            .map((part) => part[0])
+                            .join('')
+                            .slice(0, 2)
+                            .toUpperCase()}
+                        </Avatar>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="body2" fontWeight={600}>
+                            {member.name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {member.sites.map((site) => site.name).join(', ')}
+                          </Typography>
+                        </Box>
+                        <IconButton
+                          size="small"
+                          component={RouterLink}
+                          to={buildPeerLink(member, {
+                            resolvedFilter,
+                            siteScoped,
+                            currentSlug: current?.slug,
+                          })}
+                        >
+                          <LaunchIcon fontSize="small" />
+                        </IconButton>
+                      </Stack>
+                    ))
+                  )}
+                </Stack>
+              </Paper>
+
+              <Paper
+                sx={{
+                  p: 3,
+                  borderRadius: 3,
+                  background: (theme) =>
+                    alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.06),
+                  border: (theme) => `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  width: '100%',
+                }}
+              >
+                <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+                  <GroupsIcon color="primary" />
+                  <Box sx={{ flex: 1, minWidth: 220 }}>
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      {quickTipsTitle}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {quickTipsBody}
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="contained"
+                    component={RouterLink}
+                    to={returnPath}
+                    sx={{ whiteSpace: 'nowrap' }}
+                  >
+                    {reviewRosterLabel}
+                  </Button>
+                </Stack>
+              </Paper>
+            </Stack>
+          </Grid>
         </Grid>
-      </Grid>
-    </Stack>
+      </Stack>
+    </Box>
   )
 }
 

@@ -37,6 +37,14 @@ src/
 - `SiteSelector` si el usuario pertenece a múltiples Sites (multi-tenant).
 - `QRBadge`, `QRScanner`, `ConfirmDialog`, `DataTable` como componentes reutilizables.
 
+## Módulos clave (estado 2025-10)
+
+- `src/services/settings.service.ts` centraliza la persistencia de ajustes. Normaliza estructuras planas/nested y guarda sólo el árbol agrupado (`account`, `notifications`, `appearance`, etc.) en `localStorage` y en `src/mocks/user-settings.json`.
+- `src/app/hooks/useUserSettings.ts` expone `load / save / clear` y aplica el cambio de tema inmediatamente a través de `useThemeStore`.
+- `src/app/layout/TopBar.tsx` y `src/app/layout/SettingsModal.tsx` consumen los helpers `flattenModalSettings`/`expandModalSettings` para mantener alineados landing preference, densidad y selección de tema.
+- `src/features/admin/site-details/SiteDetailsPage.tsx` fija el header con chips de plan/estado al nivel del nombre del Site en todos los breakpoints y sirve como guía para layout responsive.
+- Los stores de Zustand en `src/store/*.ts` administran auth, selección de Site, idioma, UI y theme; mantenerlos como single source of truth.
+
 ## Documentación
 
 Cada PR debe **actualizar documentación** relevante: README, docs de API, scripts, instrucciones, ejemplos.

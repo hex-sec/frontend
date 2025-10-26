@@ -23,6 +23,7 @@ import { useTheme } from '@mui/material/styles'
 import TopBar from './TopBar'
 import { useTranslate } from '../../i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
+import { scrollWindowToTop } from './scrollToTop'
 
 const CRUMB_META: Record<string, { labelKey: string; Icon?: typeof DashboardIcon }> = {
   admin: { labelKey: 'layout.breadcrumbs.adminDashboard', Icon: DashboardIcon },
@@ -81,6 +82,10 @@ export default function AppLayout() {
   useEffect(() => {
     console.log('[AppLayout] backTargetLabel changed', backTargetLabel)
   }, [backTargetLabel])
+
+  useEffect(() => {
+    scrollWindowToTop()
+  }, [loc.pathname, loc.search])
 
   function getCrumbMeta(segment: string) {
     const s = segment.toLowerCase()

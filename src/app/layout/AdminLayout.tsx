@@ -22,6 +22,7 @@ import { useTranslate } from '../../i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
 import { useBackStore } from '@store/back.store'
 import { formatBackLabel } from './backNavigation'
+import { scrollWindowToTop } from './scrollToTop'
 
 const CRUMB_META_MAP: Record<string, { labelKey: string; Icon?: ElementType }> = {
   admin: { labelKey: 'layout.breadcrumbs.adminDashboard', Icon: DashboardIcon },
@@ -157,16 +158,12 @@ export default function AdminLayout() {
     if (previousSiteSlugRef.current === slug) return
     previousSiteSlugRef.current = slug
 
-    if (typeof window === 'undefined') return
-
-    window.requestAnimationFrame(() => {
-      try {
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      } catch {
-        window.scrollTo(0, 0)
-      }
-    })
+    scrollWindowToTop()
   }, [current?.slug])
+
+  useEffect(() => {
+    scrollWindowToTop()
+  }, [loc.pathname, loc.search])
 
   function formatSegment(value: string) {
     return value.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())
