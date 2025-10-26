@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -11,9 +12,10 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useAuthStore, LoginPayload } from '@app/auth/auth.store'
+import { useAuthStore, type LoginPayload } from '@app/auth/auth.store'
 import { useNavigate, Link } from 'react-router-dom'
-import buildEntityUrl from '@app/utils/contextPaths'
+import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
+import { useUserSettings } from '@app/hooks/useUserSettings'
 
 const schema = z.object({
   email: z.string().email(),
@@ -28,15 +30,48 @@ export default function LoginPage() {
     defaultValues: { role: 'resident' },
   })
   const { login } = useAuthStore()
+  const user = useAuthStore((state) => state.user)
   const nav = useNavigate()
+  const { load: loadUserSettings } = useUserSettings()
 
   const onSubmit = (data: Form) => {
-    const payload: LoginPayload = { email: data.email, role: data.role }
+    const normalizedEmail = data.email.trim().toLowerCase()
+    const payload: LoginPayload = {
+      email: normalizedEmail,
+      role: data.role,
+      id: `user:${normalizedEmail}`,
+    }
     login(payload)
-    if (data.role === 'admin') nav(buildEntityUrl('sites'))
-    else if (data.role === 'guard') nav('/guard')
-    else nav('/app')
   }
+
+  useEffect(() => {
+    if (!user) return
+
+    if (user.role === 'guard') {
+      nav('/guard', { replace: true })
+      return
+    }
+
+    if (user.role === 'resident') {
+      nav('/app', { replace: true })
+      return
+    }
+
+    const storedSettings = loadUserSettings()
+    const preference = storedSettings?.landingPreference
+    const rawTarget = preference?.target
+
+    let target = buildEntityUrl('')
+
+    if (rawTarget === 'sitesOverview') {
+      target = buildEntityUrl('sites')
+    } else if (rawTarget === 'site') {
+      const slug = preference?.siteSlug?.trim()
+      target = slug && slug.length > 0 ? siteRoot(slug) : buildEntityUrl('sites')
+    }
+
+    nav(target, { replace: true })
+  }, [user, loadUserSettings, nav])
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', p: 2 }}>

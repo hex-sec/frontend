@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type ReactNode, type ElementType } from 'react'
+import { useEffect, useMemo, useState, type ReactNode, type ElementType } from 'react'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -11,8 +11,11 @@ import {
   Divider,
   SpeedDial,
   SpeedDialAction,
+  SpeedDialIcon,
   LinearProgress,
   useMediaQuery,
+  Tooltip,
+  IconButton,
 } from '@mui/material'
 import Grid from '@mui/material/Grid2'
 import type { ChipProps } from '@mui/material'
@@ -35,6 +38,8 @@ import BusinessIcon from '@mui/icons-material/Business'
 import LaunchIcon from '@mui/icons-material/Launch'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
+import CloseIcon from '@mui/icons-material/Close'
 import { alpha, type Theme, useTheme } from '@mui/material/styles'
 import { useBreadcrumbBackAction } from '@app/layout/useBreadcrumbBackAction'
 import buildEntityUrl from '@app/utils/contextPaths'
@@ -267,6 +272,7 @@ export default function SiteDetailsPage() {
   const theme = useTheme()
   const isDesktop = useMediaQuery(theme.breakpoints.up(1024))
   const isTablet = useMediaQuery(theme.breakpoints.between(600, 1024))
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'), { noSsr: true })
 
   const leftColumnSpan = isDesktop ? 3 : isTablet ? 6 : 12
   const mainColumnSpan = isDesktop ? 6 : isTablet ? 6 : 12
@@ -428,6 +434,23 @@ export default function SiteDetailsPage() {
     )
   }, [isSiteMode, panelShortcutsWithCopy, siteSlug])
 
+  const quickNavigationSection = (
+    <Paper sx={{ p: 2 }}>
+      <SectionHeader title={translate('siteDetails.sections.quickNavigation.title')} />
+      <Stack spacing={1}>
+        {quickLinksWithCopy.map(({ key, label, description, Icon }, idx) => (
+          <QuickLink
+            key={key}
+            label={label}
+            description={description}
+            Icon={Icon}
+            to={quickLinkTargets[idx]}
+          />
+        ))}
+      </Stack>
+    </Paper>
+  )
+
   useBreadcrumbBackAction({
     label: translate('siteDetails.actions.backToSites'),
     to: buildEntityUrl('sites'),
@@ -473,6 +496,18 @@ export default function SiteDetailsPage() {
   const inviteUserLabel = translate('siteDetails.actions.inviteUser')
   const switchToSiteModeLabel = translate('siteDetails.actions.switchToSiteMode')
   const speedDialLabel = translate('siteDetails.speedDial.ariaLabel')
+  const [speedDialOpen, setSpeedDialOpen] = useState(false)
+  const handleSpeedDialOpen = () => setSpeedDialOpen(true)
+  const handleSpeedDialClose = () => setSpeedDialOpen(false)
+  const speedDialIcon = useMemo(
+    () => (
+      <SpeedDialIcon
+        icon={<AddHomeWorkIcon />}
+        openIcon={isMobile ? <CloseIcon /> : <AddHomeWorkIcon />}
+      />
+    ),
+    [isMobile],
+  )
 
   return (
     <Box sx={{ position: 'relative', pb: 8 }}>
@@ -484,65 +519,101 @@ export default function SiteDetailsPage() {
         sx={{ mb: 3 }}
       >
         <Stack spacing={1}>
-          <Typography variant="h4" fontWeight={600}>
-            {site.name}
-          </Typography>
-          <Stack direction="row" spacing={1}>
-            <Chip label={planLabel} size="small" color="primary" />
-            <Chip label={statusLabel} size="small" color={statusColor} />
-          </Stack>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              gap: { xs: 0.75, sm: 1 },
+              flexWrap: 'wrap',
+            }}
+          >
+            <Typography variant="h4" fontWeight={600} sx={{ lineHeight: 1.2 }}>
+              {site.name}
+            </Typography>
+            <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
+              <Chip label={planLabel} size="small" color="primary" />
+              <Chip label={statusLabel} size="small" color={statusColor} />
+            </Stack>
+          </Box>
           <Typography variant="body2" color="text.secondary">
             {headerSubtitle}
           </Typography>
         </Stack>
 
         <Stack
-          direction={{ xs: 'column', sm: 'row' }}
+          direction="row"
           spacing={1}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}
-          flexWrap="wrap"
-          sx={{ width: '100%', maxWidth: { xs: '100%', md: 'auto' } }}
+          alignItems="center"
+          justifyContent="flex-end"
+          sx={{
+            width: '100%',
+            maxWidth: { xs: '100%', md: 'auto' },
+            alignSelf: { xs: 'stretch', md: 'auto' },
+            flexWrap: 'nowrap',
+            gap: 1,
+          }}
         >
           {mode === 'enterprise' ? (
             <Button
               size="small"
-              variant="outlined"
+              variant="text"
+              color="primary"
+              startIcon={<SwapHorizIcon fontSize="small" />}
               onClick={() => {
                 if (!site) return
                 setMode('site')
                 navigate(`/site/${site.slug}`)
               }}
-              sx={{ width: { xs: '100%', sm: 'auto' }, minHeight: 40 }}
-              fullWidth
+              sx={{
+                borderRadius: 999,
+                px: 1.75,
+                alignSelf: 'center',
+                fontWeight: 500,
+              }}
             >
               {switchToSiteModeLabel}
             </Button>
           ) : null}
-          <Button
-            variant="outlined"
-            startIcon={<SettingsIcon />}
-            sx={{ width: { xs: '100%', sm: 'auto' }, minHeight: 40 }}
-            fullWidth
-          >
-            {siteSettingsLabel}
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<PersonAddIcon />}
-            sx={(theme) => ({
-              width: { xs: '100%', sm: 'auto' },
-              minHeight: 40,
-              [theme.breakpoints.between('sm', 'md')]: {
-                borderTop: `1px solid ${theme.palette.divider}`,
-                marginTop: theme.spacing(1),
-                paddingTop: theme.spacing(1.25),
-              },
-            })}
-            fullWidth
-          >
-            {inviteUserLabel}
-          </Button>
+
+          <Tooltip title={siteSettingsLabel} arrow>
+            <IconButton
+              color="primary"
+              aria-label={siteSettingsLabel}
+              sx={{
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.paper',
+                width: 42,
+                height: 42,
+                '&:hover': {
+                  bgcolor: 'action.hover',
+                },
+              }}
+            >
+              <SettingsIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title={inviteUserLabel} arrow>
+            <IconButton
+              color="primary"
+              aria-label={inviteUserLabel}
+              sx={{
+                borderRadius: 2,
+                bgcolor: 'primary.main',
+                color: (theme) => theme.palette.getContrastText(theme.palette.primary.main),
+                width: 42,
+                height: 42,
+                '&:hover': {
+                  bgcolor: 'primary.dark',
+                },
+              }}
+            >
+              <PersonAddIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Stack>
       </Stack>
 
@@ -564,6 +635,8 @@ export default function SiteDetailsPage() {
                 ))}
               </Stack>
             </Paper>
+
+            {isMobile ? quickNavigationSection : null}
 
             <Paper sx={{ p: 2 }}>
               <SectionHeader title={translate('siteDetails.sections.panelShortcuts.title')} />
@@ -702,20 +775,7 @@ export default function SiteDetailsPage() {
 
         <Grid size={rightColumnSpan}>
           <Stack spacing={2}>
-            <Paper sx={{ p: 2 }}>
-              <SectionHeader title={translate('siteDetails.sections.quickNavigation.title')} />
-              <Stack spacing={1}>
-                {quickLinksWithCopy.map(({ key, label, description, Icon }, idx) => (
-                  <QuickLink
-                    key={key}
-                    label={label}
-                    description={description}
-                    Icon={Icon}
-                    to={quickLinkTargets[idx]}
-                  />
-                ))}
-              </Stack>
-            </Paper>
+            {!isMobile ? quickNavigationSection : null}
 
             <Paper sx={{ p: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 2 }}>
@@ -759,11 +819,31 @@ export default function SiteDetailsPage() {
 
       <SpeedDial
         ariaLabel={speedDialLabel}
-        icon={<AddHomeWorkIcon />}
+        icon={speedDialIcon}
+        onOpen={handleSpeedDialOpen}
+        onClose={handleSpeedDialClose}
+        open={speedDialOpen}
         sx={{ position: 'fixed', bottom: 32, right: 32 }}
       >
         {speedDialActions.map(({ key, Icon, tooltip }) => (
-          <SpeedDialAction key={key} icon={<Icon />} tooltipTitle={tooltip} />
+          <SpeedDialAction
+            key={key}
+            icon={<Icon />}
+            slotProps={{
+              tooltip: {
+                title: tooltip,
+                sx: isMobile
+                  ? {
+                      maxWidth: 320,
+                      whiteSpace: 'normal',
+                      px: 1.5,
+                      py: 1,
+                    }
+                  : undefined,
+              },
+            }}
+            onClick={handleSpeedDialClose}
+          />
         ))}
       </SpeedDial>
     </Box>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, type ElementType } from 'react'
+import { useCallback, useEffect, useMemo, useRef, type ElementType } from 'react'
 import { Outlet, Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Box, Breadcrumbs, Link, Typography, Button, Toolbar } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
@@ -60,6 +60,8 @@ export default function AdminLayout() {
           includeAdmin: mode === 'enterprise',
         })
       : parts.map((p, i, arr) => ({ segment: p, to: '/' + arr.slice(0, i + 1).join('/') }))
+
+  const previousSiteSlugRef = useRef<string | undefined>()
 
   const handleBackClick = useCallback(() => {
     if (!back) return
@@ -144,6 +146,27 @@ export default function AdminLayout() {
       navigate(base, { replace: true })
     }
   }, [mode, current, loc.pathname, navigate])
+
+  useEffect(() => {
+    const slug = current?.slug
+    if (!slug) {
+      previousSiteSlugRef.current = undefined
+      return
+    }
+
+    if (previousSiteSlugRef.current === slug) return
+    previousSiteSlugRef.current = slug
+
+    if (typeof window === 'undefined') return
+
+    window.requestAnimationFrame(() => {
+      try {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } catch {
+        window.scrollTo(0, 0)
+      }
+    })
+  }, [current?.slug])
 
   function formatSegment(value: string) {
     return value.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())

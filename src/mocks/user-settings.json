@@ -1,0 +1,56 @@
+{
+  "default": {
+    "account": {
+      "profile": {
+        "profileVisibility": true,
+        "digestLanguage": "en",
+        "defaultLanding": "enterpriseDashboard",
+        "defaultLandingSite": ""
+      },
+      "privacy": {
+        "auditTrail": true,
+        "sessionTimeout": "30"
+      }
+    },
+    "notifications": {
+      "alerts": {
+        "criticalIncidents": true,
+        "visitorArrivals": true
+      },
+      "channels": {
+        "channelEmail": true,
+        "channelSms": false,
+        "channelPush": true
+      }
+    },
+    "security": {
+      "auth": {
+        "mfa": true,
+        "passwordRotation": "60"
+      },
+      "sessions": {
+        "sessionLimit": 3,
+        "geoLock": false
+      }
+    },
+    "appearance": {
+      "generalLook": {
+        "themeMode": "auto",
+        "themePreference": "system",
+        "density": "standard"
+      },
+      "topbar": {
+        "topbarBlur": 14,
+        "topbarBadges": true,
+        "topbarPatternEnabled": true,
+        "topbarPatternKind": "subtle-diagonal",
+        "topbarPatternOpacity": 0.08,
+        "topbarPatternScale": 28
+      },
+      "charts": {
+        "chartPalette": "brand",
+        "chartAnimation": true
+      }
+    }
+  }
+}

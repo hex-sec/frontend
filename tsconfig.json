@@ -15,7 +15,8 @@
       "@app/*": ["src/app/*"],
       "@store/*": ["src/store/*"],
       "@features/*": ["src/features/*"],
-      "@i18n/*": ["src/i18n/*"]
+      "@i18n/*": ["src/i18n/*"],
+      "@services/*": ["src/services/*"]
     },
     "strict": true
   },

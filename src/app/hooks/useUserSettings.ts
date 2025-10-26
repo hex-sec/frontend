@@ -2,27 +2,9 @@ import { useCallback } from 'react'
 import { useAuthStore } from '@app/auth/auth.store'
 import { useThemeStore } from '@store/theme.store'
 import type { ThemeKind } from '@app/theme.types'
+import { SettingsService, type UserSettings } from '@services/settings.service'
 
-export type UserSettings = {
-  // grouped settings for upcoming features
-  locale?: string
-  timezone?: string
-  receiveEmails?: boolean
-  receiveSms?: boolean
-  twoFactorEnabled?: boolean
-  /**
-   * Theme preference for the user.
-   * 'high-contrast' is intended for improved accessibility, providing greater color contrast than other themes.
-   * Use this option if the user requires enhanced visibility or accessibility support.
-   */
-  themePreference?: 'light' | 'dark' | 'system' | 'brand' | 'high-contrast'
-  density?: 'comfortable' | 'compact' | 'standard'
-  displayName?: string
-  webhookUrl?: string
-  modalSettings?: Record<string, boolean | number | string>
-}
-
-const storageKey = (userId: string) => `user.settings.${userId}`
+export type { UserSettings } from '@services/settings.service'
 
 export function useUserSettings() {
   const user = useAuthStore((s) => s.user)
@@ -31,8 +13,7 @@ export function useUserSettings() {
   const load = useCallback((): UserSettings | null => {
     if (!user?.id) return null
     try {
-      const raw = localStorage.getItem(storageKey(user.id))
-      return raw ? (JSON.parse(raw) as UserSettings) : { locale: 'en', receiveEmails: true }
+      return SettingsService.load(user.id)
     } catch (e) {
       console.error('Failed to load user settings', e)
       return null
@@ -43,7 +24,7 @@ export function useUserSettings() {
     (settings: UserSettings) => {
       if (!user?.id) return
       try {
-        localStorage.setItem(storageKey(user.id), JSON.stringify(settings))
+        SettingsService.save(user.id, settings)
         // If the user saved a theme preference, apply it to the global theme store so the change is immediate
         if (settings.themePreference) {
           try {
@@ -57,12 +38,12 @@ export function useUserSettings() {
         console.error('Failed to save user settings', e)
       }
     },
-    [user],
+    [user, setKind],
   )
 
   const clear = useCallback(() => {
     if (!user?.id) return
-    localStorage.removeItem(storageKey(user.id))
+    SettingsService.clear(user.id)
   }, [user])
 
   return { load, save, clear }

@@ -219,6 +219,9 @@
     "actions": {
       "clearSearch": "Clear search"
     },
+    "toast": {
+      "saveSuccess": "Preferences saved successfully."
+    },
     "categories": {
       "account": "Account",
       "accountDescription": "Manage your profile and contact details.",
@@ -328,6 +331,21 @@
         "digestLanguage": {
           "label": "Digest language",
           "description": "Select the language used for summary emails."
+        },
+        "defaultLanding": {
+          "label": "Default landing page",
+          "description": "Choose where to go right after signing in.",
+          "choices": {
+            "enterpriseDashboard": "Enterprise dashboard",
+            "sitesOverview": "Sites overview",
+            "site": "Specific site"
+          }
+        },
+        "defaultLandingSite": {
+          "label": "Default site",
+          "description": "Pick the site we should open when your landing preference is a specific site.",
+          "placeholder": "Select a site",
+          "emptyState": "Add a site to your account to enable this option."
         }
       },
       "privacy": {

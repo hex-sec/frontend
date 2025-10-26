@@ -31,14 +31,16 @@ import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import { useTranslate } from '@i18n/useTranslate'
 import { alpha, useTheme } from '@mui/material/styles'
 import { useThemeStore } from '@store/theme.store'
+import { useSiteStore } from '@store/site.store'
 
-type OptionType = 'switch' | 'select' | 'slider' | 'checkbox'
+type OptionType = 'switch' | 'select' | 'slider' | 'checkbox' | 'text'
 
 type SettingsOptionChoice = {
   value: string
   labelKey?: string
   label?: string
   group?: string
+  disabled?: boolean
 }
 
 type SettingsOption = {
@@ -52,6 +54,12 @@ type SettingsOption = {
   min?: number
   max?: number
   step?: number
+  placeholderKey?: string
+  placeholder?: string
+  visibleWhen?: {
+    key: string
+    equals: boolean | number | string
+  }
 }
 
 type SettingsGroup = {
@@ -103,6 +111,37 @@ const BASE_SETTINGS_SCHEMA: SettingsCategory[] = [
               { value: 'en', labelKey: 'languages.en' },
               { value: 'pt', labelKey: 'languages.pt' },
             ],
+          },
+          {
+            key: 'defaultLanding',
+            labelKey: 'settings.account.profile.defaultLanding.label',
+            descriptionKey: 'settings.account.profile.defaultLanding.description',
+            type: 'select',
+            choices: [
+              {
+                value: 'enterpriseDashboard',
+                labelKey: 'settings.account.profile.defaultLanding.choices.enterpriseDashboard',
+              },
+              {
+                value: 'sitesOverview',
+                labelKey: 'settings.account.profile.defaultLanding.choices.sitesOverview',
+              },
+              {
+                value: 'site',
+                labelKey: 'settings.account.profile.defaultLanding.choices.site',
+              },
+            ],
+          },
+          {
+            key: 'defaultLandingSite',
+            labelKey: 'settings.account.profile.defaultLandingSite.label',
+            descriptionKey: 'settings.account.profile.defaultLandingSite.description',
+            placeholderKey: 'settings.account.profile.defaultLandingSite.placeholder',
+            type: 'select',
+            visibleWhen: {
+              key: 'account.profile.defaultLanding',
+              equals: 'site',
+            },
           },
         ],
       },
@@ -383,6 +422,8 @@ const BASE_SETTINGS_SCHEMA: SettingsCategory[] = [
 export const SETTINGS_DEFAULT_VALUES: Record<string, boolean | number | string> = {
   'account.profile.profileVisibility': true,
   'account.profile.digestLanguage': 'es',
+  'account.profile.defaultLanding': 'enterpriseDashboard',
+  'account.profile.defaultLandingSite': '',
   'account.privacy.auditTrail': true,
   'account.privacy.sessionTimeout': '30',
   'notifications.alerts.criticalIncidents': true,
@@ -395,6 +436,7 @@ export const SETTINGS_DEFAULT_VALUES: Record<string, boolean | number | string> 
   'security.sessions.sessionLimit': 3,
   'security.sessions.geoLock': false,
   'appearance.generalLook.themeMode': 'auto',
+  'appearance.generalLook.themePreference': 'system',
   'appearance.generalLook.density': 'standard',
   'appearance.topbar.topbarBlur': 14,
   'appearance.topbar.topbarBadges': true,
@@ -580,6 +622,7 @@ type OptionPresentation = {
   label: string
   description?: string
   choices?: OptionPresentationChoice[]
+  placeholder?: string
 }
 
 export default function SettingsModal({
@@ -610,27 +653,44 @@ export default function SettingsModal({
   const hoverBorderColor = alpha(theme.palette.primary.main, isDarkMode ? 0.5 : 0.35)
 
   const [searchTerm, setSearchTerm] = useState('')
-  const schemaWithPresets = useMemo(() => {
-    if (!presets.length) return BASE_SETTINGS_SCHEMA
+  const sites = useSiteStore((state) => state.sites)
+  const hydrateSites = useSiteStore((state) => state.hydrate)
 
-    const groupedPresets = [
-      {
-        key: 'light',
-        label: 'Temas claros',
-        items: presets.filter((preset) => preset.palette.mode !== 'dark'),
-      },
-      {
-        key: 'dark',
-        label: 'Temas oscuros',
-        items: presets.filter((preset) => preset.palette.mode === 'dark'),
-      },
-    ].filter((group) => group.items.length > 0)
+  useEffect(() => {
+    if (!open) return
+    hydrateSites()
+  }, [open, hydrateSites])
+
+  const landingSiteChoices = useMemo(
+    () =>
+      sites.map((site) => ({
+        value: site.slug,
+        label: site.name,
+      })),
+    [sites],
+  )
+
+  const schemaWithDynamicData = useMemo(() => {
+    const groupedPresets = presets.length
+      ? [
+          {
+            key: 'light',
+            label: 'Temas claros',
+            items: presets.filter((preset) => preset.palette.mode !== 'dark'),
+          },
+          {
+            key: 'dark',
+            label: 'Temas oscuros',
+            items: presets.filter((preset) => preset.palette.mode === 'dark'),
+          },
+        ].filter((group) => group.items.length > 0)
+      : null
 
     return BASE_SETTINGS_SCHEMA.map((category) => {
-      if (category.key !== 'appearance') return category
-      return {
-        ...category,
-        groups: category.groups.map((group) => {
+      let groups = category.groups
+
+      if (groupedPresets && category.key === 'appearance') {
+        groups = groups.map((group) => {
           if (group.key !== 'generalLook') return group
           return {
             ...group,
@@ -651,12 +711,35 @@ export default function SettingsModal({
               }
             }),
           }
-        }),
+        })
+      }
+
+      if (category.key === 'account') {
+        groups = groups.map((group) => {
+          if (group.key !== 'profile') return group
+          return {
+            ...group,
+            options: group.options.map((option) => {
+              if (option.key !== 'defaultLandingSite') return option
+              return {
+                ...option,
+                choices: landingSiteChoices,
+              }
+            }),
+          }
+        })
+      }
+
+      return {
+        ...category,
+        groups,
       }
     })
-  }, [presets])
+  }, [landingSiteChoices, presets])
 
-  const [selectedCategory, setSelectedCategory] = useState<string>(schemaWithPresets[0]?.key ?? '')
+  const firstCategoryKey = schemaWithDynamicData[0]?.key ?? ''
+
+  const [selectedCategory, setSelectedCategory] = useState<string>(firstCategoryKey)
   const [values, setValues] = useState<Record<string, boolean | number | string>>(() => ({
     ...SETTINGS_DEFAULT_VALUES,
   }))
@@ -675,31 +758,50 @@ export default function SettingsModal({
     if (!open) return
     const baseValues = { ...SETTINGS_DEFAULT_VALUES, ...(initialValues ?? {}) }
 
-    if (schemaWithPresets === BASE_SETTINGS_SCHEMA) {
-      setValues(baseValues)
-      setSelectedCategory(schemaWithPresets[0]?.key ?? '')
-      return
+    if (presets.length) {
+      const availablePresetIds = presets.map((preset) => preset.id)
+      const initialThemeValue = baseValues['appearance.generalLook.themeMode']
+      const normalizedThemeValue =
+        typeof initialThemeValue === 'string' && availablePresetIds.includes(initialThemeValue)
+          ? initialThemeValue
+          : availablePresetIds.includes(currentPresetId)
+            ? currentPresetId
+            : availablePresetIds[0]
+
+      if (normalizedThemeValue) {
+        baseValues['appearance.generalLook.themeMode'] = normalizedThemeValue
+      }
     }
 
-    const availablePresetIds = presets.map((preset) => preset.id)
-    const initialThemeValue = baseValues['appearance.generalLook.themeMode']
-    const normalizedThemeValue =
-      typeof initialThemeValue === 'string' && availablePresetIds.includes(initialThemeValue)
-        ? initialThemeValue
-        : availablePresetIds.includes(currentPresetId)
-          ? currentPresetId
-          : availablePresetIds[0]
+    const wantsSiteLanding = baseValues['account.profile.defaultLanding'] === 'site'
+    const hasEmptySiteSelection =
+      typeof baseValues['account.profile.defaultLandingSite'] !== 'string' ||
+      baseValues['account.profile.defaultLandingSite'].length === 0
 
-    if (normalizedThemeValue) {
-      baseValues['appearance.generalLook.themeMode'] = normalizedThemeValue
+    if (wantsSiteLanding && hasEmptySiteSelection && landingSiteChoices[0]) {
+      baseValues['account.profile.defaultLandingSite'] = landingSiteChoices[0].value
     }
 
     setValues(baseValues)
-    setSelectedCategory(schemaWithPresets[0]?.key ?? '')
-  }, [open, initialValues, schemaWithPresets, presets, currentPresetId])
+    setSelectedCategory(firstCategoryKey)
+  }, [open, initialValues, presets, currentPresetId, firstCategoryKey])
+
+  useEffect(() => {
+    if (!open) return
+    if (!landingSiteChoices.length) return
+    setValues((prev) => {
+      if (prev['account.profile.defaultLanding'] !== 'site') return prev
+      const currentSiteValue = String(prev['account.profile.defaultLandingSite'] ?? '')
+      if (currentSiteValue) return prev
+      return {
+        ...prev,
+        'account.profile.defaultLandingSite': landingSiteChoices[0].value,
+      }
+    })
+  }, [landingSiteChoices, open])
 
   const structuredCategories: StructuredCategory[] = useMemo(() => {
-    return schemaWithPresets.map((category) => {
+    return schemaWithDynamicData.map((category) => {
       const categoryLabel = t(category.labelKey)
 
       const groups = category.groups.map((group) => {
@@ -710,6 +812,7 @@ export default function SettingsModal({
           option,
           label: option.labelKey ? t(option.labelKey) : (option.label ?? option.key),
           description: option.descriptionKey ? t(option.descriptionKey) : option.description,
+          placeholder: option.placeholderKey ? t(option.placeholderKey) : option.placeholder,
           choices: option.choices?.map((choice: SettingsOptionChoice) => {
             const choiceLabel = choice.labelKey
               ? t(choice.labelKey)
@@ -718,6 +821,7 @@ export default function SettingsModal({
               value: choice.value,
               label: choiceLabel,
               group: choice.group,
+              disabled: choice.disabled,
             }
           }),
         }))
@@ -754,7 +858,7 @@ export default function SettingsModal({
         groups: visibleGroups,
       }
     })
-  }, [normalizedQuery, t, schemaWithPresets])
+  }, [normalizedQuery, t, schemaWithDynamicData])
 
   useEffect(() => {
     if (!open) {
@@ -812,9 +916,32 @@ export default function SettingsModal({
 
   const activeCategory = structuredCategories.find((category) => category.key === selectedCategory)
 
-  const handleValueChange = (key: string, value: boolean | number | string) => {
-    setValues((prev) => ({ ...prev, [key]: value }))
-  }
+  const handleValueChange = useCallback(
+    (key: string, value: boolean | number | string) => {
+      setValues((prev) => {
+        const next: Record<string, boolean | number | string> = { ...prev, [key]: value }
+
+        if (key === 'account.profile.defaultLanding') {
+          const normalized = String(value)
+          if (normalized === 'site') {
+            const currentSiteValue = String(prev['account.profile.defaultLandingSite'] ?? '')
+            if (!currentSiteValue && landingSiteChoices[0]) {
+              next['account.profile.defaultLandingSite'] = landingSiteChoices[0].value
+            }
+          } else {
+            next['account.profile.defaultLandingSite'] = ''
+          }
+        }
+
+        if (key === 'account.profile.defaultLandingSite') {
+          next[key] = typeof value === 'string' ? value : String(value)
+        }
+
+        return next
+      })
+    },
+    [landingSiteChoices],
+  )
 
   const handleApply = () => {
     onApply?.(values)
@@ -829,8 +956,14 @@ export default function SettingsModal({
     groupKey: string,
     presented: OptionPresentation,
   ) => {
-    const { option, label, description, choices } = presented
+    const { option, label, description, choices, placeholder } = presented
     const optionKey = buildOptionKey(categoryKey, groupKey, option.key)
+    if (option.visibleWhen) {
+      const dependencyValue = values[option.visibleWhen.key]
+      if (dependencyValue !== option.visibleWhen.equals) {
+        return null
+      }
+    }
     const currentValue = values[optionKey]
 
     switch (option.type) {
@@ -865,7 +998,13 @@ export default function SettingsModal({
             <TextField
               select
               size="small"
-              value={String(currentValue ?? '')}
+              value={
+                typeof currentValue === 'string'
+                  ? currentValue
+                  : currentValue != null
+                    ? String(currentValue)
+                    : ''
+              }
               onChange={(event) => handleValueChange(optionKey, event.target.value)}
               sx={{
                 mt: 0.5,
@@ -878,10 +1017,27 @@ export default function SettingsModal({
                   '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main },
                 },
               }}
+              SelectProps={{
+                displayEmpty: Boolean(placeholder),
+              }}
+              disabled={
+                optionKey === 'account.profile.defaultLandingSite' &&
+                (!choices || choices.length === 0)
+              }
             >
               {(() => {
-                if (!choices) return null
                 const nodes: React.ReactNode[] = []
+
+                if (optionKey === 'account.profile.defaultLandingSite' && placeholder) {
+                  nodes.push(
+                    <MenuItem key="placeholder" value="">
+                      {highlightMatch(placeholder, searchTerm)}
+                    </MenuItem>,
+                  )
+                }
+
+                if (!choices) return nodes.length > 0 ? nodes : null
+
                 let lastGroup: string | undefined
                 choices.forEach((choice) => {
                   if (choice.group && choice.group !== lastGroup) {
@@ -893,17 +1049,27 @@ export default function SettingsModal({
                     lastGroup = choice.group
                   }
                   nodes.push(
-                    <MenuItem key={choice.value} value={choice.value}>
+                    <MenuItem key={choice.value} value={choice.value} disabled={choice.disabled}>
                       {highlightMatch(choice.label, searchTerm)}
                     </MenuItem>,
                   )
                 })
+
                 return nodes
               })()}
             </TextField>
             {description ? (
               <Typography variant="caption" color="text.secondary">
                 {highlightMatch(description, searchTerm)}
+              </Typography>
+            ) : null}
+            {optionKey === 'account.profile.defaultLandingSite' &&
+            (!choices || choices.length === 0) ? (
+              <Typography variant="caption" color="text.secondary">
+                {highlightMatch(
+                  t('settings.account.profile.defaultLandingSite.emptyState'),
+                  searchTerm,
+                )}
               </Typography>
             ) : null}
           </Box>
@@ -942,6 +1108,34 @@ export default function SettingsModal({
           </Box>
         )
       }
+      case 'text':
+        return (
+          <Box key={optionKey} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Typography variant="subtitle2">{highlightMatch(label, searchTerm)}</Typography>
+            <TextField
+              size="small"
+              value={String(currentValue ?? '')}
+              onChange={(event) => handleValueChange(optionKey, event.target.value)}
+              placeholder={placeholder}
+              sx={{
+                mt: 0.5,
+                maxWidth: 260,
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: searchFieldBg,
+                  color: theme.palette.text.primary,
+                  '& fieldset': { borderColor: borderShade },
+                  '&:hover fieldset': { borderColor: hoverBorderColor },
+                  '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main },
+                },
+              }}
+            />
+            {description ? (
+              <Typography variant="caption" color="text.secondary">
+                {highlightMatch(description, searchTerm)}
+              </Typography>
+            ) : null}
+          </Box>
+        )
       default:
         return null
     }
@@ -1206,19 +1400,45 @@ export default function SettingsModal({
         </Stack>
       </DialogContent>
       <Divider sx={{ borderColor: borderShade }} />
-      <DialogActions sx={{ px: 3, py: 2.5, gap: 1.5 }}>
-        <Button onClick={onClose} color="inherit">
-          {t('common.cancel')}
-        </Button>
-        <Box sx={{ flexGrow: 1 }} />
-        {onApply ? (
-          <Button variant="outlined" color="inherit" onClick={handleApply}>
-            {t('common.apply')}
+      <DialogActions sx={{ px: 3, py: 2.5 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            width: '100%',
+            flexWrap: 'wrap',
+            justifyContent: { xs: 'flex-start', md: 'flex-end' },
+          }}
+        >
+          <Button
+            onClick={onClose}
+            color="inherit"
+            sx={{
+              order: { xs: 0, md: onApply ? 1 : 0 },
+              mr: { xs: 'auto', md: 0 },
+            }}
+          >
+            {t('common.cancel')}
           </Button>
-        ) : null}
-        <Button variant="contained" onClick={handleSave}>
-          {t('common.saveChanges')}
-        </Button>
+          {onApply ? (
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={handleApply}
+              sx={{ order: { xs: 2, md: 0 } }}
+            >
+              {t('common.apply')}
+            </Button>
+          ) : null}
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            sx={{ order: { xs: 1, md: onApply ? 2 : 1 } }}
+          >
+            {t('common.saveChanges')}
+          </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   )

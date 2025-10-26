@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useMemo, useState, type ElementType, type MouseEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ElementType,
+  type MouseEvent,
+  type SyntheticEvent,
+} from 'react'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   AppBar,
@@ -29,6 +38,8 @@ import {
   MenuList,
   useMediaQuery,
 } from '@mui/material'
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert'
 import MenuIcon from '@mui/icons-material/Menu'
 import HomeIcon from '@mui/icons-material/Home'
 import DashboardIcon from '@mui/icons-material/Dashboard'
@@ -65,6 +76,7 @@ import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
 import { useUserSettings, type UserSettings } from '@app/hooks/useUserSettings'
 import { useThemeStore } from '@store/theme.store'
 import type { ThemeKind } from '@app/theme.types'
+import { expandModalSettings, flattenModalSettings } from '@services/settings.service'
 
 type NavItem = {
   label: string
@@ -152,6 +164,15 @@ export default function TopBar() {
   const [settingsModalInitialValues, setSettingsModalInitialValues] = useState<
     Record<string, boolean | number | string>
   >(() => ({ ...SETTINGS_DEFAULT_VALUES }))
+  const [saveFeedback, setSaveFeedback] = useState<{
+    open: boolean
+    message: string
+    key: number
+  }>(() => ({
+    open: false,
+    message: '',
+    key: 0,
+  }))
 
   const items = useMemo<NavItem[]>(() => {
     if (!user) return []
@@ -367,12 +388,89 @@ export default function TopBar() {
     setNotifications(baseNotifications)
   }, [baseNotifications])
 
+  const hasAppliedLandingRef = useRef(false)
+  const pathname = location.pathname
+
+  // Ensure the stored default landing preference drives the initial navigation.
+  const applyLandingPreference = useCallback(
+    (preference?: UserSettings['landingPreference']) => {
+      const storedPreference = preference ?? loadUserSettings()?.landingPreference
+      if (!storedPreference) {
+        hasAppliedLandingRef.current = true
+        return
+      }
+
+      const rawTarget = storedPreference.target
+      type LandingTarget = 'enterpriseDashboard' | 'sitesOverview' | 'site'
+      const target: LandingTarget =
+        rawTarget === 'enterpriseDashboard' || rawTarget === 'sitesOverview' || rawTarget === 'site'
+          ? rawTarget
+          : 'enterpriseDashboard'
+
+      if (target === 'site') {
+        if (sites.length === 0) {
+          return
+        }
+
+        const requestedSlug = storedPreference.siteSlug?.trim() ?? ''
+        if (!requestedSlug) {
+          if (mode !== 'enterprise') {
+            setMode('enterprise')
+          }
+          const fallbackPath = buildEntityUrl('sites')
+          if (pathname !== fallbackPath) {
+            navigate(fallbackPath, { replace: true })
+          }
+          hasAppliedLandingRef.current = true
+          return
+        }
+
+        const matchedSite = sites.find((site) => site.slug === requestedSlug)
+        if (!matchedSite) {
+          if (mode !== 'enterprise') {
+            setMode('enterprise')
+          }
+          const fallbackPath = buildEntityUrl('sites')
+          if (pathname !== fallbackPath) {
+            navigate(fallbackPath, { replace: true })
+          }
+          hasAppliedLandingRef.current = true
+          return
+        }
+
+        if (mode !== 'site') {
+          setMode('site')
+        }
+        if (current?.slug !== matchedSite.slug) {
+          setCurrent(matchedSite)
+        }
+        const destination = siteRoot(matchedSite.slug)
+        if (pathname !== destination) {
+          navigate(destination, { replace: true })
+        }
+        hasAppliedLandingRef.current = true
+        return
+      }
+
+      if (mode !== 'enterprise') {
+        setMode('enterprise')
+      }
+      const destination = target === 'sitesOverview' ? buildEntityUrl('sites') : buildEntityUrl('')
+      if (pathname !== destination) {
+        navigate(destination, { replace: true })
+      }
+      hasAppliedLandingRef.current = true
+    },
+    [current?.slug, loadUserSettings, mode, navigate, pathname, setCurrent, setMode, sites],
+  )
+
   useEffect(() => {
     if (!openSettings) return
     const stored = loadUserSettings()
+    const storedModalValues = flattenModalSettings(stored?.modalSettings)
     const derived: Record<string, boolean | number | string> = {
       ...SETTINGS_DEFAULT_VALUES,
-      ...(stored?.modalSettings ?? {}),
+      ...storedModalValues,
     }
     if (stored?.locale) {
       derived['account.profile.digestLanguage'] = stored.locale
@@ -391,9 +489,20 @@ export default function TopBar() {
     if (stored?.density) {
       derived['appearance.generalLook.density'] = stored.density
     }
+    const landingPreference = stored?.landingPreference
+    const rawLandingTarget = landingPreference?.target
+    const landingTarget =
+      rawLandingTarget === 'enterpriseDashboard' ||
+      rawLandingTarget === 'sitesOverview' ||
+      rawLandingTarget === 'site'
+        ? rawLandingTarget
+        : SETTINGS_DEFAULT_VALUES['account.profile.defaultLanding']
+    derived['account.profile.defaultLanding'] = landingTarget
+    derived['account.profile.defaultLandingSite'] =
+      landingTarget === 'site' ? (landingPreference?.siteSlug ?? '') : ''
     const presetIds = themePresets.map((preset) => preset.id)
     if (presetIds.length > 0) {
-      const storedModalTheme = stored?.modalSettings?.['appearance.generalLook.themeMode']
+      const storedModalTheme = storedModalValues['appearance.generalLook.themeMode']
       const storedThemeId =
         typeof storedModalTheme === 'string' && presetIds.includes(storedModalTheme)
           ? storedModalTheme
@@ -408,6 +517,15 @@ export default function TopBar() {
       const themePreference = stored?.themePreference ?? themeKind
       derived['appearance.generalLook.themeMode'] =
         themePreference === 'system' ? 'auto' : themePreference
+    }
+    if (
+      stored?.themePreference === 'light' ||
+      stored?.themePreference === 'dark' ||
+      stored?.themePreference === 'system' ||
+      stored?.themePreference === 'brand' ||
+      stored?.themePreference === 'high-contrast'
+    ) {
+      derived['appearance.generalLook.themePreference'] = stored.themePreference
     }
     derived['appearance.topbar.topbarBlur'] = topbarBlur
     derived['appearance.topbar.topbarBadges'] = topbarBadges
@@ -432,17 +550,36 @@ export default function TopBar() {
     language,
   ])
 
+  useEffect(() => {
+    if (!user) return
+    if (hasAppliedLandingRef.current) return
+    applyLandingPreference()
+  }, [applyLandingPreference, user])
+
+  useEffect(() => {
+    hasAppliedLandingRef.current = false
+  }, [user?.id])
+
   const handleSettingsClose = useCallback(() => {
     setOpenSettings(false)
   }, [setOpenSettings])
 
+  const handleSnackbarClose = useCallback(
+    (_: SyntheticEvent | Event | undefined, reason?: string) => {
+      if (reason === 'clickaway') return
+      setSaveFeedback((prev) => ({ ...prev, open: false }))
+    },
+    [],
+  )
+
   const handleSettingsSave = useCallback(
     (nextValues: Record<string, boolean | number | string>) => {
       const stored = loadUserSettings()
+      const storedModalValues = flattenModalSettings(stored?.modalSettings)
 
       const presetIds = themePresets.map((preset) => preset.id)
       const defaultThemeSelection = (() => {
-        const storedModalTheme = stored?.modalSettings?.['appearance.generalLook.themeMode']
+        const storedModalTheme = storedModalValues['appearance.generalLook.themeMode']
         const storedThemeId =
           typeof storedModalTheme === 'string' && presetIds.includes(storedModalTheme)
             ? storedModalTheme
@@ -490,15 +627,79 @@ export default function TopBar() {
           ? (localeValueRaw as SupportedLanguage)
           : undefined
 
+      const rawLandingTarget = String(
+        nextValues['account.profile.defaultLanding'] ??
+          stored?.landingPreference?.target ??
+          SETTINGS_DEFAULT_VALUES['account.profile.defaultLanding'],
+      )
+      const landingTargets = new Set(['enterpriseDashboard', 'sitesOverview', 'site'])
+      const resolvedLandingTarget = landingTargets.has(rawLandingTarget)
+        ? (rawLandingTarget as 'enterpriseDashboard' | 'sitesOverview' | 'site')
+        : 'enterpriseDashboard'
+
+      const rawLandingSiteValue =
+        typeof nextValues['account.profile.defaultLandingSite'] === 'string'
+          ? nextValues['account.profile.defaultLandingSite']
+          : (stored?.landingPreference?.siteSlug ?? '')
+      const normalizedLandingSite = rawLandingSiteValue.trim()
+
+      const nextLandingPreference: UserSettings['landingPreference'] =
+        resolvedLandingTarget === 'site'
+          ? {
+              target: 'site',
+              ...(normalizedLandingSite ? { siteSlug: normalizedLandingSite } : {}),
+            }
+          : { target: resolvedLandingTarget }
+
+      const blurValueRaw = Number(nextValues['appearance.topbar.topbarBlur'] ?? topbarBlurRadius)
+      const normalizedBlur = Number.isFinite(blurValueRaw)
+        ? Math.max(0, Math.min(40, blurValueRaw))
+        : topbarBlurRadius
+      const badgesEnabled = Boolean(nextValues['appearance.topbar.topbarBadges'])
+      const patternEnabledSetting = Boolean(nextValues['appearance.topbar.topbarPatternEnabled'])
+      const rawPatternKind = String(
+        nextValues['appearance.topbar.topbarPatternKind'] ?? patternKind,
+      )
+      const allowedPatternKinds = new Set(['subtle-diagonal', 'subtle-dots', 'geometry', 'none'])
+      const normalizedPatternKind = allowedPatternKinds.has(rawPatternKind)
+        ? rawPatternKind
+        : patternKind
+      const rawPatternOpacity = Number(
+        nextValues['appearance.topbar.topbarPatternOpacity'] ?? patternOpacity,
+      )
+      const normalizedPatternOpacity = Number.isFinite(rawPatternOpacity)
+        ? Math.max(0, Math.min(0.4, rawPatternOpacity))
+        : patternOpacity
+      const rawPatternScale = Number(
+        nextValues['appearance.topbar.topbarPatternScale'] ?? patternScale,
+      )
+      const normalizedPatternScale = Number.isFinite(rawPatternScale)
+        ? Math.max(8, Math.min(64, rawPatternScale))
+        : patternScale
+      const nextModalValues = {
+        ...nextValues,
+        'appearance.topbar.topbarBlur': normalizedBlur,
+        'appearance.topbar.topbarBadges': badgesEnabled,
+        'appearance.topbar.topbarPatternEnabled': patternEnabledSetting,
+        'appearance.topbar.topbarPatternKind': normalizedPatternKind,
+        'appearance.topbar.topbarPatternOpacity': normalizedPatternOpacity,
+        'appearance.topbar.topbarPatternScale': normalizedPatternScale,
+        'appearance.generalLook.themePreference': resolvedThemePreference,
+        'account.profile.defaultLanding': resolvedLandingTarget,
+        'account.profile.defaultLandingSite':
+          resolvedLandingTarget === 'site' ? normalizedLandingSite : '',
+      }
+
       const nextSettings: UserSettings = {
         ...(stored ?? {}),
+        landingPreference: nextLandingPreference,
         locale: normalizedLocale ?? stored?.locale ?? language,
         receiveEmails: Boolean(nextValues['notifications.channels.channelEmail']),
         receiveSms: Boolean(nextValues['notifications.channels.channelSms']),
         twoFactorEnabled: Boolean(nextValues['security.auth.mfa']),
         density: normalizedDensity,
         themePreference: resolvedThemePreference,
-        modalSettings: nextValues,
+        modalSettings: expandModalSettings(nextModalValues),
       }
 
       saveUserSettings(nextSettings)
@@ -511,47 +712,15 @@ export default function TopBar() {
         setLanguage(normalizedLocale)
       }
 
-      const blurValueRaw = Number(nextValues['appearance.topbar.topbarBlur'] ?? topbarBlurRadius)
-      const normalizedBlur = Number.isFinite(blurValueRaw)
-        ? Math.max(0, Math.min(40, blurValueRaw))
-        : topbarBlurRadius
       setTopbarBlur(normalizedBlur)
-      const badgesEnabled = Boolean(nextValues['appearance.topbar.topbarBadges'])
       setTopbarBadges(badgesEnabled)
-      const patternEnabledSetting = Boolean(nextValues['appearance.topbar.topbarPatternEnabled'])
       setPatternEnabled(patternEnabledSetting)
-      const rawPatternKind = String(
-        nextValues['appearance.topbar.topbarPatternKind'] ?? patternKind,
-      )
-      const allowedPatternKinds = new Set(['subtle-diagonal', 'subtle-dots', 'geometry', 'none'])
-      const normalizedPatternKind = allowedPatternKinds.has(rawPatternKind)
-        ? rawPatternKind
-        : patternKind
       setPatternKind(normalizedPatternKind)
-      const rawPatternOpacity = Number(
-        nextValues['appearance.topbar.topbarPatternOpacity'] ?? patternOpacity,
-      )
-      const normalizedPatternOpacity = Number.isFinite(rawPatternOpacity)
-        ? Math.max(0, Math.min(0.4, rawPatternOpacity))
-        : patternOpacity
       setPatternOpacity(normalizedPatternOpacity)
-      const rawPatternScale = Number(
-        nextValues['appearance.topbar.topbarPatternScale'] ?? patternScale,
-      )
-      const normalizedPatternScale = Number.isFinite(rawPatternScale)
-        ? Math.max(8, Math.min(64, rawPatternScale))
-        : patternScale
       setPatternScale(normalizedPatternScale)
-      setSettingsModalInitialValues({
-        ...nextValues,
-        'appearance.topbar.topbarBlur': normalizedBlur,
-        'appearance.topbar.topbarBadges': badgesEnabled,
-        'appearance.topbar.topbarPatternEnabled': patternEnabledSetting,
-        'appearance.topbar.topbarPatternKind': normalizedPatternKind,
-        'appearance.topbar.topbarPatternOpacity': normalizedPatternOpacity,
-        'appearance.topbar.topbarPatternScale': normalizedPatternScale,
-      })
+      setSettingsModalInitialValues(nextModalValues)
       setOpenSettings(false)
+      setSaveFeedback({ open: true, message: t('settings.toast.saveSuccess'), key: Date.now() })
     },
     [
       loadUserSettings,
@@ -574,6 +743,7 @@ export default function TopBar() {
       patternKind,
       patternOpacity,
       patternScale,
+      t,
     ],
   )
 
@@ -819,7 +989,11 @@ export default function TopBar() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: { xs: 'center', sm: 'flex-start' },
-                flexGrow: 1,
+                flexGrow: { xs: 0, sm: 1 },
+                position: { xs: 'absolute', sm: 'relative' },
+                left: { xs: '50%', sm: 'auto' },
+                transform: { xs: 'translateX(-50%)', sm: 'none' },
+                zIndex: { xs: 1, sm: 'initial' },
                 textDecoration: 'none',
                 color: 'inherit',
                 minWidth: 0,
@@ -834,7 +1008,7 @@ export default function TopBar() {
                 alignItems: 'center',
                 gap: { xs: 1, sm: 1.5 },
                 flexShrink: 0,
-                ml: { xs: 0, sm: 'auto' },
+                ml: 'auto',
               }}
             >
               <IconButton
@@ -1250,6 +1424,23 @@ export default function TopBar() {
           {t('topnav.accountMenu.logout')}
         </MenuItem>
       </Menu>
+
+      <Snackbar
+        key={saveFeedback.key}
+        open={saveFeedback.open}
+        autoHideDuration={3500}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {saveFeedback.message}
+        </Alert>
+      </Snackbar>
 
       <ModeSwitchDialog
         open={modeDialogOpen}

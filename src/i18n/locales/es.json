@@ -219,6 +219,9 @@
     "actions": {
       "clearSearch": "Limpiar búsqueda"
     },
+    "toast": {
+      "saveSuccess": "Preferencias guardadas correctamente."
+    },
     "categories": {
       "account": "Cuenta",
       "accountDescription": "Administra tu perfil y datos de contacto.",
@@ -328,6 +331,21 @@
         "digestLanguage": {
           "label": "Idioma del resumen",
           "description": "Elige el idioma usado en los correos de resumen."
+        },
+        "defaultLanding": {
+          "label": "Página predeterminada",
+          "description": "Selecciona a dónde ir inmediatamente después de iniciar sesión.",
+          "choices": {
+            "enterpriseDashboard": "Tablero empresarial",
+            "sitesOverview": "Listado de sitios",
+            "site": "Sitio específico"
+          }
+        },
+        "defaultLandingSite": {
+          "label": "Sitio predeterminado",
+          "description": "Elige el sitio que se abrirá cuando tu preferencia sea un sitio específico.",
+          "placeholder": "Selecciona un sitio",
+          "emptyState": "Agrega un sitio a tu cuenta para habilitar esta opción."
         }
       },
       "privacy": {

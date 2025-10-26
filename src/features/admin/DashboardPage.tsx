@@ -437,9 +437,9 @@ export default function DashboardPage() {
                 {alertCards.map((card) => (
                   <Stack
                     key={card.key}
-                    direction="row"
+                    direction={{ xs: 'column', sm: 'row' }}
                     spacing={1.5}
-                    alignItems="flex-start"
+                    alignItems={{ xs: 'stretch', sm: 'flex-start' }}
                     sx={{
                       borderRadius: 2,
                       border: '1px dashed',
@@ -455,7 +455,11 @@ export default function DashboardPage() {
                         {card.description}
                       </Typography>
                     </Box>
-                    <Button size="small" color={card.actionColor}>
+                    <Button
+                      size="small"
+                      color={card.actionColor}
+                      sx={{ alignSelf: { xs: 'flex-end', sm: 'flex-start' }, px: 1.5 }}
+                    >
                       {card.actionLabel}
                     </Button>
                   </Stack>
@@ -555,7 +559,7 @@ export default function DashboardPage() {
               <List dense>
                 {kpiData.map((kpi, index) => (
                   <Box key={kpi.label}>
-                    <ListItem disableGutters sx={{ alignItems: 'flex-start' }}>
+                    <ListItem disableGutters sx={{ alignItems: 'center' }}>
                       <ListItemAvatar>
                         <Avatar sx={{ bgcolor: kpi.accent, color: 'common.white' }}>
                           {kpi.icon}
