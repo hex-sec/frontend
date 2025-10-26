@@ -5,7 +5,6 @@ import {
   Paper,
   Typography,
   Stack,
-  Grid,
   Chip,
   Button,
   Avatar,
@@ -13,7 +12,9 @@ import {
   SpeedDial,
   SpeedDialAction,
   LinearProgress,
+  useMediaQuery,
 } from '@mui/material'
+import Grid from '@mui/material/Grid2'
 import type { ChipProps } from '@mui/material'
 import SettingsIcon from '@mui/icons-material/Settings'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
@@ -34,7 +35,7 @@ import BusinessIcon from '@mui/icons-material/Business'
 import LaunchIcon from '@mui/icons-material/Launch'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
-import { alpha, type Theme } from '@mui/material/styles'
+import { alpha, type Theme, useTheme } from '@mui/material/styles'
 import { useBreadcrumbBackAction } from '@app/layout/useBreadcrumbBackAction'
 import buildEntityUrl from '@app/utils/contextPaths'
 import { useSiteBySlugQuery } from '../sites.api'
@@ -263,6 +264,14 @@ export default function SiteDetailsPage() {
     () => (key: string, options?: Record<string, unknown>) => t(key, { lng: language, ...options }),
     [language, t],
   )
+  const theme = useTheme()
+  const isDesktop = useMediaQuery(theme.breakpoints.up(1024))
+  const isTablet = useMediaQuery(theme.breakpoints.between(600, 1024))
+
+  const leftColumnSpan = isDesktop ? 3 : isTablet ? 6 : 12
+  const mainColumnSpan = isDesktop ? 6 : isTablet ? 6 : 12
+  const rightColumnSpan = isDesktop ? 3 : 12
+  const incidentCardSpan = isDesktop ? 6 : isTablet ? 6 : 12
 
   const heroMetrics = useMemo(
     () =>
@@ -521,7 +530,15 @@ export default function SiteDetailsPage() {
           <Button
             variant="contained"
             startIcon={<PersonAddIcon />}
-            sx={{ width: { xs: '100%', sm: 'auto' }, minHeight: 40 }}
+            sx={(theme) => ({
+              width: { xs: '100%', sm: 'auto' },
+              minHeight: 40,
+              [theme.breakpoints.between('sm', 'md')]: {
+                borderTop: `1px solid ${theme.palette.divider}`,
+                marginTop: theme.spacing(1),
+                paddingTop: theme.spacing(1.25),
+              },
+            })}
             fullWidth
           >
             {inviteUserLabel}
@@ -529,8 +546,8 @@ export default function SiteDetailsPage() {
         </Stack>
       </Stack>
 
-      <Grid container spacing={2}>
-        <Grid item xs={12} lg={3}>
+      <Grid container spacing={2} columns={12} sx={{ width: '100%' }}>
+        <Grid size={leftColumnSpan}>
           <Stack spacing={2} position="sticky" top={88}>
             <Paper sx={{ p: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
@@ -565,7 +582,7 @@ export default function SiteDetailsPage() {
           </Stack>
         </Grid>
 
-        <Grid item xs={12} lg={6}>
+        <Grid size={mainColumnSpan}>
           <Stack spacing={2}>
             <Paper sx={{ p: 2 }}>
               <SectionHeader
@@ -579,20 +596,14 @@ export default function SiteDetailsPage() {
               </Stack>
             </Paper>
 
-            <Paper sx={{ p: 2 }}>
+            <Paper sx={{ p: 3 }}>
               <SectionHeader
-                title={translate('siteDetails.sections.residentEngagement.title')}
-                actionLabel={translate('siteDetails.sections.residentEngagement.action')}
+                title={translate('siteDetails.sections.guardRoster.title')}
+                actionLabel={translate('siteDetails.sections.guardRoster.action')}
               />
               <Stack spacing={1.5}>
-                {residentMetrics.map(({ key, label, value, helper, color }) => (
-                  <MetricProgress
-                    key={key}
-                    label={label}
-                    value={value}
-                    helper={helper}
-                    color={color}
-                  />
+                {guardRoster.map((guard) => (
+                  <GuardRow key={guard.name} {...guard} />
                 ))}
               </Stack>
             </Paper>
@@ -603,9 +614,9 @@ export default function SiteDetailsPage() {
                 actionLabel={translate('siteDetails.sections.incidents.action')}
               />
               <Stack spacing={1.5}>
-                <Grid container spacing={2}>
+                <Grid container spacing={1.5} columns={12}>
                   {incidentCardsWithCopy.map(({ key, title, value, helper, severity }) => (
-                    <Grid item xs={12} sm={6} key={key}>
+                    <Grid key={key} size={incidentCardSpan}>
                       <InsightCard
                         title={title}
                         value={value}
@@ -649,6 +660,24 @@ export default function SiteDetailsPage() {
 
             <Paper sx={{ p: 2 }}>
               <SectionHeader
+                title={translate('siteDetails.sections.residentEngagement.title')}
+                actionLabel={translate('siteDetails.sections.residentEngagement.action')}
+              />
+              <Stack spacing={1.5}>
+                {residentMetrics.map(({ key, label, value, helper, color }) => (
+                  <MetricProgress
+                    key={key}
+                    label={label}
+                    value={value}
+                    helper={helper}
+                    color={color}
+                  />
+                ))}
+              </Stack>
+            </Paper>
+
+            <Paper sx={{ p: 2 }}>
+              <SectionHeader
                 title={translate('siteDetails.sections.financial.title')}
                 actionLabel={translate('siteDetails.sections.financial.action')}
               />
@@ -668,23 +697,26 @@ export default function SiteDetailsPage() {
                 </Typography>
               </Stack>
             </Paper>
-
-            <Paper sx={{ p: 3 }}>
-              <SectionHeader
-                title={translate('siteDetails.sections.guardRoster.title')}
-                actionLabel={translate('siteDetails.sections.guardRoster.action')}
-              />
-              <Stack spacing={1.5}>
-                {guardRoster.map((guard) => (
-                  <GuardRow key={guard.name} {...guard} />
-                ))}
-              </Stack>
-            </Paper>
           </Stack>
         </Grid>
 
-        <Grid item xs={12} lg={3}>
+        <Grid size={rightColumnSpan}>
           <Stack spacing={2}>
+            <Paper sx={{ p: 2 }}>
+              <SectionHeader title={translate('siteDetails.sections.quickNavigation.title')} />
+              <Stack spacing={1}>
+                {quickLinksWithCopy.map(({ key, label, description, Icon }, idx) => (
+                  <QuickLink
+                    key={key}
+                    label={label}
+                    description={description}
+                    Icon={Icon}
+                    to={quickLinkTargets[idx]}
+                  />
+                ))}
+              </Stack>
+            </Paper>
+
             <Paper sx={{ p: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 2 }}>
                 {translate('siteDetails.hero.title')}
@@ -718,21 +750,6 @@ export default function SiteDetailsPage() {
                       </Typography>
                     </Box>
                   </Box>
-                ))}
-              </Stack>
-            </Paper>
-
-            <Paper sx={{ p: 2 }}>
-              <SectionHeader title={translate('siteDetails.sections.quickNavigation.title')} />
-              <Stack spacing={1}>
-                {quickLinksWithCopy.map(({ key, label, description, Icon }, idx) => (
-                  <QuickLink
-                    key={key}
-                    label={label}
-                    description={description}
-                    Icon={Icon}
-                    to={quickLinkTargets[idx]}
-                  />
                 ))}
               </Stack>
             </Paper>
@@ -831,13 +848,22 @@ function InsightCard({
 }) {
   return (
     <Paper
-      sx={{
-        p: 1.5,
+      sx={(theme) => ({
+        p: theme.spacing(1.75),
         height: '100%',
         borderRadius: 2,
-        border: (theme) =>
-          `1px solid ${severity ? theme.palette.error.light : theme.palette.divider}`,
-      }}
+        border: `1px solid ${severity ? theme.palette.error.light : theme.palette.divider}`,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        gap: theme.spacing(0.75),
+        justifyContent: 'center',
+        [theme.breakpoints.up('sm')]: {
+          alignItems: 'flex-start',
+          textAlign: 'left',
+        },
+      })}
     >
       <Typography variant="caption" color="text.secondary">
         {title}

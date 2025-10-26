@@ -4,18 +4,14 @@ import {
   Box,
   Button,
   Chip,
+  FormControlLabel,
   IconButton,
   InputAdornment,
   Menu,
   MenuItem,
   Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Switch,
   TextField,
   Tooltip,
   Typography,
@@ -32,11 +28,8 @@ import ReportIcon from '@mui/icons-material/Report'
 import UpdateIcon from '@mui/icons-material/Update'
 import DownloadIcon from '@mui/icons-material/Download'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
-import {
-  useColumnPreferences,
-  type ColumnDefinition,
-} from '../../components/table/useColumnPreferences'
-import { ColumnPreferencesButton } from '../../components/table/ColumnPreferencesButton'
+import type { ColumnDefinition } from '../../components/table/useColumnPreferences'
+import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
 import { useTranslate } from '@i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
 
@@ -80,7 +73,7 @@ const MOCK_VEHICLES: VehicleRecord[] = (vehiclesSeed as Array<Record<string, unk
   }),
 )
 
-type VehicleFilter = 'all' | VehicleUsage | 'flagged'
+type VehicleFilter = 'all' | VehicleUsage
 
 const USAGE_META_BASE: Record<
   VehicleUsage,
@@ -114,6 +107,9 @@ export default function VehiclesPage() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<VehicleFilter>('all')
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
+  const [statusFilterAnchor, setStatusFilterAnchor] = useState<HTMLElement | null>(null)
+  const [statusFilter, setStatusFilter] = useState<'all' | VehicleStatus>('all')
+  const [showHighPassesOnly, setShowHighPassesOnly] = useState(false)
   const [rowMenu, setRowMenu] = useState<{ anchor: HTMLElement | null; vehicle?: VehicleRecord }>({
     anchor: null,
     vehicle: undefined,
@@ -125,10 +121,14 @@ export default function VehiclesPage() {
       if (derivedSiteSlug && vehicle.siteSlug !== derivedSiteSlug) {
         return false
       }
-      if (filter === 'flagged') {
-        if (vehicle.status !== 'flagged') return false
-      } else if (filter !== 'all') {
+      if (filter === 'resident' || filter === 'visitor' || filter === 'service') {
         if (vehicle.usage !== filter) return false
+      }
+      if (statusFilter !== 'all' && vehicle.status !== statusFilter) {
+        return false
+      }
+      if (showHighPassesOnly && vehicle.passesIssued < 5) {
+        return false
       }
       if (!lower) return true
       return (
@@ -139,7 +139,7 @@ export default function VehiclesPage() {
         vehicle.permitId.toLowerCase().includes(lower)
       )
     })
-  }, [derivedSiteSlug, filter, search])
+  }, [derivedSiteSlug, filter, search, showHighPassesOnly, statusFilter])
 
   const handleOpenFilterMenu = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     setFilterAnchor(event.currentTarget)
@@ -244,11 +244,21 @@ export default function VehiclesPage() {
         value: 'service',
         label: translate('vehiclesPage.filters.service', 'Service vendors'),
       },
-      {
-        value: 'flagged',
-        label: translate('vehiclesPage.filters.flagged', 'Flagged for review'),
-      },
     ],
+    [translate],
+  )
+
+  const statusFilterOptions = useMemo(
+    () =>
+      [
+        { value: 'all', label: translate('vehiclesPage.statusFilter.all', 'Any status') },
+        { value: 'active', label: translate('vehiclesPage.filters.active', 'Active permits') },
+        { value: 'expired', label: translate('vehiclesPage.filters.expired', 'Expired permits') },
+        {
+          value: 'flagged',
+          label: translate('vehiclesPage.filters.flagged', 'Flagged for review'),
+        },
+      ] as const,
     [translate],
   )
 
@@ -318,6 +328,16 @@ export default function VehiclesPage() {
       translate('vehiclesPage.filters.all', 'All vehicles')
     )
   }, [filter, filterOptions, translate])
+
+  const statusFilterLabel = useMemo(() => {
+    return (
+      statusFilterOptions.find((option) => option.value === statusFilter)?.label ??
+      statusFilterOptions[0]?.label ??
+      translate('vehiclesPage.statusFilter.all', 'Any status')
+    )
+  }, [statusFilter, statusFilterOptions, translate])
+
+  const highPassToggleLabel = translate('vehiclesPage.filters.highPasses', 'High kiosk usage')
 
   const columnDefs = useMemo<ColumnDefinition<VehicleRecord>[]>(() => {
     const currentSlug = derivedSiteSlug ?? null
@@ -475,17 +495,6 @@ export default function VehiclesPage() {
     usageMeta,
   ])
 
-  const {
-    orderedColumns,
-    visibleColumns,
-    hiddenColumns,
-    toggleColumnVisibility,
-    moveColumn,
-    resetColumns,
-  } = useColumnPreferences<VehicleRecord>('hex:columns:vehicles', columnDefs)
-
-  const visibleColumnCount = visibleColumns.length || 1
-
   const activeSiteName = activeSite?.name ?? derivedSiteSlug ?? null
 
   return (
@@ -511,114 +520,127 @@ export default function VehiclesPage() {
       )}
 
       <Paper sx={{ p: 3, borderRadius: 3 }}>
-        <Stack spacing={3}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            flexWrap="wrap"
-            gap={2}
-          >
-            <Box>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Typography variant="h5" fontWeight={600}>
-                  {vehiclesTitle}
-                </Typography>
-                {isSiteContext && activeSiteName ? (
-                  <Chip label={activeSiteName} size="small" color="secondary" />
-                ) : (
-                  <Chip label={enterpriseChipLabel} size="small" color="primary" />
-                )}
-              </Stack>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                {vehiclesDescription}
-              </Typography>
-            </Box>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <ColumnPreferencesButton
-                columns={orderedColumns}
-                hiddenColumns={hiddenColumns}
-                onToggleColumn={toggleColumnVisibility}
-                onMoveColumn={moveColumn}
-                onReset={resetColumns}
-              />
-              <Button
-                variant="outlined"
-                startIcon={<FilterListIcon />}
-                onClick={handleOpenFilterMenu}
-                color={filter === 'all' ? 'inherit' : 'primary'}
-              >
-                {filterButtonLabel}
-              </Button>
+        <ConfigurableTable<VehicleRecord>
+          storageKey="hex:columns:vehicles"
+          columns={columnDefs}
+          rows={filteredVehicles}
+          getRowId={(vehicle) => vehicle.id}
+          size="small"
+          emptyState={{
+            title: noVehiclesTitle,
+            description: noVehiclesDescription,
+            action: (
               <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
                 {registerVehicleLabel}
               </Button>
+            ),
+          }}
+          renderToolbar={({ ColumnPreferencesTrigger }) => (
+            <Stack spacing={3}>
+              <Stack
+                direction="row"
+                alignItems="flex-start"
+                justifyContent="space-between"
+                flexWrap="wrap"
+                gap={2}
+              >
+                <Box sx={{ flex: '1 1 240px' }}>
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <Typography variant="h5" fontWeight={600}>
+                      {vehiclesTitle}
+                    </Typography>
+                    {isSiteContext && activeSiteName ? (
+                      <Chip label={activeSiteName} size="small" color="secondary" />
+                    ) : (
+                      <Chip label={enterpriseChipLabel} size="small" color="primary" />
+                    )}
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                    {vehiclesDescription}
+                  </Typography>
+                </Box>
+                <Box sx={{ flexShrink: 0 }}>
+                  <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
+                    {registerVehicleLabel}
+                  </Button>
+                </Box>
+              </Stack>
+
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                flexWrap="wrap"
+                rowGap={1}
+                sx={{ width: '100%' }}
+              >
+                {ColumnPreferencesTrigger}
+                <Button
+                  variant="outlined"
+                  startIcon={<CheckCircleOutlineIcon />}
+                  onClick={(event) => setStatusFilterAnchor(event.currentTarget)}
+                  color={statusFilter === 'all' ? 'inherit' : 'primary'}
+                >
+                  {statusFilterLabel}
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<FilterListIcon />}
+                  onClick={handleOpenFilterMenu}
+                  color={filter === 'all' ? 'inherit' : 'primary'}
+                >
+                  {filterButtonLabel}
+                </Button>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      size="small"
+                      checked={showHighPassesOnly}
+                      onChange={(event) => setShowHighPassesOnly(event.target.checked)}
+                    />
+                  }
+                  label={highPassToggleLabel}
+                  sx={{ ml: 0 }}
+                />
+              </Stack>
+
+              <TextField
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={searchPlaceholder}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
             </Stack>
-          </Stack>
-
-          <TextField
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={searchPlaceholder}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  {visibleColumns.map((column) => (
-                    <TableCell
-                      key={column.id}
-                      align={column.align}
-                      sx={{ minWidth: column.minWidth }}
-                    >
-                      {column.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredVehicles.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={visibleColumnCount}>
-                      <Stack spacing={1} alignItems="center" sx={{ py: 5 }}>
-                        <Typography variant="subtitle1">{noVehiclesTitle}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {noVehiclesDescription}
-                        </Typography>
-                        <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
-                          {registerVehicleLabel}
-                        </Button>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredVehicles.map((vehicle) => (
-                    <TableRow key={vehicle.id} hover>
-                      {visibleColumns.map((column) => (
-                        <TableCell
-                          key={column.id}
-                          align={column.align}
-                          sx={{ minWidth: column.minWidth }}
-                        >
-                          {column.render(vehicle)}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Stack>
+          )}
+        />
       </Paper>
+
+      <Menu
+        anchorEl={statusFilterAnchor}
+        open={Boolean(statusFilterAnchor)}
+        onClose={() => setStatusFilterAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        {statusFilterOptions.map((option) => (
+          <MenuItem
+            key={option.value}
+            selected={statusFilter === option.value}
+            onClick={() => {
+              setStatusFilter(option.value)
+              setStatusFilterAnchor(null)
+            }}
+          >
+            {option.label}
+          </MenuItem>
+        ))}
+      </Menu>
 
       <Menu
         anchorEl={filterAnchor}

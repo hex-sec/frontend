@@ -10,12 +10,6 @@ import {
   MenuItem,
   Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Tooltip,
   Typography,
@@ -26,23 +20,22 @@ import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1'
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom'
 import HandshakeIcon from '@mui/icons-material/Handshake'
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter'
+import InsightsIcon from '@mui/icons-material/Insights'
 import SearchIcon from '@mui/icons-material/Search'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred'
 import HourglassTopIcon from '@mui/icons-material/HourglassTop'
 import BadgeIcon from '@mui/icons-material/Badge'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
-import {
-  useColumnPreferences,
-  type ColumnDefinition,
-} from '../../components/table/useColumnPreferences'
-import { ColumnPreferencesButton } from '../../components/table/ColumnPreferencesButton'
+import type { ColumnDefinition } from '../../components/table/useColumnPreferences'
+import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
 
 import { useTranslate } from '@i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
 
 type VisitorCategory = 'family' | 'vendor' | 'staff'
 type VisitorStatus = 'active' | 'blocked' | 'pending'
+type VisitorActivityFilter = 'all' | 'highVisits' | 'inactive'
 
 type VisitorRecord = {
   id: string
@@ -201,6 +194,22 @@ export default function VisitorsPage() {
     [translate],
   )
 
+  const activityFilterOptions = useMemo(
+    () =>
+      [
+        { value: 'all', label: translate('visitorsPage.activityFilters.all', 'Any activity') },
+        {
+          value: 'highVisits',
+          label: translate('visitorsPage.filters.highVisits', 'Frequent visitors'),
+        },
+        {
+          value: 'inactive',
+          label: translate('visitorsPage.filters.inactive', 'Inactive (60+ days)'),
+        },
+      ] as const,
+    [translate],
+  )
+
   const columnLabels = useMemo(
     () => ({
       visitor: translate('visitorsPage.table.columns.visitor', 'Visitor'),
@@ -252,6 +261,8 @@ export default function VisitorsPage() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<VisitorFilter>('all')
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
+  const [activityFilterAnchor, setActivityFilterAnchor] = useState<HTMLElement | null>(null)
+  const [activityFilter, setActivityFilter] = useState<VisitorActivityFilter>('all')
   const [rowMenu, setRowMenu] = useState<{ anchor: HTMLElement | null; visitor?: VisitorRecord }>({
     anchor: null,
     visitor: undefined,
@@ -265,8 +276,18 @@ export default function VisitorsPage() {
     )
   }, [filter, filterOptions, translate])
 
+  const activityFilterLabel = useMemo(() => {
+    return (
+      activityFilterOptions.find((option) => option.value === activityFilter)?.label ??
+      activityFilterOptions[0]?.label ??
+      translate('visitorsPage.activityFilters.all', 'Any activity')
+    )
+  }, [activityFilter, activityFilterOptions, translate])
+
   const filteredVisitors = useMemo(() => {
     const lower = search.trim().toLowerCase()
+    const inactiveCutoff = new Date()
+    inactiveCutoff.setDate(inactiveCutoff.getDate() - 60)
     return MOCK_VISITORS.filter((visitor) => {
       if (derivedSiteSlug && visitor.siteSlug !== derivedSiteSlug) {
         return false
@@ -276,6 +297,11 @@ export default function VisitorsPage() {
       } else if (filter === 'family' || filter === 'vendor' || filter === 'staff') {
         if (visitor.category !== filter) return false
       }
+      if (activityFilter === 'highVisits') {
+        if (visitor.totalVisits < 5) return false
+      } else if (activityFilter === 'inactive') {
+        if (new Date(visitor.lastVisit) >= inactiveCutoff) return false
+      }
       if (!lower) return true
       return (
         visitor.name.toLowerCase().includes(lower) ||
@@ -284,7 +310,7 @@ export default function VisitorsPage() {
         visitor.siteName.toLowerCase().includes(lower)
       )
     })
-  }, [derivedSiteSlug, filter, search])
+  }, [activityFilter, derivedSiteSlug, filter, search])
 
   const handleOpenFilterMenu = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     setFilterAnchor(event.currentTarget)
@@ -465,17 +491,6 @@ export default function VisitorsPage() {
     moreActionsLabel,
   ])
 
-  const {
-    orderedColumns,
-    visibleColumns,
-    hiddenColumns,
-    toggleColumnVisibility,
-    moveColumn,
-    resetColumns,
-  } = useColumnPreferences<VisitorRecord>('hex:columns:visitors', columnDefs)
-
-  const visibleColumnCount = visibleColumns.length || 1
-
   const activeSiteName = activeSite?.name ?? derivedSiteSlug ?? null
 
   return (
@@ -501,113 +516,94 @@ export default function VisitorsPage() {
       )}
 
       <Paper sx={{ p: 3, borderRadius: 3 }}>
-        <Stack spacing={3}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            flexWrap="wrap"
-            gap={2}
-          >
-            <Box>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Typography variant="h5" fontWeight={600}>
-                  {visitorsTitle}
-                </Typography>
-                {isSiteContext && activeSiteName ? (
-                  <Chip label={activeSiteName} size="small" color="secondary" />
-                ) : (
-                  <Chip label={enterpriseChipLabel} size="small" color="primary" />
-                )}
-              </Stack>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                {visitorsDescription}
-              </Typography>
-            </Box>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <ColumnPreferencesButton
-                columns={orderedColumns}
-                hiddenColumns={hiddenColumns}
-                onToggleColumn={toggleColumnVisibility}
-                onMoveColumn={moveColumn}
-                onReset={resetColumns}
-              />
-              <Button
-                variant="outlined"
-                startIcon={<FilterListIcon />}
-                onClick={handleOpenFilterMenu}
-                color={filter === 'all' ? 'inherit' : 'primary'}
-              >
-                {filterButtonLabel}
-              </Button>
+        <ConfigurableTable<VisitorRecord>
+          storageKey="hex:columns:visitors"
+          columns={columnDefs}
+          rows={filteredVisitors}
+          getRowId={(visitor) => visitor.id}
+          size="small"
+          emptyState={{
+            title: emptyTitle,
+            description: emptyDescription,
+            action: (
               <Button variant="contained" startIcon={<PersonAddAlt1Icon />}>
                 {addVisitorLabel}
               </Button>
+            ),
+          }}
+          renderToolbar={({ ColumnPreferencesTrigger }) => (
+            <Stack spacing={3}>
+              <Stack
+                direction="row"
+                alignItems="flex-start"
+                justifyContent="space-between"
+                flexWrap="wrap"
+                gap={2}
+              >
+                <Box sx={{ flex: '1 1 240px' }}>
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <Typography variant="h5" fontWeight={600}>
+                      {visitorsTitle}
+                    </Typography>
+                    {isSiteContext && activeSiteName ? (
+                      <Chip label={activeSiteName} size="small" color="secondary" />
+                    ) : (
+                      <Chip label={enterpriseChipLabel} size="small" color="primary" />
+                    )}
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                    {visitorsDescription}
+                  </Typography>
+                </Box>
+                <Box sx={{ flexShrink: 0 }}>
+                  <Button variant="contained" startIcon={<PersonAddAlt1Icon />}>
+                    {addVisitorLabel}
+                  </Button>
+                </Box>
+              </Stack>
+
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                flexWrap="wrap"
+                rowGap={1}
+                sx={{ width: '100%' }}
+              >
+                {ColumnPreferencesTrigger}
+                <Button
+                  variant="outlined"
+                  startIcon={<InsightsIcon />}
+                  onClick={(event) => setActivityFilterAnchor(event.currentTarget)}
+                  color={activityFilter === 'all' ? 'inherit' : 'primary'}
+                >
+                  {activityFilterLabel}
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<FilterListIcon />}
+                  onClick={handleOpenFilterMenu}
+                  color={filter === 'all' ? 'inherit' : 'primary'}
+                >
+                  {filterButtonLabel}
+                </Button>
+              </Stack>
+
+              <TextField
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={searchPlaceholder}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
             </Stack>
-          </Stack>
-
-          <TextField
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={searchPlaceholder}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  {visibleColumns.map((column) => (
-                    <TableCell
-                      key={column.id}
-                      align={column.align}
-                      sx={{ minWidth: column.minWidth }}
-                    >
-                      {column.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredVisitors.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={visibleColumnCount}>
-                      <Stack spacing={1} alignItems="center" sx={{ py: 5 }}>
-                        <Typography variant="subtitle1">{emptyTitle}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {emptyDescription}
-                        </Typography>
-                        <Button variant="contained" startIcon={<PersonAddAlt1Icon />}>
-                          {addVisitorLabel}
-                        </Button>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredVisitors.map((visitor) => (
-                    <TableRow key={visitor.id} hover>
-                      {visibleColumns.map((column) => (
-                        <TableCell
-                          key={column.id}
-                          align={column.align}
-                          sx={{ minWidth: column.minWidth }}
-                        >
-                          {column.render(visitor)}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Stack>
+          )}
+        />
       </Paper>
 
       <Menu
@@ -622,6 +618,27 @@ export default function VisitorsPage() {
             key={option.value}
             selected={filter === option.value}
             onClick={() => handleSelectFilter(option.value)}
+          >
+            {option.label}
+          </MenuItem>
+        ))}
+      </Menu>
+
+      <Menu
+        anchorEl={activityFilterAnchor}
+        open={Boolean(activityFilterAnchor)}
+        onClose={() => setActivityFilterAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        {activityFilterOptions.map((option) => (
+          <MenuItem
+            key={option.value}
+            selected={activityFilter === option.value}
+            onClick={() => {
+              setActivityFilter(option.value)
+              setActivityFilterAnchor(null)
+            }}
           >
             {option.label}
           </MenuItem>

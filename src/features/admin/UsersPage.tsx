@@ -14,12 +14,6 @@ import {
   MenuItem,
   Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Tooltip,
   Typography,
@@ -33,11 +27,8 @@ import ShieldIcon from '@mui/icons-material/Shield'
 import DomainIcon from '@mui/icons-material/Domain'
 import { useSiteStore } from '@store/site.store'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
-import { ColumnPreferencesButton } from '../../components/table/ColumnPreferencesButton'
-import {
-  useColumnPreferences,
-  type ColumnDefinition,
-} from '../../components/table/useColumnPreferences'
+import type { ColumnDefinition } from '../../components/table/useColumnPreferences'
+import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
 import { useTranslate } from '../../i18n/useTranslate'
 import {
   PATH_ROLE_SEGMENT_MAP,
@@ -106,8 +97,12 @@ export default function UsersPage(): JSX.Element {
     const slug = params.get('site')
     return slug && slug !== 'all' ? slug : 'all'
   })
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'pending' | 'suspended'>(
+    'all',
+  )
   const [search, setSearch] = useState('')
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [statusAnchor, setStatusAnchor] = useState<null | HTMLElement>(null)
 
   useEffect(() => {
     if (sites.length === 0) {
@@ -265,6 +260,9 @@ export default function UsersPage(): JSX.Element {
         const hasSite = user.sites.some((site) => site.slug === activeSiteSlug)
         if (!hasSite) return false
       }
+      if (statusFilter !== 'all' && user.status !== statusFilter) {
+        return false
+      }
       if (!lower) return true
       return (
         user.name.toLowerCase().includes(lower) ||
@@ -272,7 +270,7 @@ export default function UsersPage(): JSX.Element {
         user.sites.some((site) => site.name.toLowerCase().includes(lower))
       )
     })
-  }, [activeSiteSlug, effectiveFilter, search])
+  }, [activeSiteSlug, effectiveFilter, search, statusFilter])
 
   const selectedSite = useMemo(() => {
     if (derivedSiteSlug) {
@@ -290,6 +288,13 @@ export default function UsersPage(): JSX.Element {
     ? activeMeta.inviteCtaForSite(filteredSiteName)
     : activeMeta.inviteCta
   const filterLabel = filterLabels[effectiveFilter]
+  const statusFilterLabel =
+    statusFilter === 'all'
+      ? t('usersPage.statusFilter.all', {
+          lng: language,
+          defaultValue: 'All statuses',
+        })
+      : statusLabels[statusFilter]
 
   const buildDetailUrl = useCallback(
     (user: UserRecord) => {
@@ -324,6 +329,19 @@ export default function UsersPage(): JSX.Element {
   const handleSelectRole = (value: RoleFilter) => {
     setRoleFilter(value)
     handleCloseFilter()
+  }
+
+  const handleOpenStatusFilter = (event: MouseEvent<HTMLButtonElement>) => {
+    setStatusAnchor(event.currentTarget)
+  }
+
+  const handleCloseStatusFilter = () => {
+    setStatusAnchor(null)
+  }
+
+  const handleSelectStatus = (value: 'all' | 'active' | 'pending' | 'suspended') => {
+    setStatusFilter(value)
+    handleCloseStatusFilter()
   }
 
   const [rowMenu, setRowMenu] = useState<{ anchor: HTMLElement | null; user?: UserRecord }>({
@@ -531,17 +549,6 @@ export default function UsersPage(): JSX.Element {
     t,
   ])
 
-  const {
-    orderedColumns,
-    visibleColumns,
-    hiddenColumns,
-    toggleColumnVisibility,
-    moveColumn,
-    resetColumns,
-  } = useColumnPreferences<UserRecord>('hex:columns:users', columnDefs)
-
-  const visibleColumnCount = visibleColumns.length || 1
-
   return (
     <Stack spacing={3}>
       {isSiteContext && activeSite ? (
@@ -572,149 +579,130 @@ export default function UsersPage(): JSX.Element {
       ) : null}
 
       <Paper sx={{ p: 3, borderRadius: 3 }}>
-        <Stack spacing={3}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            flexWrap="wrap"
-            gap={2}
-          >
-            <Box>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Typography variant="h5" fontWeight={600}>
-                  {activeMeta.title}
-                </Typography>
-                <Chip
-                  label={
-                    filteredSiteName ??
-                    t('usersPage.chip.enterprise', {
-                      lng: language,
-                      defaultValue: 'Enterprise',
-                    })
-                  }
-                  size="small"
-                  color={isSiteContext || siteFilter !== 'all' ? 'secondary' : 'primary'}
-                />
-              </Stack>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                {activeMeta.description}
-              </Typography>
-            </Box>
-            <Stack direction="row" spacing={1} alignItems="center">
-              {!isSiteContext ? (
-                <TextField
-                  select
-                  size="small"
-                  label={t('usersPage.siteSelector.label', {
-                    lng: language,
-                    defaultValue: 'Site',
-                  })}
-                  value={siteFilter}
-                  onChange={(event) => setSiteFilter(event.target.value)}
-                  disabled={Boolean(lockedSiteFilter) || sites.length === 0}
-                  sx={{ minWidth: 200 }}
-                >
-                  <MenuItem value="all">
-                    {t('usersPage.siteSelector.all', {
-                      lng: language,
-                      defaultValue: 'All sites',
-                    })}
-                  </MenuItem>
-                  {sites.map((site) => (
-                    <MenuItem key={site.slug} value={site.slug}>
-                      {site.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              ) : null}
-              <ColumnPreferencesButton
-                columns={orderedColumns}
-                hiddenColumns={hiddenColumns}
-                onToggleColumn={toggleColumnVisibility}
-                onMoveColumn={moveColumn}
-                onReset={resetColumns}
-              />
-              <Button
-                variant="outlined"
-                startIcon={<FilterListIcon />}
-                onClick={handleOpenFilter}
-                color={effectiveFilter === 'all' ? 'inherit' : 'primary'}
-                disabled={Boolean(lockedRoleFilter)}
-              >
-                {filterLabel}
-              </Button>
+        <ConfigurableTable<UserRecord>
+          storageKey="hex:columns:users"
+          columns={columnDefs}
+          rows={filteredUsers}
+          getRowId={(user) => user.id}
+          size="small"
+          emptyState={{
+            title: activeMeta.emptyTitle,
+            description: activeMeta.emptyDescription,
+            action: (
               <Button variant="contained" startIcon={<PersonAddAltIcon />}>
                 {inviteCopy}
               </Button>
+            ),
+          }}
+          renderToolbar={({ ColumnPreferencesTrigger }) => (
+            <Stack spacing={3}>
+              <Stack
+                direction="row"
+                alignItems="flex-start"
+                justifyContent="space-between"
+                flexWrap="wrap"
+                gap={2}
+              >
+                <Box sx={{ flex: '1 1 260px' }}>
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <Typography variant="h5" fontWeight={600}>
+                      {activeMeta.title}
+                    </Typography>
+                    <Chip
+                      label={
+                        filteredSiteName ??
+                        t('usersPage.chip.enterprise', {
+                          lng: language,
+                          defaultValue: 'Enterprise',
+                        })
+                      }
+                      size="small"
+                      color={isSiteContext || siteFilter !== 'all' ? 'secondary' : 'primary'}
+                    />
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                    {activeMeta.description}
+                  </Typography>
+                </Box>
+                <Box sx={{ flexShrink: 0 }}>
+                  <Button variant="contained" startIcon={<PersonAddAltIcon />}>
+                    {inviteCopy}
+                  </Button>
+                </Box>
+              </Stack>
+
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                flexWrap="wrap"
+                rowGap={1}
+                sx={{ width: '100%' }}
+              >
+                {!isSiteContext ? (
+                  <TextField
+                    select
+                    size="small"
+                    label={t('usersPage.siteSelector.label', {
+                      lng: language,
+                      defaultValue: 'Site',
+                    })}
+                    value={siteFilter}
+                    onChange={(event) => setSiteFilter(event.target.value)}
+                    disabled={Boolean(lockedSiteFilter) || sites.length === 0}
+                    sx={{ minWidth: 200 }}
+                  >
+                    <MenuItem value="all">
+                      {t('usersPage.siteSelector.all', {
+                        lng: language,
+                        defaultValue: 'All sites',
+                      })}
+                    </MenuItem>
+                    {sites.map((site) => (
+                      <MenuItem key={site.slug} value={site.slug}>
+                        {site.name}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                ) : null}
+                {ColumnPreferencesTrigger}
+                <Button
+                  variant="outlined"
+                  startIcon={<ManageAccountsIcon fontSize="small" />}
+                  onClick={handleOpenStatusFilter}
+                  color={statusFilter === 'all' ? 'inherit' : 'primary'}
+                >
+                  {statusFilterLabel}
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<FilterListIcon />}
+                  onClick={handleOpenFilter}
+                  color={effectiveFilter === 'all' ? 'inherit' : 'primary'}
+                  disabled={Boolean(lockedRoleFilter)}
+                >
+                  {filterLabel}
+                </Button>
+              </Stack>
+
+              <TextField
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={t('usersPage.search.placeholder', {
+                  lng: language,
+                  defaultValue: 'Search by name, email, or site',
+                })}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
             </Stack>
-          </Stack>
-
-          <TextField
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={t('usersPage.search.placeholder', {
-              lng: language,
-              defaultValue: 'Search by name, email, or site',
-            })}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  {visibleColumns.map((column) => (
-                    <TableCell
-                      key={column.id}
-                      align={column.align}
-                      sx={{ minWidth: column.minWidth }}
-                    >
-                      {column.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredUsers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={visibleColumnCount}>
-                      <Stack spacing={1} alignItems="center" sx={{ py: 5 }}>
-                        <Typography variant="subtitle1">{activeMeta.emptyTitle}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {activeMeta.emptyDescription}
-                        </Typography>
-                        <Button variant="contained" startIcon={<PersonAddAltIcon />}>
-                          {inviteCopy}
-                        </Button>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <TableRow key={user.id} hover>
-                      {visibleColumns.map((column) => (
-                        <TableCell
-                          key={column.id}
-                          align={column.align}
-                          sx={{ minWidth: column.minWidth }}
-                        >
-                          {column.render(user)}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Stack>
+          )}
+        />
       </Paper>
 
       <Menu
@@ -754,6 +742,37 @@ export default function UsersPage(): JSX.Element {
           onClick={() => handleSelectRole('resident')}
         >
           {filterLabels.resident}
+        </MenuItem>
+      </Menu>
+
+      <Menu
+        anchorEl={statusAnchor}
+        open={Boolean(statusAnchor)}
+        onClose={handleCloseStatusFilter}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <MenuItem selected={statusFilter === 'all'} onClick={() => handleSelectStatus('all')}>
+          {t('usersPage.statusFilter.all', {
+            lng: language,
+            defaultValue: 'All statuses',
+          })}
+        </MenuItem>
+        <Divider sx={{ my: 0.5 }} />
+        <MenuItem selected={statusFilter === 'active'} onClick={() => handleSelectStatus('active')}>
+          {statusLabels.active}
+        </MenuItem>
+        <MenuItem
+          selected={statusFilter === 'pending'}
+          onClick={() => handleSelectStatus('pending')}
+        >
+          {statusLabels.pending}
+        </MenuItem>
+        <MenuItem
+          selected={statusFilter === 'suspended'}
+          onClick={() => handleSelectStatus('suspended')}
+        >
+          {statusLabels.suspended}
         </MenuItem>
       </Menu>
     </Stack>

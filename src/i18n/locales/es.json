@@ -930,6 +930,9 @@
     "search": {
       "placeholder": "Buscar por nombre, correo o sitio"
     },
+    "statusFilter": {
+      "all": "Todos los estados"
+    },
     "siteSelector": {
       "label": "Sitio",
       "all": "Todos los sitios"
@@ -1296,6 +1299,12 @@
       "delivery": "Entregas",
       "event": "Eventos"
     },
+    "timeFilters": {
+      "all": "Cualquier fecha",
+      "today": "Llegan hoy",
+      "upcoming": "Visitas próximas",
+      "past": "Visitas pasadas"
+    },
     "statuses": {
       "approved": "Aprobada",
       "pending": "Pendiente",
@@ -1353,7 +1362,13 @@
       "resident": "Vehículos de residentes",
       "visitor": "Vehículos de visitantes",
       "service": "Proveedores de servicio",
-      "flagged": "Marcados para revisión"
+      "flagged": "Marcados para revisión",
+      "active": "Permisos activos",
+      "expired": "Permisos vencidos",
+      "highPasses": "Alto uso del kiosco"
+    },
+    "statusFilter": {
+      "all": "Cualquier estado"
     },
     "usage": {
       "resident": "Residente",
@@ -1536,7 +1551,9 @@
       "all": "Todas las residencias",
       "occupied": "Ocupadas",
       "vacant": "Desocupadas",
-      "maintenance": "En mantenimiento"
+      "maintenance": "En mantenimiento",
+      "largeLayout": "Distribuciones amplias (3+ recámaras)",
+      "noResidents": "Sin residentes registrados"
     },
     "types": {
       "tower": "Torre",
@@ -1608,7 +1625,14 @@
       "blocked": "Bloqueados",
       "family": "Familia y amigos",
       "vendor": "Proveedores",
-      "staff": "Personal y contratistas"
+      "staff": "Personal y contratistas",
+      "highVisits": "Visitantes frecuentes",
+      "inactive": "Inactivos (60+ días)"
+    },
+    "activityFilters": {
+      "all": "Cualquier actividad",
+      "highVisits": "Visitantes frecuentes",
+      "inactive": "Inactivos (60+ días)"
     },
     "categories": {
       "family": "Familia y amigos",

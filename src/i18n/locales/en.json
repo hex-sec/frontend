@@ -930,6 +930,9 @@
     "search": {
       "placeholder": "Search by name, email, or site"
     },
+    "statusFilter": {
+      "all": "All statuses"
+    },
     "siteSelector": {
       "label": "Site",
       "all": "All sites"
@@ -1296,6 +1299,12 @@
       "delivery": "Deliveries",
       "event": "Events"
     },
+    "timeFilters": {
+      "all": "Any date",
+      "today": "Arriving today",
+      "upcoming": "Upcoming visits",
+      "past": "Past visits"
+    },
     "statuses": {
       "approved": "Approved",
       "pending": "Pending",
@@ -1353,7 +1362,13 @@
       "resident": "Resident vehicles",
       "visitor": "Visitor vehicles",
       "service": "Service vendors",
-      "flagged": "Flagged for review"
+      "flagged": "Flagged for review",
+      "active": "Active permits",
+      "expired": "Expired permits",
+      "highPasses": "High kiosk usage"
+    },
+    "statusFilter": {
+      "all": "Any status"
     },
     "usage": {
       "resident": "Resident",
@@ -1536,7 +1551,9 @@
       "all": "All residences",
       "occupied": "Occupied",
       "vacant": "Vacant",
-      "maintenance": "Under maintenance"
+      "maintenance": "Under maintenance",
+      "largeLayout": "Large layouts (3+ BR)",
+      "noResidents": "No residents on file"
     },
     "types": {
       "tower": "High-rise",
@@ -1608,7 +1625,14 @@
       "blocked": "Blocked",
       "family": "Family & friends",
       "vendor": "Vendors",
-      "staff": "Staff & contractors"
+      "staff": "Staff & contractors",
+      "highVisits": "Frequent visitors",
+      "inactive": "Inactive (60+ days)"
+    },
+    "activityFilters": {
+      "all": "Any activity",
+      "highVisits": "Frequent visitors",
+      "inactive": "Inactive (60+ days)"
     },
     "categories": {
       "family": "Family & friends",

@@ -5,19 +5,15 @@ import {
   Box,
   Button,
   Chip,
+  FormControlLabel,
+  InputAdornment,
   Menu,
   MenuItem,
   Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Switch,
   TextField,
   Typography,
-  InputAdornment,
 } from '@mui/material'
 import HomeWorkIcon from '@mui/icons-material/HomeWork'
 import MapsHomeWorkIcon from '@mui/icons-material/MapsHomeWork'
@@ -29,11 +25,8 @@ import SearchIcon from '@mui/icons-material/Search'
 import AddHomeWorkIcon from '@mui/icons-material/AddHomeWork'
 import SubjectIcon from '@mui/icons-material/Subject'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
-import { ColumnPreferencesButton } from '../../components/table/ColumnPreferencesButton'
-import {
-  useColumnPreferences,
-  type ColumnDefinition,
-} from '../../components/table/useColumnPreferences'
+import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
+import { type ColumnDefinition } from '../../components/table/useColumnPreferences'
 import { useTranslate } from '@i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
 
@@ -234,12 +227,22 @@ export default function ResidencesPage() {
     'Residences are scoped to individual communities. Choose a site from the workspace switcher or open a site detail page to access unit data.',
   )
   const browseSitesLabel = translate('residencesPage.actions.browseSites', 'Browse sites')
+  const largeLayoutToggleLabel = translate(
+    'residencesPage.filters.largeLayout',
+    'Large layouts (3+ BR)',
+  )
+  const noResidentsToggleLabel = translate(
+    'residencesPage.filters.noResidents',
+    'No residents on file',
+  )
 
   const activeSiteName = activeSite?.name ?? derivedSiteSlug ?? null
 
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<ResidenceFilter>('all')
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
+  const [showLargeLayoutsOnly, setShowLargeLayoutsOnly] = useState(false)
+  const [showUnassignedResidencesOnly, setShowUnassignedResidencesOnly] = useState(false)
 
   const filterButtonLabel = useMemo(() => {
     return (
@@ -255,7 +258,15 @@ export default function ResidencesPage() {
       if (derivedSiteSlug && residence.siteSlug !== derivedSiteSlug) {
         return false
       }
-      if (filter !== 'all' && residence.status !== filter) {
+      if (filter === 'occupied' || filter === 'vacant' || filter === 'maintenance') {
+        if (residence.status !== filter) {
+          return false
+        }
+      }
+      if (showLargeLayoutsOnly && residence.bedrooms < 3 && residence.areaSqFt < 2000) {
+        return false
+      }
+      if (showUnassignedResidencesOnly && residence.residents.length > 0) {
         return false
       }
       if (!needle) return true
@@ -266,7 +277,7 @@ export default function ResidencesPage() {
         residentsJoined.includes(needle)
       )
     })
-  }, [derivedSiteSlug, filter, search])
+  }, [derivedSiteSlug, filter, search, showLargeLayoutsOnly, showUnassignedResidencesOnly])
 
   const handleOpenFilterMenu = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     setFilterAnchor(event.currentTarget)
@@ -408,15 +419,6 @@ export default function ResidencesPage() {
     typeMeta,
   ])
 
-  const {
-    orderedColumns,
-    visibleColumns,
-    hiddenColumns,
-    toggleColumnVisibility,
-    moveColumn,
-    resetColumns,
-  } = useColumnPreferences<ResidenceRecord>('hex:columns:residences', columnDefs)
-
   return (
     <Stack spacing={3}>
       {isSiteContext && activeSiteName ? (
@@ -442,112 +444,107 @@ export default function ResidencesPage() {
       {isSiteContext ? (
         <>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Stack spacing={3}>
-              <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                flexWrap="wrap"
-                gap={2}
-              >
-                <Box>
-                  <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Typography variant="h5" fontWeight={600}>
-                      {residencesTitle}
-                    </Typography>
-                    {isSiteContext && activeSiteName ? (
-                      <Chip label={activeSiteName} size="small" color="secondary" />
-                    ) : (
-                      <Chip label={enterpriseChipLabel} size="small" color="primary" />
-                    )}
-                  </Stack>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    {residencesDescription}
-                  </Typography>
-                </Box>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <ColumnPreferencesButton
-                    columns={orderedColumns}
-                    hiddenColumns={hiddenColumns}
-                    onToggleColumn={toggleColumnVisibility}
-                    onMoveColumn={moveColumn}
-                    onReset={resetColumns}
-                  />
-                  <Button
-                    variant="outlined"
-                    onClick={handleOpenFilterMenu}
-                    color={filter === 'all' ? 'inherit' : 'primary'}
-                  >
-                    {filterButtonLabel}
-                  </Button>
+            <ConfigurableTable<ResidenceRecord>
+              storageKey="hex:columns:residences"
+              columns={columnDefs}
+              rows={filteredResidences}
+              getRowId={(residence) => residence.id}
+              size="small"
+              emptyState={{
+                title: tableEmptyTitle,
+                description: tableEmptyDescription,
+                action: (
                   <Button variant="contained" startIcon={<HomeWorkIcon />}>
                     {addResidenceLabel}
                   </Button>
+                ),
+              }}
+              renderToolbar={({ ColumnPreferencesTrigger }) => (
+                <Stack spacing={3}>
+                  <Stack
+                    direction="row"
+                    alignItems="flex-start"
+                    justifyContent="space-between"
+                    flexWrap="wrap"
+                    gap={2}
+                  >
+                    <Box sx={{ flex: '1 1 240px' }}>
+                      <Stack direction="row" alignItems="center" spacing={1.5}>
+                        <Typography variant="h5" fontWeight={600}>
+                          {residencesTitle}
+                        </Typography>
+                        {isSiteContext && activeSiteName ? (
+                          <Chip label={activeSiteName} size="small" color="secondary" />
+                        ) : (
+                          <Chip label={enterpriseChipLabel} size="small" color="primary" />
+                        )}
+                      </Stack>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        {residencesDescription}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ flexShrink: 0 }}>
+                      <Button variant="contained" startIcon={<HomeWorkIcon />}>
+                        {addResidenceLabel}
+                      </Button>
+                    </Box>
+                  </Stack>
+
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    flexWrap="wrap"
+                    rowGap={1}
+                    sx={{ width: '100%' }}
+                  >
+                    {ColumnPreferencesTrigger}
+                    <Button
+                      variant="outlined"
+                      onClick={handleOpenFilterMenu}
+                      color={filter === 'all' ? 'inherit' : 'primary'}
+                    >
+                      {filterButtonLabel}
+                    </Button>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={showLargeLayoutsOnly}
+                          onChange={(event) => setShowLargeLayoutsOnly(event.target.checked)}
+                        />
+                      }
+                      label={largeLayoutToggleLabel}
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={showUnassignedResidencesOnly}
+                          onChange={(event) =>
+                            setShowUnassignedResidencesOnly(event.target.checked)
+                          }
+                        />
+                      }
+                      label={noResidentsToggleLabel}
+                    />
+                  </Stack>
+
+                  <TextField
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder={searchPlaceholder}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
                 </Stack>
-              </Stack>
-
-              <TextField
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={searchPlaceholder}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      {visibleColumns.map((column: ColumnDefinition<ResidenceRecord>) => (
-                        <TableCell
-                          key={column.id}
-                          align={column.align}
-                          sx={{ minWidth: column.minWidth }}
-                        >
-                          {column.label}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredResidences.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={visibleColumns.length || 1}>
-                          <Stack spacing={1} alignItems="center" sx={{ py: 5 }}>
-                            <Typography variant="subtitle1">{tableEmptyTitle}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {tableEmptyDescription}
-                            </Typography>
-                            <Button variant="contained" startIcon={<HomeWorkIcon />}>
-                              {addResidenceLabel}
-                            </Button>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredResidences.map((residence: ResidenceRecord) => (
-                        <TableRow key={residence.id} hover>
-                          {visibleColumns.map((column: ColumnDefinition<ResidenceRecord>) => (
-                            <TableCell
-                              key={column.id}
-                              align={column.align}
-                              sx={{ minWidth: column.minWidth }}
-                            >
-                              {column.render(residence)}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Stack>
+              )}
+            />
           </Paper>
 
           <Menu

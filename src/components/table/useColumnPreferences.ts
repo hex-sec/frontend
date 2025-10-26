@@ -16,7 +16,7 @@ export type ColumnPreferenceState = {
   hidden: string[]
 }
 
-type UseColumnPreferencesReturn<T> = {
+export type UseColumnPreferencesReturn<T> = {
   orderedColumns: ColumnDefinition<T>[]
   visibleColumns: ColumnDefinition<T>[]
   hiddenColumns: string[]

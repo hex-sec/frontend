@@ -10,12 +10,6 @@ import {
   MenuItem,
   Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Tooltip,
   Typography,
@@ -32,12 +26,10 @@ import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import PendingIcon from '@mui/icons-material/Pending'
+import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
-import {
-  useColumnPreferences,
-  type ColumnDefinition,
-} from '../../components/table/useColumnPreferences'
-import { ColumnPreferencesButton } from '../../components/table/ColumnPreferencesButton'
+import type { ColumnDefinition } from '../../components/table/useColumnPreferences'
+import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
 import { useI18nStore } from '@store/i18n.store'
 import { useTranslate } from '@i18n/useTranslate'
 
@@ -161,6 +153,20 @@ export default function VisitsPage() {
     [translate],
   )
 
+  const timeFilterOptions = useMemo(
+    () =>
+      [
+        { value: 'all', label: translate('visitsPage.timeFilters.all', 'Any date') },
+        { value: 'today', label: translate('visitsPage.timeFilters.today', 'Arriving today') },
+        {
+          value: 'upcoming',
+          label: translate('visitsPage.timeFilters.upcoming', 'Upcoming visits'),
+        },
+        { value: 'past', label: translate('visitsPage.timeFilters.past', 'Past visits') },
+      ] as const,
+    [translate],
+  )
+
   const columnLabels = useMemo(
     () => ({
       id: translate('visitsPage.table.columns.id', 'Visit ID'),
@@ -214,6 +220,8 @@ export default function VisitsPage() {
   const isSiteContext = Boolean(derivedSiteSlug)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<VisitFilter>('all')
+  const [timeFilterAnchor, setTimeFilterAnchor] = useState<HTMLElement | null>(null)
+  const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'upcoming' | 'past'>('all')
   const [rowMenu, setRowMenu] = useState<{ anchor: HTMLElement | null; visit?: VisitRecord }>({
     anchor: null,
     visit: undefined,
@@ -228,9 +236,23 @@ export default function VisitsPage() {
     )
   }, [filter, filterOptions, translate])
 
+  const timeFilterLabel = useMemo(() => {
+    return (
+      timeFilterOptions.find((option) => option.value === timeFilter)?.label ??
+      timeFilterOptions[0]?.label ??
+      translate('visitsPage.timeFilters.all', 'Any date')
+    )
+  }, [timeFilter, timeFilterOptions, translate])
+
   const filteredVisits = useMemo(() => {
     const lower = search.trim().toLowerCase()
+    const now = new Date()
+    const startOfToday = new Date(now)
+    startOfToday.setHours(0, 0, 0, 0)
+    const endOfToday = new Date(now)
+    endOfToday.setHours(23, 59, 59, 999)
     return MOCK_VISITS.filter((visit) => {
+      const scheduledAt = new Date(visit.scheduledFor)
       if (derivedSiteSlug && visit.siteSlug !== derivedSiteSlug) {
         return false
       }
@@ -238,6 +260,13 @@ export default function VisitsPage() {
         if (visit.status !== filter) return false
       } else if (filter === 'guest' || filter === 'delivery' || filter === 'event') {
         if (visit.type !== filter) return false
+      }
+      if (timeFilter === 'today') {
+        if (scheduledAt < startOfToday || scheduledAt > endOfToday) return false
+      } else if (timeFilter === 'upcoming') {
+        if (scheduledAt <= endOfToday) return false
+      } else if (timeFilter === 'past') {
+        if (scheduledAt >= startOfToday) return false
       }
       if (!lower) return true
       return (
@@ -248,7 +277,7 @@ export default function VisitsPage() {
         visit.hostUnit.toLowerCase().includes(lower)
       )
     })
-  }, [derivedSiteSlug, filter, search])
+  }, [derivedSiteSlug, filter, search, timeFilter])
 
   const handleOpenRowMenu = useCallback(
     (event: MouseEvent<HTMLButtonElement>, visit: VisitRecord) => {
@@ -448,16 +477,6 @@ export default function VisitsPage() {
     downloadBadgeLabel,
   ])
 
-  const {
-    orderedColumns,
-    visibleColumns,
-    hiddenColumns,
-    toggleColumnVisibility,
-    moveColumn,
-    resetColumns,
-  } = useColumnPreferences<VisitRecord>('hex:columns:visits', columnDefs)
-
-  const visibleColumnCount = visibleColumns.length || 1
   const activeSiteName = activeSite?.name ?? derivedSiteSlug ?? null
 
   return (
@@ -483,114 +502,116 @@ export default function VisitsPage() {
       )}
 
       <Paper sx={{ p: 3, borderRadius: 3 }}>
-        <Stack spacing={3}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            flexWrap="wrap"
-            gap={2}
-          >
-            <Box>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Typography variant="h5" fontWeight={600}>
-                  {visitsTitle}
-                </Typography>
-                {isSiteContext && activeSiteName ? (
-                  <Chip label={activeSiteName} size="small" color="secondary" />
-                ) : (
-                  <Chip label={enterpriseChipLabel} size="small" color="primary" />
-                )}
-              </Stack>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                {visitsDescription}
-              </Typography>
-            </Box>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <ColumnPreferencesButton
-                columns={orderedColumns}
-                hiddenColumns={hiddenColumns}
-                onToggleColumn={toggleColumnVisibility}
-                onMoveColumn={moveColumn}
-                onReset={resetColumns}
-              />
-              <Button
-                variant="outlined"
-                startIcon={<FilterListIcon />}
-                onClick={(event) => setRowMenu({ anchor: event.currentTarget, visit: undefined })}
-                color={filter === 'all' ? 'inherit' : 'primary'}
-              >
-                {filterButtonLabel}
-              </Button>
+        <ConfigurableTable<VisitRecord>
+          storageKey="hex:columns:visits"
+          columns={columnDefs}
+          rows={filteredVisits}
+          getRowId={(visit) => visit.id}
+          size="small"
+          emptyState={{
+            title: emptyStateTitle,
+            description: emptyStateDescription,
+            action: (
               <Button variant="contained" startIcon={<PersonAddAltIcon />}>
                 {createPassLabel}
               </Button>
+            ),
+          }}
+          renderToolbar={({ ColumnPreferencesTrigger }) => (
+            <Stack spacing={3}>
+              <Stack
+                direction="row"
+                alignItems="flex-start"
+                justifyContent="space-between"
+                flexWrap="wrap"
+                gap={2}
+              >
+                <Box sx={{ flex: '1 1 240px' }}>
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <Typography variant="h5" fontWeight={600}>
+                      {visitsTitle}
+                    </Typography>
+                    {isSiteContext && activeSiteName ? (
+                      <Chip label={activeSiteName} size="small" color="secondary" />
+                    ) : (
+                      <Chip label={enterpriseChipLabel} size="small" color="primary" />
+                    )}
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                    {visitsDescription}
+                  </Typography>
+                </Box>
+                <Box sx={{ flexShrink: 0 }}>
+                  <Button variant="contained" startIcon={<PersonAddAltIcon />}>
+                    {createPassLabel}
+                  </Button>
+                </Box>
+              </Stack>
+
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                flexWrap="wrap"
+                rowGap={1}
+                sx={{ width: '100%' }}
+              >
+                {ColumnPreferencesTrigger}
+                <Button
+                  variant="outlined"
+                  startIcon={<AccessTimeIcon />}
+                  onClick={(event) => setTimeFilterAnchor(event.currentTarget)}
+                  color={timeFilter === 'all' ? 'inherit' : 'primary'}
+                >
+                  {timeFilterLabel}
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<FilterListIcon />}
+                  onClick={(event) => setRowMenu({ anchor: event.currentTarget, visit: undefined })}
+                  color={filter === 'all' ? 'inherit' : 'primary'}
+                >
+                  {filterButtonLabel}
+                </Button>
+              </Stack>
+
+              <TextField
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={searchPlaceholder}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
             </Stack>
-          </Stack>
-
-          <TextField
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={searchPlaceholder}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  {visibleColumns.map((column) => (
-                    <TableCell
-                      key={column.id}
-                      align={column.align}
-                      sx={{ minWidth: column.minWidth }}
-                    >
-                      {column.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredVisits.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={visibleColumnCount}>
-                      <Stack spacing={1} alignItems="center" sx={{ py: 5 }}>
-                        <Typography variant="subtitle1">{emptyStateTitle}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {emptyStateDescription}
-                        </Typography>
-                        <Button variant="contained" startIcon={<PersonAddAltIcon />}>
-                          {createPassLabel}
-                        </Button>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredVisits.map((visit) => (
-                    <TableRow key={visit.id} hover>
-                      {visibleColumns.map((column) => (
-                        <TableCell
-                          key={column.id}
-                          align={column.align}
-                          sx={{ minWidth: column.minWidth }}
-                        >
-                          {column.render(visit)}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Stack>
+          )}
+        />
       </Paper>
+
+      <Menu
+        anchorEl={timeFilterAnchor}
+        open={Boolean(timeFilterAnchor)}
+        onClose={() => setTimeFilterAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        {timeFilterOptions.map((option) => (
+          <MenuItem
+            key={option.value}
+            selected={timeFilter === option.value}
+            onClick={() => {
+              setTimeFilter(option.value)
+              setTimeFilterAnchor(null)
+            }}
+          >
+            {option.label}
+          </MenuItem>
+        ))}
+      </Menu>
 
       <Menu
         anchorEl={rowMenu.anchor}

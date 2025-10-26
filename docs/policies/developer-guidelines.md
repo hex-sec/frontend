@@ -15,6 +15,7 @@ This document collects practical conventions for developers working on this repo
     - Run Prettier: `yarn format`
 - Documentation: Write a Javadoc-style block comment above every function detailing parameters, return shape, purpose, and control flow.
 - UI Components: New UI components must use the translation helpers and register keys in both `src/i18n/locales/en.json` and `src/i18n/locales/es.json`.
+- Dashboards: Follow the layout distribution, sticky sidebars, scroll behavior, query breakdown placement, and responsive Grid2 spans established in `src/features/admin/site-details/SiteDetailsPage.tsx` when building or updating dashboard experiences.
 
 ## i18n & UI
 
