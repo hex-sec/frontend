@@ -518,20 +518,30 @@ export default function SiteDetailsPage() {
         spacing={2}
         sx={{ mb: 3 }}
       >
-        <Stack spacing={1}>
+        <Stack spacing={1} sx={{ flex: 1 }}>
           <Box
             sx={{
               display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              alignItems: { xs: 'flex-start', sm: 'center' },
-              gap: { xs: 0.75, sm: 1 },
-              flexWrap: 'wrap',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 1,
+              width: '100%',
             }}
           >
-            <Typography variant="h4" fontWeight={600} sx={{ lineHeight: 1.2 }}>
+            <Typography
+              variant="h4"
+              fontWeight={600}
+              sx={{
+                lineHeight: 1.2,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                flex: 1,
+              }}
+            >
               {site.name}
             </Typography>
-            <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
+            <Stack direction="row" spacing={0.75} sx={{ flexShrink: 0 }}>
               <Chip label={planLabel} size="small" color="primary" />
               <Chip label={statusLabel} size="small" color={statusColor} />
             </Stack>

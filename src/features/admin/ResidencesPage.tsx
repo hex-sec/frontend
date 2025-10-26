@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Chip,
+  Divider,
   FormControlLabel,
   InputAdornment,
   Menu,
@@ -14,6 +15,8 @@ import {
   Switch,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import HomeWorkIcon from '@mui/icons-material/HomeWork'
 import MapsHomeWorkIcon from '@mui/icons-material/MapsHomeWork'
@@ -90,6 +93,8 @@ export default function ResidencesPage() {
   const { t } = useTranslate()
   const language = useI18nStore((state) => state.language) ?? 'en'
   const isSiteContext = Boolean(derivedSiteSlug)
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const translate = useMemo(
     () => (key: string, defaultValue: string, options?: Record<string, unknown>) =>
@@ -443,108 +448,204 @@ export default function ResidencesPage() {
 
       {isSiteContext ? (
         <>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <ConfigurableTable<ResidenceRecord>
-              storageKey="hex:columns:residences"
-              columns={columnDefs}
-              rows={filteredResidences}
-              getRowId={(residence) => residence.id}
-              size="small"
-              emptyState={{
-                title: tableEmptyTitle,
-                description: tableEmptyDescription,
-                action: (
-                  <Button variant="contained" startIcon={<HomeWorkIcon />}>
-                    {addResidenceLabel}
+          <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+            {isMobile ? (
+              <Stack spacing={2}>
+                {/* Mobile view with cards */}
+                <Stack spacing={2}>
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <Typography variant="h5" fontWeight={600}>
+                      {residencesTitle}
+                    </Typography>
+                    <Chip
+                      label={activeSiteName || enterpriseChipLabel}
+                      size="small"
+                      color="secondary"
+                    />
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary">
+                    {residencesDescription}
+                  </Typography>
+                </Stack>
+
+                <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                  <Button
+                    variant="outlined"
+                    onClick={handleOpenFilterMenu}
+                    color={filter === 'all' ? 'inherit' : 'primary'}
+                    fullWidth
+                  >
+                    {filterButtonLabel}
                   </Button>
-                ),
-              }}
-              renderToolbar={({ ColumnPreferencesTrigger }) => (
-                <Stack spacing={3}>
-                  <Stack
-                    direction="row"
-                    alignItems="flex-start"
-                    justifyContent="space-between"
-                    flexWrap="wrap"
-                    gap={2}
-                  >
-                    <Box sx={{ flex: '1 1 240px' }}>
-                      <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <Typography variant="h5" fontWeight={600}>
-                          {residencesTitle}
-                        </Typography>
-                        {isSiteContext && activeSiteName ? (
-                          <Chip label={activeSiteName} size="small" color="secondary" />
-                        ) : (
-                          <Chip label={enterpriseChipLabel} size="small" color="primary" />
-                        )}
-                      </Stack>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                        {residencesDescription}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ flexShrink: 0 }}>
-                      <Button variant="contained" startIcon={<HomeWorkIcon />}>
-                        {addResidenceLabel}
-                      </Button>
-                    </Box>
-                  </Stack>
-
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    flexWrap="wrap"
-                    rowGap={1}
-                    sx={{ width: '100%' }}
-                  >
-                    {ColumnPreferencesTrigger}
-                    <Button
-                      variant="outlined"
-                      onClick={handleOpenFilterMenu}
-                      color={filter === 'all' ? 'inherit' : 'primary'}
-                    >
-                      {filterButtonLabel}
-                    </Button>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={showLargeLayoutsOnly}
-                          onChange={(event) => setShowLargeLayoutsOnly(event.target.checked)}
-                        />
-                      }
-                      label={largeLayoutToggleLabel}
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size="small"
-                          checked={showUnassignedResidencesOnly}
-                          onChange={(event) =>
-                            setShowUnassignedResidencesOnly(event.target.checked)
-                          }
-                        />
-                      }
-                      label={noResidentsToggleLabel}
-                    />
-                  </Stack>
-
-                  <TextField
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder={searchPlaceholder}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon fontSize="small" />
-                        </InputAdornment>
-                      ),
-                    }}
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        size="small"
+                        checked={showLargeLayoutsOnly}
+                        onChange={(event) => setShowLargeLayoutsOnly(event.target.checked)}
+                      />
+                    }
+                    label={largeLayoutToggleLabel}
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        size="small"
+                        checked={showUnassignedResidencesOnly}
+                        onChange={(event) => setShowUnassignedResidencesOnly(event.target.checked)}
+                      />
+                    }
+                    label={noResidentsToggleLabel}
                   />
                 </Stack>
-              )}
-            />
+
+                <TextField
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder={searchPlaceholder}
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                {filteredResidences.length === 0 ? (
+                  <Stack spacing={2} alignItems="center" sx={{ py: 5 }}>
+                    <Typography variant="subtitle1">{tableEmptyTitle}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {tableEmptyDescription}
+                    </Typography>
+                    <Button variant="contained" startIcon={<HomeWorkIcon />}>
+                      {addResidenceLabel}
+                    </Button>
+                  </Stack>
+                ) : (
+                  <Stack spacing={2}>
+                    {filteredResidences.map((residence) => (
+                      <ResidenceCard
+                        key={residence.id}
+                        residence={residence}
+                        typeMeta={typeMeta}
+                        statusMeta={statusMeta}
+                        translate={translate}
+                        residentsEmptyLabel={residentsEmptyLabel}
+                        layoutBedroomsNA={layoutBedroomsNA}
+                        numberFormatter={numberFormatter}
+                        inspectionCompliantLabel={inspectionCompliantLabel}
+                        inspectionFollowUpLabel={inspectionFollowUpLabel}
+                        dateFormatter={dateFormatter}
+                      />
+                    ))}
+                  </Stack>
+                )}
+              </Stack>
+            ) : (
+              <ConfigurableTable<ResidenceRecord>
+                storageKey="hex:columns:residences"
+                columns={columnDefs}
+                rows={filteredResidences}
+                getRowId={(residence) => residence.id}
+                size="small"
+                emptyState={{
+                  title: tableEmptyTitle,
+                  description: tableEmptyDescription,
+                  action: (
+                    <Button variant="contained" startIcon={<HomeWorkIcon />}>
+                      {addResidenceLabel}
+                    </Button>
+                  ),
+                }}
+                renderToolbar={({ ColumnPreferencesTrigger }) => (
+                  <Stack spacing={3}>
+                    <Stack
+                      direction="row"
+                      alignItems="flex-start"
+                      justifyContent="space-between"
+                      flexWrap="wrap"
+                      gap={2}
+                    >
+                      <Box sx={{ flex: '1 1 240px' }}>
+                        <Stack direction="row" alignItems="center" spacing={1.5}>
+                          <Typography variant="h5" fontWeight={600}>
+                            {residencesTitle}
+                          </Typography>
+                          {isSiteContext && activeSiteName ? (
+                            <Chip label={activeSiteName} size="small" color="secondary" />
+                          ) : (
+                            <Chip label={enterpriseChipLabel} size="small" color="primary" />
+                          )}
+                        </Stack>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                          {residencesDescription}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ flexShrink: 0 }}>
+                        <Button variant="contained" startIcon={<HomeWorkIcon />}>
+                          {addResidenceLabel}
+                        </Button>
+                      </Box>
+                    </Stack>
+
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={1}
+                      flexWrap="wrap"
+                      rowGap={1}
+                      sx={{ width: '100%' }}
+                    >
+                      {ColumnPreferencesTrigger}
+                      <Button
+                        variant="outlined"
+                        onClick={handleOpenFilterMenu}
+                        color={filter === 'all' ? 'inherit' : 'primary'}
+                      >
+                        {filterButtonLabel}
+                      </Button>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            size="small"
+                            checked={showLargeLayoutsOnly}
+                            onChange={(event) => setShowLargeLayoutsOnly(event.target.checked)}
+                          />
+                        }
+                        label={largeLayoutToggleLabel}
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            size="small"
+                            checked={showUnassignedResidencesOnly}
+                            onChange={(event) =>
+                              setShowUnassignedResidencesOnly(event.target.checked)
+                            }
+                          />
+                        }
+                        label={noResidentsToggleLabel}
+                      />
+                    </Stack>
+
+                    <TextField
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder={searchPlaceholder}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchIcon fontSize="small" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Stack>
+                )}
+              />
+            )}
           </Paper>
 
           <Menu
@@ -577,5 +678,129 @@ export default function ResidencesPage() {
         </Paper>
       )}
     </Stack>
+  )
+}
+
+function ResidenceCard({
+  residence,
+  typeMeta,
+  statusMeta,
+  translate,
+  residentsEmptyLabel,
+  layoutBedroomsNA,
+  numberFormatter,
+  inspectionCompliantLabel,
+  inspectionFollowUpLabel,
+  dateFormatter,
+}: {
+  residence: ResidenceRecord
+  typeMeta: Record<ResidenceType, { label: string; Icon: typeof HomeWorkIcon }>
+  statusMeta: Record<
+    ResidenceStatus,
+    { label: string; color: 'success' | 'default' | 'warning'; Icon: typeof CheckCircleOutlineIcon }
+  >
+  translate: (key: string, defaultValue: string, options?: Record<string, unknown>) => string
+  residentsEmptyLabel: string
+  layoutBedroomsNA: string
+  numberFormatter: Intl.NumberFormat
+  inspectionCompliantLabel: string
+  inspectionFollowUpLabel: string
+  dateFormatter: Intl.DateTimeFormat
+}) {
+  const typeIcon = typeMeta[residence.type].Icon
+  const statusChip = statusMeta[residence.status]
+  const TypeIcon = typeIcon
+
+  return (
+    <Paper
+      sx={(theme) => ({
+        p: 2,
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        transition: theme.transitions.create(['box-shadow', 'transform'], { duration: 180 }),
+        '&:hover': {
+          boxShadow: theme.shadows[4],
+        },
+      })}
+    >
+      <Stack spacing={2}>
+        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
+          <Stack spacing={0.5} sx={{ flex: 1 }}>
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              <TypeIcon fontSize="small" color="action" />
+              <Typography variant="subtitle1" fontWeight={600}>
+                {residence.label}
+              </Typography>
+            </Stack>
+            <Typography variant="caption" color="text.secondary">
+              {translate('residencesPage.table.idPrefix', 'ID {{id}}', { id: residence.id })}
+            </Typography>
+          </Stack>
+          <Chip
+            size="small"
+            color={statusChip.color}
+            icon={<statusChip.Icon fontSize="small" />}
+            label={statusChip.label}
+            variant={residence.status === 'vacant' ? 'outlined' : 'filled'}
+          />
+        </Stack>
+
+        <Divider />
+
+        <Stack spacing={1.5}>
+          <Stack spacing={0.75}>
+            <Typography variant="caption" color="text.secondary">
+              {translate('residencesPage.table.columns.residents', 'Residents')}
+            </Typography>
+            {residence.residents.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                {residentsEmptyLabel}
+              </Typography>
+            ) : (
+              residence.residents.map((name) => (
+                <Typography key={name} variant="body2">
+                  {name}
+                </Typography>
+              ))
+            )}
+          </Stack>
+
+          <Stack direction="row" justifyContent="space-between" spacing={2}>
+            <Stack spacing={0.5}>
+              <Typography variant="caption" color="text.secondary">
+                {translate('residencesPage.table.columns.layout', 'Layout')}
+              </Typography>
+              <Typography variant="body2" fontWeight={600}>
+                {residence.bedrooms > 0
+                  ? translate('residencesPage.layout.bedroomsValue', '{{count}} BR', {
+                      count: residence.bedrooms,
+                    })
+                  : layoutBedroomsNA}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {translate('residencesPage.layout.area', '{{value}} sq ft', {
+                  value: numberFormatter.format(residence.areaSqFt),
+                })}
+              </Typography>
+            </Stack>
+
+            <Stack spacing={0.5} alignItems="flex-end">
+              <Typography variant="caption" color="text.secondary">
+                {translate('residencesPage.table.columns.inspection', 'Last inspection')}
+              </Typography>
+              <Typography variant="body2" fontWeight={600}>
+                {dateFormatter.format(new Date(residence.lastInspection))}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {residence.status === 'maintenance'
+                  ? inspectionFollowUpLabel
+                  : inspectionCompliantLabel}
+              </Typography>
+            </Stack>
+          </Stack>
+        </Stack>
+      </Stack>
+    </Paper>
   )
 }

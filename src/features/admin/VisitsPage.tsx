@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Chip,
+  Divider,
   IconButton,
   InputAdornment,
   Menu,
@@ -13,6 +14,8 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import AddBusinessIcon from '@mui/icons-material/AddBusiness'
 import FilterListIcon from '@mui/icons-material/FilterList'
@@ -79,6 +82,8 @@ export default function VisitsPage() {
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
   const { t } = useTranslate()
   const language = useI18nStore((s) => s.language) ?? 'en'
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const translate = useMemo(
     () => (key: string, defaultValue: string, options?: Record<string, unknown>) =>
@@ -501,95 +506,182 @@ export default function VisitsPage() {
         </Alert>
       )}
 
-      <Paper sx={{ p: 3, borderRadius: 3 }}>
-        <ConfigurableTable<VisitRecord>
-          storageKey="hex:columns:visits"
-          columns={columnDefs}
-          rows={filteredVisits}
-          getRowId={(visit) => visit.id}
-          size="small"
-          emptyState={{
-            title: emptyStateTitle,
-            description: emptyStateDescription,
-            action: (
-              <Button variant="contained" startIcon={<PersonAddAltIcon />}>
-                {createPassLabel}
-              </Button>
-            ),
-          }}
-          renderToolbar={({ ColumnPreferencesTrigger }) => (
-            <Stack spacing={3}>
-              <Stack
-                direction="row"
-                alignItems="flex-start"
-                justifyContent="space-between"
-                flexWrap="wrap"
-                gap={2}
-              >
-                <Box sx={{ flex: '1 1 240px' }}>
-                  <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Typography variant="h5" fontWeight={600}>
-                      {visitsTitle}
-                    </Typography>
-                    {isSiteContext && activeSiteName ? (
-                      <Chip label={activeSiteName} size="small" color="secondary" />
-                    ) : (
-                      <Chip label={enterpriseChipLabel} size="small" color="primary" />
-                    )}
-                  </Stack>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    {visitsDescription}
-                  </Typography>
-                </Box>
-                <Box sx={{ flexShrink: 0 }}>
-                  <Button variant="contained" startIcon={<PersonAddAltIcon />}>
-                    {createPassLabel}
-                  </Button>
-                </Box>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+        {isMobile ? (
+          <Stack spacing={2}>
+            <Stack spacing={2}>
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Typography variant="h5" fontWeight={600}>
+                  {visitsTitle}
+                </Typography>
+                <Chip
+                  label={isSiteContext && activeSiteName ? activeSiteName : enterpriseChipLabel}
+                  size="small"
+                  color="secondary"
+                />
               </Stack>
-
-              <Stack
-                direction="row"
-                alignItems="center"
-                spacing={1}
-                flexWrap="wrap"
-                rowGap={1}
-                sx={{ width: '100%' }}
-              >
-                {ColumnPreferencesTrigger}
-                <Button
-                  variant="outlined"
-                  startIcon={<AccessTimeIcon />}
-                  onClick={(event) => setTimeFilterAnchor(event.currentTarget)}
-                  color={timeFilter === 'all' ? 'inherit' : 'primary'}
-                >
-                  {timeFilterLabel}
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<FilterListIcon />}
-                  onClick={(event) => setRowMenu({ anchor: event.currentTarget, visit: undefined })}
-                  color={filter === 'all' ? 'inherit' : 'primary'}
-                >
-                  {filterButtonLabel}
-                </Button>
-              </Stack>
-
-              <TextField
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={searchPlaceholder}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
+              <Typography variant="body2" color="text.secondary">
+                {visitsDescription}
+              </Typography>
             </Stack>
-          )}
-        />
+
+            <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+              <Button
+                variant="outlined"
+                startIcon={<AccessTimeIcon />}
+                onClick={(event) => setTimeFilterAnchor(event.currentTarget)}
+                color={timeFilter === 'all' ? 'inherit' : 'primary'}
+                fullWidth
+              >
+                {timeFilterLabel}
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<FilterListIcon />}
+                onClick={(event) => setRowMenu({ anchor: event.currentTarget, visit: undefined })}
+                color={filter === 'all' ? 'inherit' : 'primary'}
+                fullWidth
+              >
+                {filterButtonLabel}
+              </Button>
+            </Stack>
+
+            <TextField
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={searchPlaceholder}
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            {filteredVisits.length === 0 ? (
+              <Stack spacing={2} alignItems="center" sx={{ py: 5 }}>
+                <Typography variant="subtitle1">{emptyStateTitle}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {emptyStateDescription}
+                </Typography>
+                <Button variant="contained" startIcon={<PersonAddAltIcon />}>
+                  {createPassLabel}
+                </Button>
+              </Stack>
+            ) : (
+              <Stack spacing={2}>
+                {filteredVisits.map((visit) => (
+                  <VisitCard
+                    key={visit.id}
+                    visit={visit}
+                    statusMeta={statusMeta}
+                    typeMeta={typeMeta}
+                    translate={translate}
+                    dateFormatter={dateFormatter}
+                    timeFormatter={timeFormatter}
+                    noPlateLabel={noPlateLabel}
+                    onOpenRowMenu={handleOpenRowMenu}
+                    onDownloadBadge={handleDownloadBadge}
+                    downloading={downloading}
+                  />
+                ))}
+              </Stack>
+            )}
+          </Stack>
+        ) : (
+          <ConfigurableTable<VisitRecord>
+            storageKey="hex:columns:visits"
+            columns={columnDefs}
+            rows={filteredVisits}
+            getRowId={(visit) => visit.id}
+            size="small"
+            emptyState={{
+              title: emptyStateTitle,
+              description: emptyStateDescription,
+              action: (
+                <Button variant="contained" startIcon={<PersonAddAltIcon />}>
+                  {createPassLabel}
+                </Button>
+              ),
+            }}
+            renderToolbar={({ ColumnPreferencesTrigger }) => (
+              <Stack spacing={3}>
+                <Stack
+                  direction="row"
+                  alignItems="flex-start"
+                  justifyContent="space-between"
+                  flexWrap="wrap"
+                  gap={2}
+                >
+                  <Box sx={{ flex: '1 1 240px' }}>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                      <Typography variant="h5" fontWeight={600}>
+                        {visitsTitle}
+                      </Typography>
+                      {isSiteContext && activeSiteName ? (
+                        <Chip label={activeSiteName} size="small" color="secondary" />
+                      ) : (
+                        <Chip label={enterpriseChipLabel} size="small" color="primary" />
+                      )}
+                    </Stack>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      {visitsDescription}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ flexShrink: 0 }}>
+                    <Button variant="contained" startIcon={<PersonAddAltIcon />}>
+                      {createPassLabel}
+                    </Button>
+                  </Box>
+                </Stack>
+
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  flexWrap="wrap"
+                  rowGap={1}
+                  sx={{ width: '100%' }}
+                >
+                  {ColumnPreferencesTrigger}
+                  <Button
+                    variant="outlined"
+                    startIcon={<AccessTimeIcon />}
+                    onClick={(event) => setTimeFilterAnchor(event.currentTarget)}
+                    color={timeFilter === 'all' ? 'inherit' : 'primary'}
+                  >
+                    {timeFilterLabel}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<FilterListIcon />}
+                    onClick={(event) =>
+                      setRowMenu({ anchor: event.currentTarget, visit: undefined })
+                    }
+                    color={filter === 'all' ? 'inherit' : 'primary'}
+                  >
+                    {filterButtonLabel}
+                  </Button>
+                </Stack>
+
+                <TextField
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder={searchPlaceholder}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Stack>
+            )}
+          />
+        )}
       </Paper>
 
       <Menu
@@ -662,5 +754,168 @@ export default function VisitsPage() {
         )}
       </Menu>
     </Stack>
+  )
+}
+
+function VisitCard({
+  visit,
+  statusMeta,
+  typeMeta,
+  translate,
+  dateFormatter,
+  timeFormatter,
+  noPlateLabel,
+  onOpenRowMenu,
+  onDownloadBadge,
+  downloading,
+}: {
+  visit: VisitRecord
+  statusMeta: Record<
+    VisitStatus,
+    { label: string; color: 'success' | 'warning' | 'error'; Icon: typeof CheckCircleOutlineIcon }
+  >
+  typeMeta: Record<VisitType, { label: string; Icon: typeof PersonAddAltIcon }>
+  translate: (key: string, defaultValue: string, options?: Record<string, unknown>) => string
+  dateFormatter: Intl.DateTimeFormat
+  timeFormatter: Intl.DateTimeFormat
+  noPlateLabel: string
+  onOpenRowMenu: (event: React.MouseEvent<HTMLButtonElement>, visit: VisitRecord) => void
+  onDownloadBadge: () => void
+  downloading: boolean
+}) {
+  const statusChip = statusMeta[visit.status]
+  const typeChip = typeMeta[visit.type]
+  const StatusIcon = statusChip.Icon
+  const TypeIcon = typeChip.Icon
+
+  return (
+    <Paper
+      sx={(theme) => ({
+        p: 2,
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        transition: theme.transitions.create(['box-shadow', 'transform'], { duration: 180 }),
+        '&:hover': {
+          boxShadow: theme.shadows[4],
+        },
+      })}
+    >
+      <Stack spacing={2}>
+        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
+          <Stack spacing={0.3}>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+              {visit.id}
+            </Typography>
+            <Typography variant="subtitle2" fontWeight={600}>
+              {visit.visitorName}
+            </Typography>
+            {visit.visitorEmail ? (
+              <Typography variant="caption" color="text.secondary">
+                {visit.visitorEmail}
+              </Typography>
+            ) : null}
+          </Stack>
+          <IconButton
+            size="small"
+            onClick={(event) => onOpenRowMenu(event, visit)}
+            sx={{ flexShrink: 0 }}
+          >
+            <MoreVertIcon fontSize="small" />
+          </IconButton>
+        </Stack>
+
+        <Divider />
+
+        <Stack spacing={1.5}>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            <Chip
+              size="small"
+              color={statusChip.color}
+              icon={<StatusIcon fontSize="small" />}
+              label={statusChip.label}
+              variant={visit.status === 'pending' ? 'outlined' : 'filled'}
+            />
+            <Chip
+              size="small"
+              icon={<TypeIcon fontSize="small" />}
+              label={typeChip.label}
+              color={
+                visit.type === 'delivery'
+                  ? 'info'
+                  : visit.type === 'event'
+                    ? 'secondary'
+                    : 'default'
+              }
+            />
+          </Stack>
+
+          <Stack spacing={0.75}>
+            <Typography variant="caption" color="text.secondary">
+              {translate('visitsPage.table.columns.host', 'Host')}
+            </Typography>
+            <Typography variant="subtitle2">{visit.hostName}</Typography>
+            <Typography variant="caption" color="text.secondary">
+              {visit.hostUnit}
+            </Typography>
+          </Stack>
+
+          <Stack direction="row" spacing={0.75} alignItems="center">
+            <DirectionsCarFilledIcon
+              fontSize="small"
+              color={visit.vehiclePlate ? 'action' : 'disabled'}
+            />
+            <Typography
+              variant="body2"
+              color={visit.vehiclePlate ? 'text.primary' : 'text.secondary'}
+            >
+              {visit.vehiclePlate ?? noPlateLabel}
+            </Typography>
+          </Stack>
+
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack spacing={0.5}>
+              <Typography variant="caption" color="text.secondary">
+                {translate('visitsPage.table.columns.schedule', 'Scheduled')}
+              </Typography>
+              <Typography variant="body2" fontWeight={600}>
+                {dateFormatter.format(new Date(visit.scheduledFor))}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {timeFormatter.format(new Date(visit.scheduledFor))}
+              </Typography>
+            </Stack>
+            <Stack spacing={0.5} alignItems="flex-end">
+              <Typography variant="caption" color="text.secondary">
+                {translate('visitsPage.table.columns.badge', 'Badge')}
+              </Typography>
+              <Stack direction="row" spacing={0.75} alignItems="center">
+                <QrCode2Icon fontSize="small" color="action" />
+                <Typography variant="body2" fontWeight={600}>
+                  {visit.badgeCode}
+                </Typography>
+              </Stack>
+            </Stack>
+          </Stack>
+        </Stack>
+
+        <Stack
+          direction="row"
+          spacing={1}
+          justifyContent="flex-end"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<DownloadIcon fontSize="small" />}
+            disabled={downloading}
+            onClick={onDownloadBadge}
+          >
+            {translate('visitsPage.actions.downloadBadge', 'Download badge')}
+          </Button>
+        </Stack>
+      </Stack>
+    </Paper>
   )
 }

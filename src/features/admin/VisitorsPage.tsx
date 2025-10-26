@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Chip,
+  Divider,
   IconButton,
   InputAdornment,
   Menu,
@@ -13,6 +14,8 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
@@ -105,6 +108,8 @@ export default function VisitorsPage() {
   const { t } = useTranslate()
   const language = useI18nStore((state) => state.language) ?? 'en'
   const isSiteContext = Boolean(derivedSiteSlug)
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const translate = useMemo(
     () => (key: string, defaultValue: string, options?: Record<string, unknown>) =>
@@ -515,95 +520,177 @@ export default function VisitorsPage() {
         </Alert>
       )}
 
-      <Paper sx={{ p: 3, borderRadius: 3 }}>
-        <ConfigurableTable<VisitorRecord>
-          storageKey="hex:columns:visitors"
-          columns={columnDefs}
-          rows={filteredVisitors}
-          getRowId={(visitor) => visitor.id}
-          size="small"
-          emptyState={{
-            title: emptyTitle,
-            description: emptyDescription,
-            action: (
-              <Button variant="contained" startIcon={<PersonAddAlt1Icon />}>
-                {addVisitorLabel}
-              </Button>
-            ),
-          }}
-          renderToolbar={({ ColumnPreferencesTrigger }) => (
-            <Stack spacing={3}>
-              <Stack
-                direction="row"
-                alignItems="flex-start"
-                justifyContent="space-between"
-                flexWrap="wrap"
-                gap={2}
-              >
-                <Box sx={{ flex: '1 1 240px' }}>
-                  <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Typography variant="h5" fontWeight={600}>
-                      {visitorsTitle}
-                    </Typography>
-                    {isSiteContext && activeSiteName ? (
-                      <Chip label={activeSiteName} size="small" color="secondary" />
-                    ) : (
-                      <Chip label={enterpriseChipLabel} size="small" color="primary" />
-                    )}
-                  </Stack>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    {visitorsDescription}
-                  </Typography>
-                </Box>
-                <Box sx={{ flexShrink: 0 }}>
-                  <Button variant="contained" startIcon={<PersonAddAlt1Icon />}>
-                    {addVisitorLabel}
-                  </Button>
-                </Box>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+        {isMobile ? (
+          <Stack spacing={2}>
+            <Stack spacing={2}>
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Typography variant="h5" fontWeight={600}>
+                  {visitorsTitle}
+                </Typography>
+                <Chip
+                  label={isSiteContext && activeSiteName ? activeSiteName : enterpriseChipLabel}
+                  size="small"
+                  color="secondary"
+                />
               </Stack>
-
-              <Stack
-                direction="row"
-                alignItems="center"
-                spacing={1}
-                flexWrap="wrap"
-                rowGap={1}
-                sx={{ width: '100%' }}
-              >
-                {ColumnPreferencesTrigger}
-                <Button
-                  variant="outlined"
-                  startIcon={<InsightsIcon />}
-                  onClick={(event) => setActivityFilterAnchor(event.currentTarget)}
-                  color={activityFilter === 'all' ? 'inherit' : 'primary'}
-                >
-                  {activityFilterLabel}
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<FilterListIcon />}
-                  onClick={handleOpenFilterMenu}
-                  color={filter === 'all' ? 'inherit' : 'primary'}
-                >
-                  {filterButtonLabel}
-                </Button>
-              </Stack>
-
-              <TextField
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={searchPlaceholder}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
+              <Typography variant="body2" color="text.secondary">
+                {visitorsDescription}
+              </Typography>
             </Stack>
-          )}
-        />
+
+            <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+              <Button
+                variant="outlined"
+                startIcon={<InsightsIcon />}
+                onClick={(event) => setActivityFilterAnchor(event.currentTarget)}
+                color={activityFilter === 'all' ? 'inherit' : 'primary'}
+                fullWidth
+              >
+                {activityFilterLabel}
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<FilterListIcon />}
+                onClick={handleOpenFilterMenu}
+                color={filter === 'all' ? 'inherit' : 'primary'}
+                fullWidth
+              >
+                {filterButtonLabel}
+              </Button>
+            </Stack>
+
+            <TextField
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={searchPlaceholder}
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            {filteredVisitors.length === 0 ? (
+              <Stack spacing={2} alignItems="center" sx={{ py: 5 }}>
+                <Typography variant="subtitle1">{emptyTitle}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {emptyDescription}
+                </Typography>
+                <Button variant="contained" startIcon={<PersonAddAlt1Icon />}>
+                  {addVisitorLabel}
+                </Button>
+              </Stack>
+            ) : (
+              <Stack spacing={2}>
+                {filteredVisitors.map((visitor) => (
+                  <VisitorCard
+                    key={visitor.id}
+                    visitor={visitor}
+                    categoryMeta={categoryMeta}
+                    statusMeta={statusMeta}
+                    translate={translate}
+                    dateFormatter={dateFormatter}
+                    timeFormatter={timeFormatter}
+                    onOpenRowMenu={handleOpenRowMenu}
+                  />
+                ))}
+              </Stack>
+            )}
+          </Stack>
+        ) : (
+          <ConfigurableTable<VisitorRecord>
+            storageKey="hex:columns:visitors"
+            columns={columnDefs}
+            rows={filteredVisitors}
+            getRowId={(visitor) => visitor.id}
+            size="small"
+            emptyState={{
+              title: emptyTitle,
+              description: emptyDescription,
+              action: (
+                <Button variant="contained" startIcon={<PersonAddAlt1Icon />}>
+                  {addVisitorLabel}
+                </Button>
+              ),
+            }}
+            renderToolbar={({ ColumnPreferencesTrigger }) => (
+              <Stack spacing={3}>
+                <Stack
+                  direction="row"
+                  alignItems="flex-start"
+                  justifyContent="space-between"
+                  flexWrap="wrap"
+                  gap={2}
+                >
+                  <Box sx={{ flex: '1 1 240px' }}>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                      <Typography variant="h5" fontWeight={600}>
+                        {visitorsTitle}
+                      </Typography>
+                      {isSiteContext && activeSiteName ? (
+                        <Chip label={activeSiteName} size="small" color="secondary" />
+                      ) : (
+                        <Chip label={enterpriseChipLabel} size="small" color="primary" />
+                      )}
+                    </Stack>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      {visitorsDescription}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ flexShrink: 0 }}>
+                    <Button variant="contained" startIcon={<PersonAddAlt1Icon />}>
+                      {addVisitorLabel}
+                    </Button>
+                  </Box>
+                </Stack>
+
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  flexWrap="wrap"
+                  rowGap={1}
+                  sx={{ width: '100%' }}
+                >
+                  {ColumnPreferencesTrigger}
+                  <Button
+                    variant="outlined"
+                    startIcon={<InsightsIcon />}
+                    onClick={(event) => setActivityFilterAnchor(event.currentTarget)}
+                    color={activityFilter === 'all' ? 'inherit' : 'primary'}
+                  >
+                    {activityFilterLabel}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<FilterListIcon />}
+                    onClick={handleOpenFilterMenu}
+                    color={filter === 'all' ? 'inherit' : 'primary'}
+                  >
+                    {filterButtonLabel}
+                  </Button>
+                </Stack>
+
+                <TextField
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder={searchPlaceholder}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Stack>
+            )}
+          />
+        )}
       </Paper>
 
       <Menu
@@ -663,5 +750,148 @@ export default function VisitorsPage() {
         </MenuItem>
       </Menu>
     </Stack>
+  )
+}
+
+function VisitorCard({
+  visitor,
+  categoryMeta,
+  statusMeta,
+  translate,
+  dateFormatter,
+  timeFormatter,
+  onOpenRowMenu,
+}: {
+  visitor: VisitorRecord
+  categoryMeta: Record<
+    VisitorCategory,
+    { label: string; Icon: typeof FamilyRestroomIcon; color: 'primary' | 'secondary' | 'info' }
+  >
+  statusMeta: Record<
+    VisitorStatus,
+    {
+      label: string
+      color: 'success' | 'warning' | 'error'
+      Icon: typeof CheckCircleOutlineIcon
+      variant?: 'outlined' | 'filled'
+    }
+  >
+  translate: (key: string, defaultValue: string, options?: Record<string, unknown>) => string
+  dateFormatter: Intl.DateTimeFormat
+  timeFormatter: Intl.DateTimeFormat
+  onOpenRowMenu: (event: React.MouseEvent<HTMLButtonElement>, visitor: VisitorRecord) => void
+}) {
+  const categoryChip = categoryMeta[visitor.category]
+  const statusChip = statusMeta[visitor.status]
+  const CategoryIcon = categoryChip.Icon
+  const StatusIcon = statusChip.Icon
+
+  return (
+    <Paper
+      sx={(theme) => ({
+        p: 2,
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        transition: theme.transitions.create(['box-shadow', 'transform'], { duration: 180 }),
+        '&:hover': {
+          boxShadow: theme.shadows[4],
+        },
+      })}
+    >
+      <Stack spacing={2}>
+        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
+          <Stack spacing={0.3}>
+            <Typography variant="subtitle2" fontWeight={600}>
+              {visitor.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {visitor.email}
+            </Typography>
+            {visitor.phone ? (
+              <Typography variant="caption" color="text.secondary">
+                {visitor.phone}
+              </Typography>
+            ) : null}
+          </Stack>
+          <IconButton
+            size="small"
+            onClick={(event) => onOpenRowMenu(event, visitor)}
+            sx={{ flexShrink: 0 }}
+          >
+            <MoreVertIcon fontSize="small" />
+          </IconButton>
+        </Stack>
+
+        <Divider />
+
+        <Stack spacing={1.5}>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            <Chip
+              size="small"
+              icon={<CategoryIcon fontSize="small" />}
+              label={categoryChip.label}
+              color={categoryChip.color}
+            />
+            <Chip
+              size="small"
+              color={statusChip.color}
+              icon={<StatusIcon fontSize="small" />}
+              label={statusChip.label}
+              variant={statusChip.variant ?? 'filled'}
+            />
+          </Stack>
+
+          <Stack spacing={0.75}>
+            <Typography variant="caption" color="text.secondary">
+              {translate('visitorsPage.table.columns.host', 'Primary host')}
+            </Typography>
+            <Typography variant="subtitle2">{visitor.primaryHost}</Typography>
+            {visitor.preferredNotes ? (
+              <Typography variant="caption" color="text.secondary">
+                {visitor.preferredNotes}
+              </Typography>
+            ) : null}
+          </Stack>
+
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack spacing={0.5}>
+              <Typography variant="caption" color="text.secondary">
+                {translate('visitorsPage.table.columns.totalVisits', 'Visits logged')}
+              </Typography>
+              <Chip
+                size="small"
+                label={translate('visitorsPage.table.totalVisitsChip', '{{count}} visits', {
+                  count: visitor.totalVisits,
+                })}
+                color="default"
+              />
+            </Stack>
+            <Stack spacing={0.5} alignItems="flex-end">
+              <Typography variant="caption" color="text.secondary">
+                {translate('visitorsPage.table.columns.lastVisit', 'Last visit')}
+              </Typography>
+              <Typography variant="body2">
+                {dateFormatter.format(new Date(visitor.lastVisit))}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {timeFormatter.format(new Date(visitor.lastVisit))}
+              </Typography>
+            </Stack>
+          </Stack>
+        </Stack>
+
+        <Stack
+          direction="row"
+          spacing={1}
+          justifyContent="flex-end"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Button size="small" variant="outlined" fullWidth>
+            {translate('visitorsPage.actions.issuePass', 'Create pass')}
+          </Button>
+        </Stack>
+      </Stack>
+    </Paper>
   )
 }

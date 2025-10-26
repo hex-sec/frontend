@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Chip,
+  Divider,
   FormControlLabel,
   IconButton,
   InputAdornment,
@@ -15,6 +16,8 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled'
 import FilterListIcon from '@mui/icons-material/FilterList'
@@ -104,6 +107,8 @@ const STATUS_META_BASE: Record<
 export default function VehiclesPage() {
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
   const isSiteContext = Boolean(derivedSiteSlug)
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<VehicleFilter>('all')
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null)
@@ -519,106 +524,199 @@ export default function VehiclesPage() {
         </Alert>
       )}
 
-      <Paper sx={{ p: 3, borderRadius: 3 }}>
-        <ConfigurableTable<VehicleRecord>
-          storageKey="hex:columns:vehicles"
-          columns={columnDefs}
-          rows={filteredVehicles}
-          getRowId={(vehicle) => vehicle.id}
-          size="small"
-          emptyState={{
-            title: noVehiclesTitle,
-            description: noVehiclesDescription,
-            action: (
-              <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
-                {registerVehicleLabel}
-              </Button>
-            ),
-          }}
-          renderToolbar={({ ColumnPreferencesTrigger }) => (
-            <Stack spacing={3}>
-              <Stack
-                direction="row"
-                alignItems="flex-start"
-                justifyContent="space-between"
-                flexWrap="wrap"
-                gap={2}
-              >
-                <Box sx={{ flex: '1 1 240px' }}>
-                  <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Typography variant="h5" fontWeight={600}>
-                      {vehiclesTitle}
-                    </Typography>
-                    {isSiteContext && activeSiteName ? (
-                      <Chip label={activeSiteName} size="small" color="secondary" />
-                    ) : (
-                      <Chip label={enterpriseChipLabel} size="small" color="primary" />
-                    )}
-                  </Stack>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    {vehiclesDescription}
-                  </Typography>
-                </Box>
-                <Box sx={{ flexShrink: 0 }}>
-                  <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
-                    {registerVehicleLabel}
-                  </Button>
-                </Box>
-              </Stack>
-
-              <Stack
-                direction="row"
-                alignItems="center"
-                spacing={1}
-                flexWrap="wrap"
-                rowGap={1}
-                sx={{ width: '100%' }}
-              >
-                {ColumnPreferencesTrigger}
-                <Button
-                  variant="outlined"
-                  startIcon={<CheckCircleOutlineIcon />}
-                  onClick={(event) => setStatusFilterAnchor(event.currentTarget)}
-                  color={statusFilter === 'all' ? 'inherit' : 'primary'}
-                >
-                  {statusFilterLabel}
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<FilterListIcon />}
-                  onClick={handleOpenFilterMenu}
-                  color={filter === 'all' ? 'inherit' : 'primary'}
-                >
-                  {filterButtonLabel}
-                </Button>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      size="small"
-                      checked={showHighPassesOnly}
-                      onChange={(event) => setShowHighPassesOnly(event.target.checked)}
-                    />
-                  }
-                  label={highPassToggleLabel}
-                  sx={{ ml: 0 }}
+      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+        {isMobile ? (
+          <Stack spacing={2}>
+            <Stack spacing={2}>
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Typography variant="h5" fontWeight={600}>
+                  {vehiclesTitle}
+                </Typography>
+                <Chip
+                  label={isSiteContext && activeSiteName ? activeSiteName : enterpriseChipLabel}
+                  size="small"
+                  color="secondary"
                 />
               </Stack>
-
-              <TextField
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={searchPlaceholder}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
+              <Typography variant="body2" color="text.secondary">
+                {vehiclesDescription}
+              </Typography>
             </Stack>
-          )}
-        />
+
+            <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+              <Button
+                variant="outlined"
+                startIcon={<CheckCircleOutlineIcon />}
+                onClick={(event) => setStatusFilterAnchor(event.currentTarget)}
+                color={statusFilter === 'all' ? 'inherit' : 'primary'}
+                fullWidth
+              >
+                {statusFilterLabel}
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<FilterListIcon />}
+                onClick={handleOpenFilterMenu}
+                color={filter === 'all' ? 'inherit' : 'primary'}
+                fullWidth
+              >
+                {filterButtonLabel}
+              </Button>
+            </Stack>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  size="small"
+                  checked={showHighPassesOnly}
+                  onChange={(event) => setShowHighPassesOnly(event.target.checked)}
+                />
+              }
+              label={highPassToggleLabel}
+            />
+
+            <TextField
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={searchPlaceholder}
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            {filteredVehicles.length === 0 ? (
+              <Stack spacing={2} alignItems="center" sx={{ py: 5 }}>
+                <Typography variant="subtitle1">{noVehiclesTitle}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {noVehiclesDescription}
+                </Typography>
+                <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
+                  {registerVehicleLabel}
+                </Button>
+              </Stack>
+            ) : (
+              <Stack spacing={2}>
+                {filteredVehicles.map((vehicle) => (
+                  <VehicleCard
+                    key={vehicle.id}
+                    vehicle={vehicle}
+                    usageMeta={usageMeta}
+                    statusMeta={statusMeta}
+                    translate={translate}
+                    dateFormatter={dateFormatter}
+                    timeFormatter={timeFormatter}
+                    onOpenRowMenu={handleOpenRowMenu}
+                  />
+                ))}
+              </Stack>
+            )}
+          </Stack>
+        ) : (
+          <ConfigurableTable<VehicleRecord>
+            storageKey="hex:columns:vehicles"
+            columns={columnDefs}
+            rows={filteredVehicles}
+            getRowId={(vehicle) => vehicle.id}
+            size="small"
+            emptyState={{
+              title: noVehiclesTitle,
+              description: noVehiclesDescription,
+              action: (
+                <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
+                  {registerVehicleLabel}
+                </Button>
+              ),
+            }}
+            renderToolbar={({ ColumnPreferencesTrigger }) => (
+              <Stack spacing={3}>
+                <Stack
+                  direction="row"
+                  alignItems="flex-start"
+                  justifyContent="space-between"
+                  flexWrap="wrap"
+                  gap={2}
+                >
+                  <Box sx={{ flex: '1 1 240px' }}>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                      <Typography variant="h5" fontWeight={600}>
+                        {vehiclesTitle}
+                      </Typography>
+                      {isSiteContext && activeSiteName ? (
+                        <Chip label={activeSiteName} size="small" color="secondary" />
+                      ) : (
+                        <Chip label={enterpriseChipLabel} size="small" color="primary" />
+                      )}
+                    </Stack>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      {vehiclesDescription}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ flexShrink: 0 }}>
+                    <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
+                      {registerVehicleLabel}
+                    </Button>
+                  </Box>
+                </Stack>
+
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  flexWrap="wrap"
+                  rowGap={1}
+                  sx={{ width: '100%' }}
+                >
+                  {ColumnPreferencesTrigger}
+                  <Button
+                    variant="outlined"
+                    startIcon={<CheckCircleOutlineIcon />}
+                    onClick={(event) => setStatusFilterAnchor(event.currentTarget)}
+                    color={statusFilter === 'all' ? 'inherit' : 'primary'}
+                  >
+                    {statusFilterLabel}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<FilterListIcon />}
+                    onClick={handleOpenFilterMenu}
+                    color={filter === 'all' ? 'inherit' : 'primary'}
+                  >
+                    {filterButtonLabel}
+                  </Button>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        size="small"
+                        checked={showHighPassesOnly}
+                        onChange={(event) => setShowHighPassesOnly(event.target.checked)}
+                      />
+                    }
+                    label={highPassToggleLabel}
+                    sx={{ ml: 0 }}
+                  />
+                </Stack>
+
+                <TextField
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder={searchPlaceholder}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Stack>
+            )}
+          />
+        )}
       </Paper>
 
       <Menu
@@ -678,5 +776,147 @@ export default function VehiclesPage() {
         </MenuItem>
       </Menu>
     </Stack>
+  )
+}
+
+function VehicleCard({
+  vehicle,
+  usageMeta,
+  statusMeta,
+  translate,
+  dateFormatter,
+  timeFormatter,
+  onOpenRowMenu,
+}: {
+  vehicle: VehicleRecord
+  usageMeta: Record<
+    VehicleUsage,
+    {
+      label: string
+      Icon: typeof HomeIcon
+      color: 'default' | 'primary' | 'secondary' | 'info'
+    }
+  >
+  statusMeta: Record<
+    VehicleStatus,
+    {
+      label: string
+      color: 'success' | 'warning' | 'error'
+      Icon: typeof CheckCircleOutlineIcon
+    }
+  >
+  translate: (key: string, defaultValue: string, options?: Record<string, unknown>) => string
+  dateFormatter: Intl.DateTimeFormat
+  timeFormatter: Intl.DateTimeFormat
+  onOpenRowMenu: (event: React.MouseEvent<HTMLButtonElement>, vehicle: VehicleRecord) => void
+}) {
+  const usageChip = usageMeta[vehicle.usage]
+  const statusChip = statusMeta[vehicle.status]
+  const UsageIcon = usageChip.Icon
+  const StatusIcon = statusChip.Icon
+
+  return (
+    <Paper
+      sx={(theme) => ({
+        p: 2,
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        transition: theme.transitions.create(['box-shadow', 'transform'], { duration: 180 }),
+        '&:hover': {
+          boxShadow: theme.shadows[4],
+        },
+      })}
+    >
+      <Stack spacing={2}>
+        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
+          <Stack spacing={0.5}>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+              {vehicle.plate}
+            </Typography>
+            <Typography variant="subtitle1" fontWeight={600}>
+              {vehicle.makeModel}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {vehicle.color}
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={0.5}>
+            <Chip
+              size="small"
+              icon={<StatusIcon fontSize="small" />}
+              label={statusChip.label}
+              color={statusChip.color}
+              variant={vehicle.status === 'expired' ? 'outlined' : 'filled'}
+            />
+          </Stack>
+        </Stack>
+
+        <Divider />
+
+        <Stack spacing={1.5}>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            <Chip
+              size="small"
+              icon={<UsageIcon fontSize="small" />}
+              label={usageChip.label}
+              color={usageChip.color}
+            />
+          </Stack>
+
+          <Stack spacing={0.75}>
+            <Typography variant="caption" color="text.secondary">
+              {translate('vehiclesPage.table.columns.assignedTo', 'Assigned to')}
+            </Typography>
+            <Typography variant="subtitle2">{vehicle.assignedTo}</Typography>
+            <Typography variant="caption" color="text.secondary">
+              {vehicle.contactName}
+              {vehicle.contactPhone ? ` • ${vehicle.contactPhone}` : ''}
+            </Typography>
+          </Stack>
+
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack spacing={0.5}>
+              <Typography variant="caption" color="text.secondary">
+                {translate('vehiclesPage.table.columns.permit', 'Permit')}
+              </Typography>
+              <Typography variant="body2" fontWeight={600}>
+                {vehicle.permitId}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {translate('vehiclesPage.permit.passesIssued', '{{count}} passes issued', {
+                  count: vehicle.passesIssued,
+                })}
+              </Typography>
+            </Stack>
+            <Stack spacing={0.5} alignItems="flex-end">
+              <Typography variant="caption" color="text.secondary">
+                {translate('vehiclesPage.table.columns.lastSeen', 'Last seen')}
+              </Typography>
+              <Typography variant="body2">
+                {dateFormatter.format(new Date(vehicle.lastSeen))}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {timeFormatter.format(new Date(vehicle.lastSeen))}
+              </Typography>
+            </Stack>
+          </Stack>
+        </Stack>
+
+        <Stack
+          direction="row"
+          spacing={1}
+          justifyContent="flex-end"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Button size="small" variant="outlined" startIcon={<DownloadIcon fontSize="small" />}>
+            {translate('vehiclesPage.actions.downloadPermit', 'Download permit')}
+          </Button>
+          <IconButton size="small" onClick={(event) => onOpenRowMenu(event, vehicle)}>
+            <MoreVertIcon fontSize="small" />
+          </IconButton>
+        </Stack>
+      </Stack>
+    </Paper>
   )
 }
