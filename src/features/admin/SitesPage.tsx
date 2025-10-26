@@ -6,8 +6,6 @@ import {
   Typography,
   IconButton,
   type ChipProps,
-  useTheme,
-  useMediaQuery,
   Grid2 as Grid,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
@@ -18,6 +16,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslate } from '../../i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
 import SiteCard from './components/SiteCard'
+import PageHeader from './components/PageHeader'
 import { useSitesQuery, useCreateSiteMutation, useInviteMutation } from './sites.api'
 import { SiteFormDialog } from './components/SiteFormDialog'
 import { InviteDialog } from './components/InviteDialog'
@@ -45,61 +44,74 @@ export default function SitesPage() {
   }, [hydrate])
 
   const sites = useMemo(() => data ?? [], [data])
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const navigate = useNavigate()
   const actionsLabel = t('admin.sitesPage.sections.actions', {
     lng: language,
     defaultValue: 'Actions',
   })
 
-  return (
-    <Stack gap={2}>
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        spacing={1}
-        flexWrap="wrap"
+  // Mobile back button component
+  const mobileBackButton = (
+    <IconButton
+      size="small"
+      edge="start"
+      onClick={() => navigate(-1)}
+      aria-label={t('common.back', { lng: language, defaultValue: 'Back' })}
+    >
+      <ArrowBackIcon />
+    </IconButton>
+  )
+
+  // Desktop action buttons
+  const rightActions = (
+    <Stack direction="row" spacing={1} alignItems="center">
+      <IconButton
+        onClick={() => refetch()}
+        aria-label={t('admin.sitesPage.actions.refreshAria', { lng: language })}
       >
-        <Stack direction="row" spacing={1} alignItems="center">
-          {isMobile ? (
-            <IconButton
-              edge="start"
-              onClick={() => navigate(-1)}
-              aria-label={t('common.back', { lng: language, defaultValue: 'Back' })}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-          ) : null}
-          <Typography variant={isMobile ? 'h6' : 'h5'}>
-            {t('admin.sitesPage.title', { lng: language })}
-          </Typography>
-        </Stack>
-        <Stack direction="row" spacing={isMobile ? 0.5 : 1} alignItems="center">
-          <IconButton
-            onClick={() => refetch()}
-            aria-label={t('admin.sitesPage.actions.refreshAria', { lng: language })}
-          >
-            <RefreshIcon />
-          </IconButton>
-          {isMobile ? (
-            <IconButton
-              color="primary"
-              onClick={() => setOpenCreate(true)}
-              aria-label={t('admin.sitesPage.actions.create', { lng: language })}
-            >
-              <AddIcon />
-            </IconButton>
-          ) : (
-            <Button startIcon={<AddIcon />} variant="contained" onClick={() => setOpenCreate(true)}>
-              {t('admin.sitesPage.actions.create', { lng: language })}
-            </Button>
-          )}
-        </Stack>
-      </Stack>
+        <RefreshIcon />
+      </IconButton>
+      <Button startIcon={<AddIcon />} variant="contained" onClick={() => setOpenCreate(true)}>
+        {t('admin.sitesPage.actions.create', { lng: language })}
+      </Button>
+    </Stack>
+  )
+
+  // Mobile action buttons - inline with title
+  const mobileActionButtons = (
+    <Stack direction="row" spacing={0.5} alignItems="center">
+      <IconButton
+        size="small"
+        onClick={() => refetch()}
+        aria-label={t('admin.sitesPage.actions.refreshAria', { lng: language })}
+      >
+        <RefreshIcon />
+      </IconButton>
+      <IconButton
+        size="small"
+        color="primary"
+        onClick={() => setOpenCreate(true)}
+        aria-label={t('admin.sitesPage.actions.create', { lng: language })}
+      >
+        <AddIcon />
+      </IconButton>
+    </Stack>
+  )
+
+  return (
+    <Stack>
+      <PageHeader
+        title={t('admin.sitesPage.title', { lng: language })}
+        subtitle={t('admin.sitesPage.subtitle', {
+          lng: language,
+          defaultValue: 'Manage all your sites and their configurations',
+        })}
+        rightActions={rightActions}
+        mobileBackButton={mobileBackButton}
+        mobileActions={mobileActionButtons}
+      />
       {isLoading ? (
-        <Paper sx={{ p: 2 }}>
+        <Paper sx={{ p: 2, mt: 1 }}>
           <Typography variant="body2" color="text.secondary">
             {t('admin.sitesPage.state.loading', { lng: language })}
           </Typography>
@@ -107,14 +119,14 @@ export default function SitesPage() {
       ) : null}
 
       {!isLoading && sites.length === 0 ? (
-        <Paper sx={{ p: 2 }}>
+        <Paper sx={{ p: 2, mt: 1 }}>
           <Typography variant="body2" color="text.secondary">
             {t('admin.sitesPage.state.empty', { lng: language })}
           </Typography>
         </Paper>
       ) : null}
 
-      <Grid container spacing={2} sx={{ px: { xs: 1.5, sm: 2 }, py: { xs: 1.5, sm: 2 } }}>
+      <Grid container spacing={2} sx={{ mt: 1, px: { xs: 1.5, sm: 2 }, py: { xs: 1.5, sm: 2 } }}>
         {sites.map((site) => {
           const isCurrent = current?.id === site.id
           return (

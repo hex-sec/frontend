@@ -4,7 +4,6 @@ import {
   Avatar,
   Box,
   Button,
-  Chip,
   Divider,
   IconButton,
   LinearProgress,
@@ -23,7 +22,9 @@ import GroupsIcon from '@mui/icons-material/Groups'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import LaunchIcon from '@mui/icons-material/Launch'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
+
 import { alpha } from '@mui/material/styles'
+import PageHeader from '../components/PageHeader'
 import {
   ROLE_LABEL,
   ROLE_VIEW_META,
@@ -327,6 +328,120 @@ export default function UserProfilePage() {
     (candidate) => candidate.id !== user.id && candidate.role === user.role,
   ).slice(0, 3)
 
+  // PageHeader configuration
+  const badges = [
+    { label: roleLabel, color: 'primary' as const },
+    {
+      label: statusTag,
+      color: statusColor,
+      variant: user.status === 'active' ? 'filled' : 'outlined',
+    },
+  ]
+
+  const headerAvatar = (
+    <Avatar
+      src={user.avatar}
+      sx={{
+        width: 56,
+        height: 56,
+        fontSize: '1.25rem',
+        bgcolor: 'primary.main',
+      }}
+    >
+      {user.name
+        .split(' ')
+        .map((part) => part[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()}
+    </Avatar>
+  )
+
+  const mobileBackButton = (
+    <IconButton size="small" onClick={() => navigate(-1)}>
+      <ArrowBackIcon fontSize="small" />
+    </IconButton>
+  )
+
+  const rightActions = (
+    <Stack direction="row" spacing={1} alignItems="center">
+      <Tooltip title={launchKioskLabel} arrow>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<ShieldIcon />}
+          disabled={user.status !== 'active'}
+          sx={{
+            borderRadius: 2,
+          }}
+        >
+          {launchKioskLabel}
+        </Button>
+      </Tooltip>
+
+      <Tooltip title={manageAccessLabel} arrow>
+        <IconButton
+          component={RouterLink}
+          to={returnPath}
+          aria-label={manageAccessLabel}
+          sx={{
+            borderRadius: 2,
+            bgcolor: 'primary.main',
+            '&:hover': {
+              bgcolor: 'primary.dark',
+            },
+          }}
+        >
+          <ManageAccountsIcon sx={{ fontSize: '1rem', color: 'white' }} />
+        </IconButton>
+      </Tooltip>
+    </Stack>
+  )
+
+  const mobileActions = (
+    <Stack direction="row" spacing={0.5} alignItems="center">
+      <Tooltip title={impersonateLabel} arrow>
+        <IconButton
+          size="small"
+          color="primary"
+          disabled={user.status !== 'active'}
+          aria-label={impersonateLabel}
+          sx={{
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+            '&:hover': {
+              bgcolor: 'action.hover',
+            },
+          }}
+        >
+          <ShieldIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+
+      <Tooltip title={manageAccessLabel} arrow>
+        <IconButton
+          size="small"
+          color="primary"
+          component={RouterLink}
+          to={returnPath}
+          aria-label={manageAccessLabel}
+          sx={{
+            borderRadius: 2,
+            bgcolor: 'primary.main',
+            color: (theme) => theme.palette.getContrastText(theme.palette.primary.main),
+            '&:hover': {
+              bgcolor: 'primary.dark',
+            },
+          }}
+        >
+          <ManageAccountsIcon sx={{ fontSize: 'small', color: 'white' }} />
+        </IconButton>
+      </Tooltip>
+    </Stack>
+  )
+
   return (
     <Box sx={{ width: '100%', py: { xs: 2, md: 3 } }}>
       <Stack
@@ -338,94 +453,18 @@ export default function UserProfilePage() {
           px: { xs: 1.5, sm: 2, xl: 0 },
         }}
       >
-        <Paper sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, width: '100%' }}>
-          <Grid
-            container
-            spacing={3}
-            alignItems={{ xs: 'flex-start', md: 'center' }}
-            justifyContent="space-between"
-          >
-            <Grid size={{ xs: 12, md: 'auto' }}>
-              <Avatar sx={{ width: 72, height: 72, fontSize: 28 }}>
-                {user.name
-                  .split(' ')
-                  .map((part) => part[0])
-                  .join('')
-                  .slice(0, 2)
-                  .toUpperCase()}
-              </Avatar>
-            </Grid>
-            <Grid size={{ xs: 12, md: 'grow' }}>
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={1}
-                alignItems={{ xs: 'flex-start', sm: 'center' }}
-                sx={{ flexWrap: 'wrap', rowGap: 0.5 }}
-              >
-                <Typography variant="h4" fontWeight={600}>
-                  {user.name}
-                </Typography>
-                <Chip size="small" color="primary" label={roleLabel} />
-                <Chip
-                  size="small"
-                  color={statusColor}
-                  label={statusTag}
-                  variant={user.status === 'active' ? 'filled' : 'outlined'}
-                />
-              </Stack>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                {positionText}
-              </Typography>
-            </Grid>
-            <Grid
-              size={{ xs: 12, md: 'auto' }}
-              sx={{
-                display: 'flex',
-                justifyContent: { xs: 'stretch', md: 'flex-end' },
-                width: '100%',
-              }}
-            >
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={1}
-                alignItems={{ xs: 'stretch', sm: 'center' }}
-                justifyContent={{ xs: 'stretch', md: 'flex-end' }}
-                sx={{ width: '100%', maxWidth: { xs: '100%', md: 360 }, rowGap: 1 }}
-              >
-                <Tooltip title={impersonateLabel}>
-                  <Box
-                    component="span"
-                    sx={{
-                      display: 'inline-flex',
-                      width: { xs: '100%', sm: 'auto' },
-                    }}
-                  >
-                    <Button
-                      variant="outlined"
-                      startIcon={<ShieldIcon />}
-                      disabled={user.status !== 'active'}
-                      sx={{ width: { xs: '100%', sm: 'auto' } }}
-                    >
-                      {launchKioskLabel}
-                    </Button>
-                  </Box>
-                </Tooltip>
-                <Button
-                  variant="contained"
-                  startIcon={<ManageAccountsIcon />}
-                  component={RouterLink}
-                  to={returnPath}
-                  sx={{ width: { xs: '100%', sm: 'auto' } }}
-                >
-                  {manageAccessLabel}
-                </Button>
-              </Stack>
-            </Grid>
-          </Grid>
-        </Paper>
+        <PageHeader
+          title={user.name}
+          subtitle={positionText || undefined}
+          badges={badges}
+          rightActions={rightActions}
+          mobileBackButton={mobileBackButton}
+          mobileActions={mobileActions}
+          avatar={headerAvatar}
+        />
 
         <Grid container spacing={3} alignItems="stretch">
-          <Grid size={{ xs: 12, lg: 7 }} sx={{ display: 'flex' }}>
+          <Grid size={{ xs: 12, md: 7 }} sx={{ display: 'flex' }}>
             <Stack spacing={3} sx={{ width: '100%' }}>
               <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
@@ -488,7 +527,7 @@ export default function UserProfilePage() {
               </Paper>
             </Stack>
           </Grid>
-          <Grid size={{ xs: 12, lg: 5 }} sx={{ display: 'flex' }}>
+          <Grid size={{ xs: 12, md: 5 }} sx={{ display: 'flex' }}>
             <Stack spacing={3} sx={{ width: '100%' }}>
               <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
@@ -589,7 +628,22 @@ export default function UserProfilePage() {
                     variant="contained"
                     component={RouterLink}
                     to={returnPath}
-                    sx={{ whiteSpace: 'nowrap' }}
+                    sx={{
+                      whiteSpace: 'nowrap',
+                      backgroundColor: (theme) => theme.palette.primary.main,
+                      color: (theme) => theme.palette.primary.contrastText,
+                      '&:link, &:visited': {
+                        color: (theme) => theme.palette.primary.contrastText,
+                      },
+                      '&:hover': {
+                        backgroundColor: (theme) => theme.palette.primary.dark,
+                        color: (theme) => theme.palette.primary.contrastText,
+                      },
+                      '&:focus-visible': {
+                        backgroundColor: (theme) => theme.palette.primary.dark,
+                        color: (theme) => theme.palette.primary.contrastText,
+                      },
+                    }}
                   >
                     {reviewRosterLabel}
                   </Button>

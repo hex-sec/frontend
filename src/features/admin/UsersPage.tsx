@@ -27,11 +27,13 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 import SearchIcon from '@mui/icons-material/Search'
 import ShieldIcon from '@mui/icons-material/Shield'
 import DomainIcon from '@mui/icons-material/Domain'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useSiteStore } from '@store/site.store'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
 import type { ColumnDefinition } from '../../components/table/useColumnPreferences'
 import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
 import { useTranslate } from '../../i18n/useTranslate'
+import PageHeader from './components/PageHeader'
 import {
   PATH_ROLE_SEGMENT_MAP,
   ROLE_LABEL,
@@ -80,6 +82,9 @@ export default function UsersPage(): JSX.Element {
   const params = useParams<{ slug?: string }>()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const [search, setSearch] = useState('')
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [statusAnchor, setStatusAnchor] = useState<null | HTMLElement>(null)
 
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
   const isSiteContext = Boolean(derivedSiteSlug)
@@ -104,9 +109,6 @@ export default function UsersPage(): JSX.Element {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'pending' | 'suspended'>(
     'all',
   )
-  const [search, setSearch] = useState('')
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [statusAnchor, setStatusAnchor] = useState<null | HTMLElement>(null)
 
   useEffect(() => {
     if (sites.length === 0) {
@@ -553,6 +555,34 @@ export default function UsersPage(): JSX.Element {
     t,
   ])
 
+  // PageHeader configuration
+  const badges = filteredSiteName
+    ? [{ label: filteredSiteName, color: 'secondary' as const }]
+    : [
+        {
+          label: t('usersPage.chip.enterprise', { lng: language, defaultValue: 'Enterprise' }),
+          color: 'primary' as const,
+        },
+      ]
+
+  const mobileBackButton = (
+    <IconButton size="small" onClick={() => navigate(-1)}>
+      <ArrowBackIcon fontSize="small" />
+    </IconButton>
+  )
+
+  const rightActions = (
+    <Button variant="contained" startIcon={<PersonAddAltIcon />}>
+      {inviteCopy}
+    </Button>
+  )
+
+  const mobileActions = (
+    <IconButton size="small" color="primary" aria-label={inviteCopy}>
+      <PersonAddAltIcon fontSize="small" />
+    </IconButton>
+  )
+
   return (
     <Stack spacing={3}>
       {isSiteContext && activeSite ? (
@@ -582,38 +612,19 @@ export default function UsersPage(): JSX.Element {
         </Alert>
       ) : null}
 
+      <PageHeader
+        title={activeMeta.title}
+        subtitle={activeMeta.description}
+        badges={badges}
+        rightActions={rightActions}
+        mobileBackButton={mobileBackButton}
+        mobileActions={mobileActions}
+      />
+
       <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
         {isMobile ? (
           <Stack spacing={2}>
-            {/* Toolbar for mobile */}
-            <Stack spacing={2}>
-              <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                spacing={1.5}
-              >
-                <Typography variant="h5" fontWeight={600}>
-                  {activeMeta.title}
-                </Typography>
-                <Chip
-                  label={
-                    filteredSiteName ??
-                    t('usersPage.chip.enterprise', {
-                      lng: language,
-                      defaultValue: 'Enterprise',
-                    })
-                  }
-                  size="small"
-                  color={isSiteContext || siteFilter !== 'all' ? 'secondary' : 'primary'}
-                />
-              </Stack>
-              <Typography variant="body2" color="text.secondary">
-                {activeMeta.description}
-              </Typography>
-            </Stack>
-
-            <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" rowGap={1}>
+            <Stack direction="column" spacing={1}>
               {!isSiteContext ? (
                 <TextField
                   select
@@ -645,7 +656,7 @@ export default function UsersPage(): JSX.Element {
                 startIcon={<ManageAccountsIcon fontSize="small" />}
                 onClick={handleOpenStatusFilter}
                 color={statusFilter === 'all' ? 'inherit' : 'primary'}
-                fullWidth={!isSiteContext}
+                fullWidth
               >
                 {statusFilterLabel}
               </Button>
@@ -655,7 +666,7 @@ export default function UsersPage(): JSX.Element {
                 onClick={handleOpenFilter}
                 color={effectiveFilter === 'all' ? 'inherit' : 'primary'}
                 disabled={Boolean(lockedRoleFilter)}
-                fullWidth={!isSiteContext}
+                fullWidth
               >
                 {filterLabel}
               </Button>
@@ -726,40 +737,7 @@ export default function UsersPage(): JSX.Element {
             }}
             renderToolbar={({ ColumnPreferencesTrigger }) => (
               <Stack spacing={3}>
-                <Stack
-                  direction="row"
-                  alignItems="flex-start"
-                  justifyContent="space-between"
-                  flexWrap="wrap"
-                  gap={2}
-                >
-                  <Box sx={{ flex: '1 1 260px' }}>
-                    <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <Typography variant="h5" fontWeight={600}>
-                        {activeMeta.title}
-                      </Typography>
-                      <Chip
-                        label={
-                          filteredSiteName ??
-                          t('usersPage.chip.enterprise', {
-                            lng: language,
-                            defaultValue: 'Enterprise',
-                          })
-                        }
-                        size="small"
-                        color={isSiteContext || siteFilter !== 'all' ? 'secondary' : 'primary'}
-                      />
-                    </Stack>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                      {activeMeta.description}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ flexShrink: 0 }}>
-                    <Button variant="contained" startIcon={<PersonAddAltIcon />}>
-                      {inviteCopy}
-                    </Button>
-                  </Box>
-                </Stack>
+                <Box sx={{ display: { xs: 'none', md: 'block' } }} />
 
                 <Stack
                   direction="row"

@@ -292,6 +292,52 @@ export default function DashboardPage() {
               zIndex: isDesktop ? 1 : undefined,
             }}
           >
+            {/* Key metrics moved here (before revenue snapshot) */}
+            <Paper sx={{ ...surfaceCard }}>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+                {t('admin.dashboard.sections.kpi', { lng: language })}
+              </Typography>
+              <List dense>
+                {kpiData.map((kpi, index) => (
+                  <Box key={kpi.label}>
+                    <ListItem disableGutters sx={{ alignItems: 'center' }}>
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: kpi.accent, color: 'common.white' }}>
+                          {kpi.icon}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Typography variant="subtitle2" component="span">
+                            {kpi.value}
+                          </Typography>
+                        }
+                        secondary={
+                          <Stack spacing={0.25}>
+                            <Typography variant="caption" color="text.secondary">
+                              {kpi.label}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {kpi.sublabel}
+                            </Typography>
+                          </Stack>
+                        }
+                      />
+                      <Chip
+                        size="small"
+                        color="success"
+                        variant="outlined"
+                        label={kpi.delta}
+                        icon={<TrendingUpIcon fontSize="small" />}
+                        sx={{ '& .MuiChip-icon': { color: 'success.main' } }}
+                      />
+                    </ListItem>
+                    {index === kpiData.length - 1 ? null : <Divider sx={{ my: 1 }} />}
+                  </Box>
+                ))}
+              </List>
+            </Paper>
+
             <Paper sx={{ ...surfaceCard }}>
               <Typography variant="subtitle2" color="text.secondary">
                 {t('admin.dashboard.sections.navigation', { lng: language })}
@@ -334,6 +380,47 @@ export default function DashboardPage() {
                     </Box>
                     <LaunchIcon color="action" fontSize="small" />
                   </Paper>
+                ))}
+              </Stack>
+            </Paper>
+
+            {/* Priority alerts moved here (after nav links, before quick access) */}
+            <Paper sx={{ ...surfaceCard }}>
+              <SectionHeader
+                title={t('admin.dashboard.alerts.title', { lng: language })}
+                ctaLabel={t('admin.dashboard.actions.viewBoard', { lng: language })}
+                ctaIcon={<ArrowForwardIcon fontSize="small" />}
+              />
+              <Stack spacing={1.5}>
+                {alertCards.map((card) => (
+                  <Stack
+                    key={card.key}
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={1.5}
+                    alignItems={{ xs: 'stretch', sm: 'flex-start' }}
+                    sx={{
+                      borderRadius: 2,
+                      border: '1px dashed',
+                      borderColor: card.borderColor,
+                      p: 1.5,
+                    }}
+                  >
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body2" fontWeight={600}>
+                        {card.title}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {card.description}
+                      </Typography>
+                    </Box>
+                    <Button
+                      size="small"
+                      color={card.actionColor}
+                      sx={{ alignSelf: { xs: 'flex-end', sm: 'flex-start' }, px: 1.5 }}
+                    >
+                      {card.actionLabel}
+                    </Button>
+                  </Stack>
                 ))}
               </Stack>
             </Paper>
@@ -552,50 +639,7 @@ export default function DashboardPage() {
 
         <Grid size={rightColumnSpan}>
           <Stack spacing={2}>
-            <Paper sx={{ ...surfaceCard }}>
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
-                {t('admin.dashboard.sections.kpi', { lng: language })}
-              </Typography>
-              <List dense>
-                {kpiData.map((kpi, index) => (
-                  <Box key={kpi.label}>
-                    <ListItem disableGutters sx={{ alignItems: 'center' }}>
-                      <ListItemAvatar>
-                        <Avatar sx={{ bgcolor: kpi.accent, color: 'common.white' }}>
-                          {kpi.icon}
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="subtitle2" component="span">
-                            {kpi.value}
-                          </Typography>
-                        }
-                        secondary={
-                          <Stack spacing={0.25}>
-                            <Typography variant="caption" color="text.secondary">
-                              {kpi.label}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {kpi.sublabel}
-                            </Typography>
-                          </Stack>
-                        }
-                      />
-                      <Chip
-                        size="small"
-                        color="success"
-                        variant="outlined"
-                        label={kpi.delta}
-                        icon={<TrendingUpIcon fontSize="small" />}
-                        sx={{ '& .MuiChip-icon': { color: 'success.main' } }}
-                      />
-                    </ListItem>
-                    {index === kpiData.length - 1 ? null : <Divider sx={{ my: 1 }} />}
-                  </Box>
-                ))}
-              </List>
-            </Paper>
+            {/* Right column KPI moved to main column (below timeline, before income) */}
 
             <Paper sx={{ ...surfaceCard }}>
               <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>

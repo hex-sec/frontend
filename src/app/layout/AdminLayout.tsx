@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, type ElementType } from 'react'
 import { Outlet, Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Box, Breadcrumbs, Link, Typography, Button, Toolbar } from '@mui/material'
+import { Box, Button, Toolbar, Breadcrumbs, Link, Typography } from '@mui/material'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import DomainIcon from '@mui/icons-material/Domain'
 import PeopleIcon from '@mui/icons-material/People'
@@ -13,7 +14,6 @@ import BadgeIcon from '@mui/icons-material/Badge'
 import HomeWorkIcon from '@mui/icons-material/HomeWork'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import LocalPoliceIcon from '@mui/icons-material/LocalPolice'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import TopBar from './TopBar'
 import { useAuthStore } from '@app/auth/auth.store'
 import { useSiteStore } from '@store/site.store'
@@ -104,9 +104,10 @@ export default function AdminLayout() {
     }
 
     const previousCrumb = crumbs[crumbs.length - 2]
-    const meta = getCrumbMeta(previousCrumb.segment)
-    const baseLabel = meta.label
-    const label = formatBackLabel({ baseLabel, t, language })
+    const formattedLabel = previousCrumb.segment
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+    const label = formatBackLabel({ baseLabel: formattedLabel, t, language })
 
     // Back button precedence rules:
     // 1. If no back object, set default breadcrumb.
@@ -122,7 +123,7 @@ export default function AdminLayout() {
         color: 'inherit',
       })
     }
-  }, [back, clearBack, crumbs, current, isSiteMode, language, setBack, t, shouldUpdateBack])
+  }, [back, clearBack, crumbs, language, setBack, t, shouldUpdateBack])
 
   useEffect(() => {
     hydrate()
@@ -165,10 +166,6 @@ export default function AdminLayout() {
     scrollWindowToTop()
   }, [loc.pathname, loc.search])
 
-  function formatSegment(value: string) {
-    return value.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())
-  }
-
   function getCrumbMeta(segment: string) {
     const s = segment.toLowerCase()
     if (current && current.slug === segment) {
@@ -183,58 +180,102 @@ export default function AdminLayout() {
     if (mapEntry) {
       return { label: t(mapEntry.labelKey, { lng: language }), Icon: mapEntry.Icon }
     }
+    const formatted = segment.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
     return {
-      label: t('layout.breadcrumbs.unknown', { value: formatSegment(segment), lng: language }),
+      label: t('layout.breadcrumbs.unknown', { value: formatted, lng: language }),
       Icon: undefined,
     }
   }
+
+  // Get translated back button aria-label
+  const backAriaLabel = t('layout.backNavigation.backToShort', {
+    lng: language,
+    defaultValue: 'Back',
+  })
 
   return (
     <Box>
       <TopBar />
       <Toolbar sx={{ minHeight: 64 }} />
       <Box sx={{ p: 2 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 2,
-            mb: 1,
-          }}
-        >
-          <Breadcrumbs aria-label="breadcrumb" sx={{ color: 'text.secondary' }}>
-            {crumbs.map((c, index) => {
-              const meta = getCrumbMeta(c.segment)
-              const Icon = meta.Icon
-              const isLast = index === crumbs.length - 1
-              const isSiteCrumb = current?.slug === c.segment
-              return (
-                <BreadcrumbItem
-                  key={c.to}
-                  to={c.to}
-                  label={meta.label}
-                  Icon={Icon}
-                  isLast={isLast}
-                  allowLinkWhenLast={isSiteCrumb}
-                />
-              )
-            })}
-          </Breadcrumbs>
-          {back ? (
-            <Button
-              size="small"
-              variant={back.variant ?? 'text'}
-              color={back.color ?? 'inherit'}
-              startIcon={back.icon ?? <ArrowBackIcon fontSize="small" />}
-              disabled={back.disabled}
-              onClick={handleBackClick}
-            >
-              {back.label}
-            </Button>
-          ) : null}
-        </Box>
-        <Box sx={{ mt: 2 }}>
+        {/* Breadcrumbs for desktop with back button */}
+        {crumbs.length > 1 && (
+          <Box
+            sx={{
+              mb: 1,
+              display: { xs: 'none', md: 'flex' },
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1,
+            }}
+          >
+            <Breadcrumbs aria-label="breadcrumb" sx={{ color: 'text.secondary' }}>
+              {crumbs.map((c, index) => {
+                const meta = getCrumbMeta(c.segment)
+                const Icon = meta.Icon
+                const isLast = index === crumbs.length - 1
+                const isSiteCrumb = current?.slug === c.segment
+
+                const contents = (
+                  <Box
+                    component="span"
+                    sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
+                  >
+                    {Icon ? <Icon fontSize="small" /> : null}
+                    {meta.label}
+                  </Box>
+                )
+
+                if (isLast && !isSiteCrumb) {
+                  return (
+                    <Typography key={c.to} color="text.primary" typography="caption">
+                      {contents}
+                    </Typography>
+                  )
+                }
+
+                return (
+                  <Link
+                    key={c.to}
+                    component={RouterLink}
+                    to={c.to}
+                    sx={{
+                      color: 'text.secondary',
+                      typography: 'caption',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                    }}
+                  >
+                    {contents}
+                  </Link>
+                )
+              })}
+            </Breadcrumbs>
+
+            {/* Back button at the right end */}
+            {back ? (
+              <Button
+                size="small"
+                variant="outlined"
+                color="inherit"
+                aria-label={backAriaLabel}
+                startIcon={back.icon ?? <ArrowBackIcon />}
+                onClick={handleBackClick}
+                disabled={back.disabled}
+                sx={{
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                }}
+              >
+                {back.label}
+              </Button>
+            ) : null}
+          </Box>
+        )}
+
+        {/* Page content */}
+        <Box>
           <Outlet />
         </Box>
       </Box>
@@ -278,53 +319,4 @@ function buildSiteCrumbs(
     }, basePath)
 
   return crumbs
-}
-
-function BreadcrumbItem({
-  to,
-  label,
-  Icon,
-  isLast,
-  allowLinkWhenLast,
-}: {
-  to: string
-  label: string
-  Icon?: ElementType
-  isLast: boolean
-  allowLinkWhenLast?: boolean
-}) {
-  const contents = (
-    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-      {Icon ? <Icon fontSize="small" /> : null}
-      {label}
-    </Box>
-  )
-
-  if (isLast && !allowLinkWhenLast) {
-    return (
-      <Typography
-        color="text.primary"
-        typography="caption"
-        sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-      >
-        {contents}
-      </Typography>
-    )
-  }
-
-  return (
-    <Link
-      component={RouterLink}
-      to={to}
-      sx={{
-        color: 'text.secondary',
-        typography: 'caption',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 0.5,
-      }}
-    >
-      {contents}
-    </Link>
-  )
 }

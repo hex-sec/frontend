@@ -728,7 +728,7 @@
       },
       "actions": {
         "impersonate": "Impersonate",
-        "launchKiosk": "Launch kiosk view",
+        "launchKiosk": "Kiosk view",
         "manageAccess": "Manage access",
         "reviewRoster": "Review roster"
       },
@@ -1291,6 +1291,7 @@
   },
   "visitsPage": {
     "title": "Visits",
+    "titleMobile": "Visits",
     "description": "Monitor guest traffic, scheduled arrivals, and kiosk approvals in real-time.",
     "alerts": {
       "siteScoped": {
@@ -1361,6 +1362,7 @@
   },
   "vehiclesPage": {
     "title": "Vehicle registry",
+    "titleMobile": "Vehicles",
     "description": "Register resident, visitor, and service vehicles to keep guard kiosks synced.",
     "alerts": {
       "siteScoped": {
@@ -1622,6 +1624,7 @@
   },
   "visitorsPage": {
     "title": "Recurring visitors",
+    "titleMobile": "Visitors",
     "description": "Store frequent visitor profiles for faster gate processing and audit trails.",
     "alerts": {
       "siteScoped": {

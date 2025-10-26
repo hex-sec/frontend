@@ -19,9 +19,11 @@ import {
 } from '@mui/material'
 import Grid from '@mui/material/Grid2'
 import type { ChipProps } from '@mui/material'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import SettingsIcon from '@mui/icons-material/Settings'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import ReportProblemIcon from '@mui/icons-material/ReportProblem'
+import PageHeader from '../components/PageHeader'
 import AddHomeWorkIcon from '@mui/icons-material/AddHomeWork'
 import HomeWorkIcon from '@mui/icons-material/HomeWork'
 import LocalPoliceIcon from '@mui/icons-material/LocalPolice'
@@ -470,6 +472,19 @@ export default function SiteDetailsPage() {
     }
   }, [setCurrent, site])
 
+  const [speedDialOpen, setSpeedDialOpen] = useState(false)
+  const handleSpeedDialOpen = () => setSpeedDialOpen(true)
+  const handleSpeedDialClose = () => setSpeedDialOpen(false)
+  const speedDialIcon = useMemo(
+    () => (
+      <SpeedDialIcon
+        icon={<AddHomeWorkIcon />}
+        openIcon={isMobile ? <CloseIcon /> : <AddHomeWorkIcon />}
+      />
+    ),
+    [isMobile],
+  )
+
   if (isLoading) {
     return <LinearProgress sx={{ mt: 2 }} />
   }
@@ -496,136 +511,128 @@ export default function SiteDetailsPage() {
   const inviteUserLabel = translate('siteDetails.actions.inviteUser')
   const switchToSiteModeLabel = translate('siteDetails.actions.switchToSiteMode')
   const speedDialLabel = translate('siteDetails.speedDial.ariaLabel')
-  const [speedDialOpen, setSpeedDialOpen] = useState(false)
-  const handleSpeedDialOpen = () => setSpeedDialOpen(true)
-  const handleSpeedDialClose = () => setSpeedDialOpen(false)
-  const speedDialIcon = useMemo(
-    () => (
-      <SpeedDialIcon
-        icon={<AddHomeWorkIcon />}
-        openIcon={isMobile ? <CloseIcon /> : <AddHomeWorkIcon />}
-      />
-    ),
-    [isMobile],
+
+  // Create badges array
+  const badges = [
+    { label: planLabel, color: 'primary' as const },
+    { label: statusLabel, color: statusColor },
+  ]
+
+  // Mobile back button
+  const mobileBackButton = (
+    <IconButton size="small" onClick={() => navigate(-1)}>
+      <ArrowBackIcon fontSize="small" />
+    </IconButton>
+  )
+
+  // Desktop right actions
+  const rightActions = (
+    <Stack direction="row" spacing={1} alignItems="center">
+      {mode === 'enterprise' ? (
+        <Button
+          size="small"
+          variant="text"
+          color="primary"
+          startIcon={<SwapHorizIcon fontSize="small" />}
+          onClick={() => {
+            if (!site) return
+            setMode('site')
+            navigate(`/site/${site.slug}`)
+          }}
+          sx={{
+            borderRadius: 999,
+            px: 1.75,
+            fontWeight: 500,
+          }}
+        >
+          {switchToSiteModeLabel}
+        </Button>
+      ) : null}
+
+      <Tooltip title={siteSettingsLabel} arrow>
+        <IconButton
+          color="primary"
+          aria-label={siteSettingsLabel}
+          sx={{
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+            '&:hover': {
+              bgcolor: 'action.hover',
+            },
+          }}
+        >
+          <SettingsIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+
+      <Tooltip title={inviteUserLabel} arrow>
+        <IconButton
+          color="primary"
+          aria-label={inviteUserLabel}
+          sx={{
+            borderRadius: 2,
+            bgcolor: 'primary.main',
+            color: (theme) => theme.palette.getContrastText(theme.palette.primary.main),
+            '&:hover': {
+              bgcolor: 'primary.dark',
+            },
+          }}
+        >
+          <PersonAddIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    </Stack>
+  )
+
+  // Mobile actions
+  const mobileActions = (
+    <Stack direction="row" spacing={0.5} alignItems="center">
+      {mode === 'enterprise' && (
+        <IconButton
+          size="small"
+          color="primary"
+          onClick={() => {
+            if (!site) return
+            setMode('site')
+            navigate(`/site/${site.slug}`)
+          }}
+          aria-label={switchToSiteModeLabel}
+        >
+          <SwapHorizIcon fontSize="small" />
+        </IconButton>
+      )}
+      <IconButton size="small" color="primary" aria-label={siteSettingsLabel}>
+        <SettingsIcon fontSize="small" />
+      </IconButton>
+      <IconButton
+        size="small"
+        color="primary"
+        aria-label={inviteUserLabel}
+        sx={{
+          bgcolor: 'primary.main',
+          color: (theme) => theme.palette.getContrastText(theme.palette.primary.main),
+          '&:hover': {
+            bgcolor: 'primary.dark',
+          },
+        }}
+      >
+        <PersonAddIcon fontSize="small" />
+      </IconButton>
+    </Stack>
   )
 
   return (
     <Box sx={{ position: 'relative', pb: 8 }}>
-      <Stack
-        direction={{ xs: 'column', md: 'row' }}
-        justifyContent="space-between"
-        alignItems="flex-start"
-        spacing={2}
-        sx={{ mb: 3 }}
-      >
-        <Stack spacing={1} sx={{ flex: 1 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 1,
-              width: '100%',
-            }}
-          >
-            <Typography
-              variant="h4"
-              fontWeight={600}
-              sx={{
-                lineHeight: 1.2,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                flex: 1,
-              }}
-            >
-              {site.name}
-            </Typography>
-            <Stack direction="row" spacing={0.75} sx={{ flexShrink: 0 }}>
-              <Chip label={planLabel} size="small" color="primary" />
-              <Chip label={statusLabel} size="small" color={statusColor} />
-            </Stack>
-          </Box>
-          <Typography variant="body2" color="text.secondary">
-            {headerSubtitle}
-          </Typography>
-        </Stack>
-
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="center"
-          justifyContent="flex-end"
-          sx={{
-            width: '100%',
-            maxWidth: { xs: '100%', md: 'auto' },
-            alignSelf: { xs: 'stretch', md: 'auto' },
-            flexWrap: 'nowrap',
-            gap: 1,
-          }}
-        >
-          {mode === 'enterprise' ? (
-            <Button
-              size="small"
-              variant="text"
-              color="primary"
-              startIcon={<SwapHorizIcon fontSize="small" />}
-              onClick={() => {
-                if (!site) return
-                setMode('site')
-                navigate(`/site/${site.slug}`)
-              }}
-              sx={{
-                borderRadius: 999,
-                px: 1.75,
-                alignSelf: 'center',
-                fontWeight: 500,
-              }}
-            >
-              {switchToSiteModeLabel}
-            </Button>
-          ) : null}
-
-          <Tooltip title={siteSettingsLabel} arrow>
-            <IconButton
-              color="primary"
-              aria-label={siteSettingsLabel}
-              sx={{
-                borderRadius: 2,
-                border: '1px solid',
-                borderColor: 'divider',
-                bgcolor: 'background.paper',
-                width: 42,
-                height: 42,
-                '&:hover': {
-                  bgcolor: 'action.hover',
-                },
-              }}
-            >
-              <SettingsIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title={inviteUserLabel} arrow>
-            <IconButton
-              color="primary"
-              aria-label={inviteUserLabel}
-              sx={{
-                borderRadius: 2,
-                bgcolor: 'primary.main',
-                color: (theme) => theme.palette.getContrastText(theme.palette.primary.main),
-                width: 42,
-                height: 42,
-                '&:hover': {
-                  bgcolor: 'primary.dark',
-                },
-              }}
-            >
-              <PersonAddIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      </Stack>
+      <PageHeader
+        title={site.name}
+        subtitle={headerSubtitle}
+        badges={badges}
+        rightActions={rightActions}
+        mobileBackButton={mobileBackButton}
+        mobileActions={mobileActions}
+      />
 
       <Grid container spacing={2} columns={12} sx={{ width: '100%' }}>
         <Grid size={leftColumnSpan}>

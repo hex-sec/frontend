@@ -92,7 +92,7 @@ export default function SiteCard({
     >
       <Stack spacing={{ xs: 1, sm: 1.5 }} sx={{ flexGrow: 1 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
-          <Stack direction="row" alignItems="center" gap={1} sx={{ minWidth: 0 }}>
+          <Stack direction="row" alignItems="center" gap={1} sx={{ minWidth: 0, flex: 1 }}>
             <HomeOutlinedIcon fontSize="small" />
             <MLink
               component={RouterLink}
@@ -107,7 +107,7 @@ export default function SiteCard({
                 sx={(theme) => ({
                   display: 'block',
                   fontWeight: 600,
-                  maxWidth: { xs: 220, sm: 260, md: 300 },
+                  maxWidth: { xs: 180, sm: 260, md: 300 },
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',

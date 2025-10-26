@@ -321,6 +321,15 @@ export default function TopBar() {
   const [selectedSiteSlug, setSelectedSiteSlug] = useState(current?.slug ?? '')
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null)
   const topbarBlurRadius = useMemo(() => Math.max(0, Math.min(20, topbarBlur)), [topbarBlur])
+  const [currentTime, setCurrentTime] = useState(new Date())
+
+  // Update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   const baseNotifications = useMemo<Notification[]>(() => {
     if (!user) return []
@@ -555,6 +564,177 @@ export default function TopBar() {
     if (hasAppliedLandingRef.current) return
     applyLandingPreference()
   }, [applyLandingPreference, user])
+
+  useEffect(() => {
+    // Ensure each authenticated user hydrates their own locale, theme, and topbar styling.
+    if (!user?.id) return
+    const stored = loadUserSettings()
+    if (!stored) return
+
+    const storedModalValues = flattenModalSettings(stored.modalSettings)
+
+    const modalLocale = storedModalValues['account.profile.digestLanguage']
+    const nextLocaleCandidate =
+      typeof modalLocale === 'string'
+        ? modalLocale
+        : typeof stored.locale === 'string'
+          ? stored.locale
+          : undefined
+    if (
+      nextLocaleCandidate &&
+      (SUPPORTED_LANGUAGES as readonly string[]).includes(nextLocaleCandidate) &&
+      nextLocaleCandidate !== language
+    ) {
+      setLanguage(nextLocaleCandidate as SupportedLanguage)
+    }
+
+    const modalThemeSelection = storedModalValues['appearance.generalLook.themeMode']
+    const matchedPreset =
+      typeof modalThemeSelection === 'string'
+        ? themePresets.find((preset) => preset.id === modalThemeSelection)
+        : undefined
+    if (matchedPreset && themePresetId !== matchedPreset.id) {
+      setThemePreset(matchedPreset.id)
+    }
+
+    const resolvedThemePreference: ThemeKind | undefined = (() => {
+      if (stored.themePreference) return stored.themePreference
+      if (matchedPreset) {
+        return matchedPreset.palette.mode === 'dark' ? 'dark' : 'light'
+      }
+      if (modalThemeSelection === 'auto') return 'system'
+      if (
+        modalThemeSelection === 'light' ||
+        modalThemeSelection === 'dark' ||
+        modalThemeSelection === 'system' ||
+        modalThemeSelection === 'brand' ||
+        modalThemeSelection === 'high-contrast'
+      ) {
+        return modalThemeSelection
+      }
+      return undefined
+    })()
+
+    if (resolvedThemePreference && resolvedThemePreference !== themeKind) {
+      setThemeKind(resolvedThemePreference)
+    }
+
+    const defaultBlur = Number(SETTINGS_DEFAULT_VALUES['appearance.topbar.topbarBlur'] ?? 14)
+    const rawStoredBlur = storedModalValues['appearance.topbar.topbarBlur']
+    const parsedBlur =
+      typeof rawStoredBlur === 'number'
+        ? rawStoredBlur
+        : Number.isFinite(Number(rawStoredBlur))
+          ? Number(rawStoredBlur)
+          : defaultBlur
+    const nextBlur = Number.isFinite(parsedBlur)
+      ? Math.max(0, Math.min(40, parsedBlur))
+      : defaultBlur
+    if (nextBlur !== topbarBlur) {
+      setTopbarBlur(nextBlur)
+    }
+
+    const defaultBadges = Boolean(SETTINGS_DEFAULT_VALUES['appearance.topbar.topbarBadges'])
+    const rawStoredBadges = storedModalValues['appearance.topbar.topbarBadges']
+    const nextBadges =
+      typeof rawStoredBadges === 'boolean'
+        ? rawStoredBadges
+        : rawStoredBadges === 'true'
+          ? true
+          : rawStoredBadges === 'false'
+            ? false
+            : defaultBadges
+    if (nextBadges !== topbarBadges) {
+      setTopbarBadges(nextBadges)
+    }
+
+    const defaultPatternEnabled = Boolean(
+      SETTINGS_DEFAULT_VALUES['appearance.topbar.topbarPatternEnabled'],
+    )
+    const rawStoredPatternEnabled = storedModalValues['appearance.topbar.topbarPatternEnabled']
+    const nextPatternEnabled =
+      typeof rawStoredPatternEnabled === 'boolean'
+        ? rawStoredPatternEnabled
+        : rawStoredPatternEnabled === 'true'
+          ? true
+          : rawStoredPatternEnabled === 'false'
+            ? false
+            : defaultPatternEnabled
+    if (nextPatternEnabled !== patternEnabled) {
+      setPatternEnabled(nextPatternEnabled)
+    }
+
+    const allowedPatternKinds = new Set(['subtle-diagonal', 'subtle-dots', 'geometry', 'none'])
+    const defaultPatternKind = String(
+      SETTINGS_DEFAULT_VALUES['appearance.topbar.topbarPatternKind'] ?? 'subtle-diagonal',
+    )
+    const rawStoredPatternKind = storedModalValues['appearance.topbar.topbarPatternKind']
+    const nextPatternKind =
+      typeof rawStoredPatternKind === 'string' && allowedPatternKinds.has(rawStoredPatternKind)
+        ? rawStoredPatternKind
+        : allowedPatternKinds.has(defaultPatternKind)
+          ? defaultPatternKind
+          : 'subtle-diagonal'
+    if (nextPatternKind !== patternKind) {
+      setPatternKind(nextPatternKind)
+    }
+
+    const defaultPatternOpacity = Number(
+      SETTINGS_DEFAULT_VALUES['appearance.topbar.topbarPatternOpacity'] ?? 0.08,
+    )
+    const rawStoredPatternOpacity = storedModalValues['appearance.topbar.topbarPatternOpacity']
+    const parsedPatternOpacity =
+      typeof rawStoredPatternOpacity === 'number'
+        ? rawStoredPatternOpacity
+        : Number.isFinite(Number(rawStoredPatternOpacity))
+          ? Number(rawStoredPatternOpacity)
+          : defaultPatternOpacity
+    const nextPatternOpacity = Number.isFinite(parsedPatternOpacity)
+      ? Math.max(0, Math.min(0.4, parsedPatternOpacity))
+      : defaultPatternOpacity
+    if (Math.abs(nextPatternOpacity - patternOpacity) > 0.0001) {
+      setPatternOpacity(nextPatternOpacity)
+    }
+
+    const defaultPatternScale = Number(
+      SETTINGS_DEFAULT_VALUES['appearance.topbar.topbarPatternScale'] ?? 28,
+    )
+    const rawStoredPatternScale = storedModalValues['appearance.topbar.topbarPatternScale']
+    const parsedPatternScale =
+      typeof rawStoredPatternScale === 'number'
+        ? rawStoredPatternScale
+        : Number.isFinite(Number(rawStoredPatternScale))
+          ? Number(rawStoredPatternScale)
+          : defaultPatternScale
+    const nextPatternScale = Number.isFinite(parsedPatternScale)
+      ? Math.max(8, Math.min(64, Math.round(parsedPatternScale)))
+      : defaultPatternScale
+    if (nextPatternScale !== patternScale) {
+      setPatternScale(nextPatternScale)
+    }
+  }, [
+    user?.id,
+    loadUserSettings,
+    themePresets,
+    themePresetId,
+    setThemePreset,
+    language,
+    setLanguage,
+    themeKind,
+    setThemeKind,
+    topbarBlur,
+    setTopbarBlur,
+    topbarBadges,
+    setTopbarBadges,
+    patternEnabled,
+    setPatternEnabled,
+    patternKind,
+    setPatternKind,
+    patternOpacity,
+    setPatternOpacity,
+    patternScale,
+    setPatternScale,
+  ])
 
   useEffect(() => {
     hasAppliedLandingRef.current = false
@@ -1000,6 +1180,34 @@ export default function TopBar() {
               }}
             >
               <LogoMark size={34} />
+            </Box>
+
+            {/* Live clock for desktop only - centered in topbar */}
+            <Box
+              sx={{
+                position: 'absolute',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: { xs: 'none', md: 'flex' },
+                alignItems: 'center',
+              }}
+            >
+              <Typography
+                variant="body2"
+                component="span"
+                sx={{
+                  fontFamily: 'monospace',
+                  fontWeight: 500,
+                  letterSpacing: 0.5,
+                }}
+              >
+                {currentTime.toLocaleTimeString('en-US', {
+                  hour12: true,
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                })}
+              </Typography>
             </Box>
 
             <Box

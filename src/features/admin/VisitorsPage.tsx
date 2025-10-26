@@ -29,12 +29,15 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred'
 import HourglassTopIcon from '@mui/icons-material/HourglassTop'
 import BadgeIcon from '@mui/icons-material/Badge'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import { useNavigate } from 'react-router-dom'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
 import type { ColumnDefinition } from '../../components/table/useColumnPreferences'
 import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
 
 import { useTranslate } from '@i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
+import PageHeader from './components/PageHeader'
 
 type VisitorCategory = 'family' | 'vendor' | 'staff'
 type VisitorStatus = 'active' | 'blocked' | 'pending'
@@ -104,6 +107,7 @@ const STATUS_META_BASE: Record<
 type VisitorFilter = 'all' | VisitorStatus | VisitorCategory
 
 export default function VisitorsPage() {
+  const navigate = useNavigate()
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
   const { t } = useTranslate()
   const language = useI18nStore((state) => state.language) ?? 'en'
@@ -230,6 +234,7 @@ export default function VisitorsPage() {
   )
 
   const visitorsTitle = translate('visitorsPage.title', 'Recurring visitors')
+  const visitorsTitleMobile = translate('visitorsPage.titleMobile', 'Visitors')
   const visitorsDescription = translate(
     'visitorsPage.description',
     'Store frequent visitor profiles for faster gate processing and audit trails.',
@@ -498,6 +503,29 @@ export default function VisitorsPage() {
 
   const activeSiteName = activeSite?.name ?? derivedSiteSlug ?? null
 
+  // PageHeader configuration
+  const badges = activeSiteName
+    ? [{ label: activeSiteName, color: 'secondary' as const }]
+    : [{ label: enterpriseChipLabel, color: 'primary' as const }]
+
+  const mobileBackButton = (
+    <IconButton size="small" onClick={() => navigate(-1)}>
+      <ArrowBackIcon fontSize="small" />
+    </IconButton>
+  )
+
+  const rightActions = (
+    <Button variant="contained" startIcon={<PersonAddAlt1Icon />}>
+      {addVisitorLabel}
+    </Button>
+  )
+
+  const mobileActions = (
+    <IconButton size="small" color="primary" aria-label={addVisitorLabel}>
+      <PersonAddAlt1Icon fontSize="small" />
+    </IconButton>
+  )
+
   return (
     <Stack spacing={3}>
       {isSiteContext && activeSiteName ? (
@@ -520,25 +548,19 @@ export default function VisitorsPage() {
         </Alert>
       )}
 
+      <PageHeader
+        title={visitorsTitle}
+        mobileTitle={visitorsTitleMobile}
+        subtitle={visitorsDescription}
+        badges={badges}
+        rightActions={rightActions}
+        mobileBackButton={mobileBackButton}
+        mobileActions={mobileActions}
+      />
+
       <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
         {isMobile ? (
           <Stack spacing={2}>
-            <Stack spacing={2}>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Typography variant="h5" fontWeight={600}>
-                  {visitorsTitle}
-                </Typography>
-                <Chip
-                  label={isSiteContext && activeSiteName ? activeSiteName : enterpriseChipLabel}
-                  size="small"
-                  color="secondary"
-                />
-              </Stack>
-              <Typography variant="body2" color="text.secondary">
-                {visitorsDescription}
-              </Typography>
-            </Stack>
-
             <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
               <Button
                 variant="outlined"
@@ -619,34 +641,7 @@ export default function VisitorsPage() {
             }}
             renderToolbar={({ ColumnPreferencesTrigger }) => (
               <Stack spacing={3}>
-                <Stack
-                  direction="row"
-                  alignItems="flex-start"
-                  justifyContent="space-between"
-                  flexWrap="wrap"
-                  gap={2}
-                >
-                  <Box sx={{ flex: '1 1 240px' }}>
-                    <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <Typography variant="h5" fontWeight={600}>
-                        {visitorsTitle}
-                      </Typography>
-                      {isSiteContext && activeSiteName ? (
-                        <Chip label={activeSiteName} size="small" color="secondary" />
-                      ) : (
-                        <Chip label={enterpriseChipLabel} size="small" color="primary" />
-                      )}
-                    </Stack>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                      {visitorsDescription}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ flexShrink: 0 }}>
-                    <Button variant="contained" startIcon={<PersonAddAlt1Icon />}>
-                      {addVisitorLabel}
-                    </Button>
-                  </Box>
-                </Stack>
+                <Box sx={{ display: { xs: 'none', md: 'block' } }} />
 
                 <Stack
                   direction="row"

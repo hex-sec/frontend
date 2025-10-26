@@ -30,11 +30,14 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import ReportIcon from '@mui/icons-material/Report'
 import UpdateIcon from '@mui/icons-material/Update'
 import DownloadIcon from '@mui/icons-material/Download'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import { useNavigate } from 'react-router-dom'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
 import type { ColumnDefinition } from '../../components/table/useColumnPreferences'
 import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
 import { useTranslate } from '@i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
+import PageHeader from './components/PageHeader'
 
 type VehicleUsage = 'resident' | 'visitor' | 'service'
 type VehicleStatus = 'active' | 'expired' | 'flagged'
@@ -105,6 +108,7 @@ const STATUS_META_BASE: Record<
 }
 
 export default function VehiclesPage() {
+  const navigate = useNavigate()
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
   const isSiteContext = Boolean(derivedSiteSlug)
   const theme = useTheme()
@@ -283,6 +287,7 @@ export default function VehiclesPage() {
   )
 
   const vehiclesTitle = translate('vehiclesPage.title', 'Vehicle registry')
+  const vehiclesTitleMobile = translate('vehiclesPage.titleMobile', 'Vehicles')
   const vehiclesDescription = translate(
     'vehiclesPage.description',
     'Register resident, visitor, and service vehicles to keep guard kiosks synced.',
@@ -502,6 +507,29 @@ export default function VehiclesPage() {
 
   const activeSiteName = activeSite?.name ?? derivedSiteSlug ?? null
 
+  // PageHeader configuration
+  const badges = activeSiteName
+    ? [{ label: activeSiteName, color: 'secondary' as const }]
+    : [{ label: enterpriseChipLabel, color: 'primary' as const }]
+
+  const mobileBackButton = (
+    <IconButton size="small" onClick={() => navigate(-1)}>
+      <ArrowBackIcon fontSize="small" />
+    </IconButton>
+  )
+
+  const rightActions = (
+    <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
+      {registerVehicleLabel}
+    </Button>
+  )
+
+  const mobileActions = (
+    <IconButton size="small" color="primary" aria-label={registerVehicleLabel}>
+      <DirectionsCarFilledIcon fontSize="small" />
+    </IconButton>
+  )
+
   return (
     <Stack spacing={3}>
       {isSiteContext && activeSiteName ? (
@@ -524,25 +552,19 @@ export default function VehiclesPage() {
         </Alert>
       )}
 
+      <PageHeader
+        title={vehiclesTitle}
+        mobileTitle={vehiclesTitleMobile}
+        subtitle={vehiclesDescription}
+        badges={badges}
+        rightActions={rightActions}
+        mobileBackButton={mobileBackButton}
+        mobileActions={mobileActions}
+      />
+
       <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
         {isMobile ? (
           <Stack spacing={2}>
-            <Stack spacing={2}>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Typography variant="h5" fontWeight={600}>
-                  {vehiclesTitle}
-                </Typography>
-                <Chip
-                  label={isSiteContext && activeSiteName ? activeSiteName : enterpriseChipLabel}
-                  size="small"
-                  color="secondary"
-                />
-              </Stack>
-              <Typography variant="body2" color="text.secondary">
-                {vehiclesDescription}
-              </Typography>
-            </Stack>
-
             <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
               <Button
                 variant="outlined"
@@ -634,34 +656,7 @@ export default function VehiclesPage() {
             }}
             renderToolbar={({ ColumnPreferencesTrigger }) => (
               <Stack spacing={3}>
-                <Stack
-                  direction="row"
-                  alignItems="flex-start"
-                  justifyContent="space-between"
-                  flexWrap="wrap"
-                  gap={2}
-                >
-                  <Box sx={{ flex: '1 1 240px' }}>
-                    <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <Typography variant="h5" fontWeight={600}>
-                        {vehiclesTitle}
-                      </Typography>
-                      {isSiteContext && activeSiteName ? (
-                        <Chip label={activeSiteName} size="small" color="secondary" />
-                      ) : (
-                        <Chip label={enterpriseChipLabel} size="small" color="primary" />
-                      )}
-                    </Stack>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                      {vehiclesDescription}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ flexShrink: 0 }}>
-                    <Button variant="contained" startIcon={<DirectionsCarFilledIcon />}>
-                      {registerVehicleLabel}
-                    </Button>
-                  </Box>
-                </Stack>
+                <Box sx={{ display: { xs: 'none', md: 'block' } }} />
 
                 <Stack
                   direction="row"

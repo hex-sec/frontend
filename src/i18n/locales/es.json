@@ -728,7 +728,7 @@
       },
       "actions": {
         "impersonate": "Suplantar sesión",
-        "launchKiosk": "Abrir vista del kiosco",
+        "launchKiosk": "Vista de kiosco",
         "manageAccess": "Gestionar acceso",
         "reviewRoster": "Revisar lista"
       },
@@ -1291,6 +1291,7 @@
   },
   "visitsPage": {
     "title": "Visitas",
+    "titleMobile": "Visitas",
     "description": "Supervisa el tráfico de invitados, las llegadas programadas y las aprobaciones del kiosco en tiempo real.",
     "alerts": {
       "siteScoped": {
@@ -1361,6 +1362,7 @@
   },
   "vehiclesPage": {
     "title": "Registro de vehículos",
+    "titleMobile": "Vehículos",
     "description": "Registra vehículos de residentes, visitantes y servicios para mantener los kioscos sincronizados.",
     "alerts": {
       "siteScoped": {
@@ -1622,6 +1624,7 @@
   },
   "visitorsPage": {
     "title": "Visitantes recurrentes",
+    "titleMobile": "Visitantes",
     "description": "Guarda perfiles de visitantes frecuentes para agilizar el proceso en la garita y mantener el registro.",
     "alerts": {
       "siteScoped": {
