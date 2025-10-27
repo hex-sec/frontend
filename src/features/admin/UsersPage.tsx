@@ -375,6 +375,25 @@ export default function UsersPage(): JSX.Element {
     const highlightSlug = activeSiteSlug ?? null
     return [
       {
+        id: 'rowActions',
+        label: '',
+        disableToggle: true,
+        minWidth: 60,
+        align: 'center',
+        render: (user) => (
+          <Tooltip
+            title={t('usersPage.tooltips.moreActions', {
+              lng: language,
+              defaultValue: 'More actions',
+            })}
+          >
+            <IconButton size="small" onClick={(event) => openRowMenu(event, user)}>
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        ),
+      },
+      {
         id: 'id',
         label: t('usersPage.table.columns.userId', {
           lng: language,
@@ -483,63 +502,6 @@ export default function UsersPage(): JSX.Element {
           <Typography variant="body2" color="text.secondary">
             {formatLastActive(user.lastActive)}
           </Typography>
-        ),
-      },
-      {
-        id: 'actions',
-        label: t('usersPage.table.columns.actions', {
-          lng: language,
-          defaultValue: 'Actions',
-        }),
-        disableToggle: true,
-        minWidth: 160,
-        align: 'right',
-        render: (user) => (
-          <Stack direction="row" spacing={1} justifyContent="flex-end">
-            {isSiteContext ? (
-              <Tooltip
-                title={t('usersPage.tooltips.restrictSite', {
-                  lng: language,
-                  defaultValue: 'Restrict to this site',
-                })}
-              >
-                <Button size="small" variant="outlined">
-                  {t('usersPage.actions.adjustRoles', {
-                    lng: language,
-                    defaultValue: 'Adjust roles',
-                  })}
-                </Button>
-              </Tooltip>
-            ) : (
-              <Tooltip
-                title={t('usersPage.tooltips.manageWorkspace', {
-                  lng: language,
-                  defaultValue: 'Manage workspace access',
-                })}
-              >
-                <Button
-                  size="small"
-                  variant="outlined"
-                  startIcon={<ManageAccountsIcon fontSize="small" />}
-                >
-                  {t('usersPage.actions.manage', {
-                    lng: language,
-                    defaultValue: 'Manage',
-                  })}
-                </Button>
-              </Tooltip>
-            )}
-            <Tooltip
-              title={t('usersPage.tooltips.moreActions', {
-                lng: language,
-                defaultValue: 'More actions',
-              })}
-            >
-              <IconButton size="small" onClick={(event) => openRowMenu(event, user)}>
-                <MoreVertIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Stack>
         ),
       },
     ]

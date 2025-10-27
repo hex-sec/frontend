@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, type ElementType } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ElementType } from 'react'
 import { Outlet, Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Toolbar, Breadcrumbs, Link, Typography } from '@mui/material'
+import { Box, Button, Toolbar, Breadcrumbs, Link, Menu, MenuItem } from '@mui/material'
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import DomainIcon from '@mui/icons-material/Domain'
@@ -39,6 +40,51 @@ const CRUMB_META_MAP: Record<string, { labelKey: string; Icon?: ElementType }> =
   admins: { labelKey: 'layout.breadcrumbs.admins', Icon: ManageAccountsIcon },
 }
 
+// Sibling pages for second-level breadcrumbs (main admin sections)
+const SECOND_LEVEL_SIBLINGS = ['sites', 'users', 'visits', 'visitors', 'vehicles', 'reports']
+
+// Sibling pages for site-level breadcrumbs (site-specific pages)
+const SITE_LEVEL_SIBLINGS = [
+  'users',
+  'admins',
+  'guards',
+  'residents',
+  'visits',
+  'vehicles',
+  'visitors',
+  'residences',
+]
+
+function getSiblingSegments(
+  segment: string,
+  breadcrumbIndex: number,
+  current?: { slug: string } | null,
+  allSites?: Array<{ slug: string; name: string }>,
+  isSiteCrumb?: boolean,
+): string[] {
+  // Skip first level (enterprise dashboard)
+  if (breadcrumbIndex === 0) {
+    return []
+  }
+
+  // Second level: main admin sections, filter out current
+  if (breadcrumbIndex === 1) {
+    return SECOND_LEVEL_SIBLINGS.filter((s) => s !== segment.toLowerCase())
+  }
+
+  // Third level: if it's a site slug, show other sites
+  if (breadcrumbIndex === 2 && isSiteCrumb && allSites) {
+    return allSites.filter((site) => site.slug !== segment).map((site) => site.slug)
+  }
+
+  // Fourth level and beyond: site-level pages, filter out current
+  if (breadcrumbIndex >= 3) {
+    return SITE_LEVEL_SIBLINGS.filter((s) => s !== segment.toLowerCase())
+  }
+
+  return []
+}
+
 export default function AdminLayout() {
   useAuthStore()
   const loc = useLocation()
@@ -53,6 +99,8 @@ export default function AdminLayout() {
   const back = useBackStore((s) => s.back)
   const setBack = useBackStore((s) => s.setBack)
   const clearBack = useBackStore((s) => s.clearBack)
+
+  const [menuAnchor, setMenuAnchor] = useState<Record<number, HTMLElement | null>>({})
 
   const crumbs: Array<{ segment: string; to: string }> =
     (isSitePath && current) || (isSiteMode && current)
@@ -76,6 +124,14 @@ export default function AdminLayout() {
     }
     navigate(-1)
   }, [back, navigate])
+
+  const handleOpenMenu = useCallback((index: number, event: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchor((prev) => ({ ...prev, [index]: event.currentTarget }))
+  }, [])
+
+  const handleCloseMenu = useCallback((index: number) => {
+    setMenuAnchor((prev) => ({ ...prev, [index]: null }))
+  }, [])
 
   const shouldUpdateBack = useMemo(() => {
     return (
@@ -203,7 +259,7 @@ export default function AdminLayout() {
           <Box
             sx={{
               mb: 1,
-              display: { xs: 'none', md: 'flex' },
+              display: { xs: 'none', sm: 'flex' },
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: 1,
@@ -213,8 +269,9 @@ export default function AdminLayout() {
               {crumbs.map((c, index) => {
                 const meta = getCrumbMeta(c.segment)
                 const Icon = meta.Icon
-                const isLast = index === crumbs.length - 1
                 const isSiteCrumb = current?.slug === c.segment
+                const siblings = getSiblingSegments(c.segment, index, current, sites, isSiteCrumb)
+                const hasMenu = siblings.length > 0
 
                 const contents = (
                   <Box
@@ -226,29 +283,102 @@ export default function AdminLayout() {
                   </Box>
                 )
 
-                if (isLast && !isSiteCrumb) {
-                  return (
-                    <Typography key={c.to} color="text.primary" typography="caption">
-                      {contents}
-                    </Typography>
-                  )
-                }
-
                 return (
-                  <Link
-                    key={c.to}
-                    component={RouterLink}
-                    to={c.to}
-                    sx={{
-                      color: 'text.secondary',
-                      typography: 'caption',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                    }}
-                  >
-                    {contents}
-                  </Link>
+                  <Box key={c.to} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                    <Link
+                      component={RouterLink}
+                      to={c.to}
+                      onClick={
+                        hasMenu
+                          ? (e) => {
+                              e.preventDefault()
+                              handleOpenMenu(index, e)
+                            }
+                          : undefined
+                      }
+                      sx={{
+                        color: 'text.secondary',
+                        typography: 'caption',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        textDecoration: 'none',
+                        '&:hover': {
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
+                      {contents}
+                      {hasMenu && <ArrowDropDownIcon sx={{ fontSize: 16 }} />}
+                    </Link>
+
+                    {hasMenu && (
+                      <Menu
+                        anchorEl={menuAnchor[index] || null}
+                        open={Boolean(menuAnchor[index])}
+                        onClose={() => handleCloseMenu(index)}
+                        slotProps={{
+                          list: {
+                            'aria-labelledby': `breadcrumb-${index}`,
+                          },
+                        }}
+                      >
+                        <MenuItem
+                          component={RouterLink}
+                          to={c.to}
+                          onClick={() => handleCloseMenu(index)}
+                          selected
+                        >
+                          {contents}
+                        </MenuItem>
+                        {siblings.map((sibling) => {
+                          // Build the correct path for siblings
+                          let siblingPath: string
+                          let siblingLabel: string
+                          let siblingIcon: ElementType | undefined
+
+                          if (index === 2 && isSiteCrumb) {
+                            // For sites (index 2), sibling is a site slug
+                            siblingPath = `/admin/sites/${sibling}`
+                            const siblingSite = sites.find((s) => s.slug === sibling)
+                            siblingLabel = siblingSite?.name || sibling
+                            siblingIcon = DomainIcon
+                          } else if (index >= 3) {
+                            // For site-level pages (index 3+)
+                            siblingPath = `/admin/sites/${current?.slug}/${sibling}`
+                            const siblingMeta = getCrumbMeta(sibling)
+                            siblingLabel = siblingMeta.label
+                            siblingIcon = siblingMeta.Icon
+                          } else {
+                            // For admin-level pages (index 1)
+                            const basePath = crumbs
+                              .slice(0, index)
+                              .map((cr) => cr.segment)
+                              .join('/')
+                            siblingPath = basePath ? `/${basePath}/${sibling}` : `/${sibling}`
+                            const siblingMeta = getCrumbMeta(sibling)
+                            siblingLabel = siblingMeta.label
+                            siblingIcon = siblingMeta.Icon
+                          }
+
+                          const Icon = siblingIcon
+                          return (
+                            <MenuItem
+                              key={sibling}
+                              component={RouterLink}
+                              to={siblingPath}
+                              onClick={() => handleCloseMenu(index)}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                {Icon ? <Icon fontSize="small" /> : null}
+                                {siblingLabel}
+                              </Box>
+                            </MenuItem>
+                          )
+                        })}
+                      </Menu>
+                    )}
+                  </Box>
                 )
               })}
             </Breadcrumbs>

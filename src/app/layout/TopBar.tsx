@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  Fragment,
   type ElementType,
   type MouseEvent,
   type SyntheticEvent,
@@ -62,6 +63,13 @@ import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled'
 import BadgeOutlinedIcon from '@mui/icons-material/Badge'
 import Badge from '@mui/material/Badge'
 import SearchIcon from '@mui/icons-material/Search'
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
+import AccessTimeIcon from '@mui/icons-material/AccessTime'
+import EventIcon from '@mui/icons-material/Event'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import Paper from '@mui/material/Paper'
+import Stack from '@mui/material/Stack'
 import type { ButtonProps } from '@mui/material/Button'
 import { alpha, useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
@@ -101,6 +109,21 @@ type NotificationAction = {
   variant?: ButtonProps['variant']
   color?: ButtonProps['color']
   onClick: () => void
+}
+
+const getLocaleFromLanguage = (language: string): string => {
+  const localeMap: Record<string, string> = {
+    en: 'en-US',
+    es: 'es-ES',
+    fr: 'fr-FR',
+    de: 'de-DE',
+    it: 'it-IT',
+    pt: 'pt-PT',
+    ru: 'ru-RU',
+    zh: 'zh-CN',
+    ja: 'ja-JP',
+  }
+  return localeMap[language] || language
 }
 
 function getUserInitials(source?: string): string {
@@ -262,6 +285,36 @@ export default function TopBar() {
             description: t('topnav.roleNav.admin.sites.description'),
           },
           {
+            label: t('topnav.roleNav.admin.users.label'),
+            to: buildEntityUrl('users'),
+            Icon: PeopleIcon,
+            description: t('topnav.roleNav.admin.users.description'),
+          },
+          {
+            label: 'Admins',
+            to: buildEntityUrl('users/admins'),
+            Icon: ManageAccountsIcon,
+            description: 'Manage administrative users',
+          },
+          {
+            label: 'Guards',
+            to: buildEntityUrl('users/guards'),
+            Icon: LocalPoliceIcon,
+            description: 'Manage security personnel',
+          },
+          {
+            label: 'Residents',
+            to: buildEntityUrl('users/residents'),
+            Icon: GroupsIcon,
+            description: 'Manage resident users',
+          },
+          {
+            label: t('topnav.roleNav.admin.residences.label'),
+            to: buildEntityUrl('residences'),
+            Icon: HomeWorkIcon,
+            description: t('topnav.roleNav.admin.residences.description'),
+          },
+          {
             label: t('topnav.roleNav.admin.visits.label'),
             to: buildEntityUrl('visits'),
             Icon: DoorFrontIcon,
@@ -278,12 +331,6 @@ export default function TopBar() {
             to: buildEntityUrl('visitors'),
             Icon: BadgeOutlinedIcon,
             description: t('topnav.roleNav.admin.visitors.description'),
-          },
-          {
-            label: t('topnav.roleNav.admin.users.label'),
-            to: buildEntityUrl('users'),
-            Icon: PeopleIcon,
-            description: t('topnav.roleNav.admin.users.description'),
           },
           {
             label: t('topnav.roleNav.admin.reports.label'),
@@ -320,6 +367,8 @@ export default function TopBar() {
   const [selectedMode, setSelectedMode] = useState<SiteMode>(mode)
   const [selectedSiteSlug, setSelectedSiteSlug] = useState(current?.slug ?? '')
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null)
+  const [calendarAnchor, setCalendarAnchor] = useState<null | HTMLElement>(null)
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const topbarBlurRadius = useMemo(() => Math.max(0, Math.min(20, topbarBlur)), [topbarBlur])
   const [currentTime, setCurrentTime] = useState(new Date())
 
@@ -330,6 +379,68 @@ export default function TopBar() {
     }, 1000)
     return () => clearInterval(timer)
   }, [])
+
+  // Events data with dates
+  const allEvents = useMemo(() => {
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    return [
+      {
+        date: today,
+        type: 'arrival' as const,
+        time: '09:30',
+        title: 'Security committee sync',
+        location: 'Ops war room',
+        site: 'Vista Azul',
+      },
+      {
+        date: today,
+        type: 'arrival' as const,
+        time: '11:00',
+        title: 'Billing review',
+        location: 'Finance hub',
+        site: 'Enterprise',
+      },
+      {
+        date: today,
+        type: 'event' as const,
+        time: '14:00',
+        title: 'New resident onboarding',
+        location: 'North gate',
+        site: 'Los Olivos',
+      },
+      {
+        date: today,
+        type: 'arrival' as const,
+        time: '15:00',
+        title: 'Guard shift change',
+        location: 'Kiosk entrance',
+        site: 'Vista Azul',
+      },
+      {
+        date: tomorrow,
+        type: 'arrival' as const,
+        time: '09:00',
+        title: 'Monthly review meeting',
+        location: 'Conference room',
+        site: 'Vista Azul',
+      },
+    ]
+  }, [])
+
+  // Filter events for selected date
+  const selectedDateEvents = useMemo(() => {
+    return allEvents.filter((event) => {
+      const eventDate = event.date
+      return (
+        eventDate.getDate() === selectedDate.getDate() &&
+        eventDate.getMonth() === selectedDate.getMonth() &&
+        eventDate.getFullYear() === selectedDate.getFullYear()
+      )
+    })
+  }, [allEvents, selectedDate])
 
   const baseNotifications = useMemo<Notification[]>(() => {
     if (!user) return []
@@ -1168,46 +1279,68 @@ export default function TopBar() {
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: { xs: 'center', sm: 'flex-start' },
-                flexGrow: { xs: 0, sm: 1 },
-                position: { xs: 'absolute', sm: 'relative' },
-                left: { xs: '50%', sm: 'auto' },
-                transform: { xs: 'translateX(-50%)', sm: 'none' },
-                zIndex: { xs: 1, sm: 'initial' },
+                flexShrink: 0,
                 textDecoration: 'none',
                 color: 'inherit',
-                minWidth: 0,
               }}
             >
               <LogoMark size={34} />
             </Box>
 
-            {/* Live clock for desktop only - centered in topbar */}
+            {/* Live clock for desktop - centered in topbar, visible until 600px */}
             <Box
+              onClick={(e) => {
+                setSelectedDate(new Date())
+                setCalendarAnchor(e.currentTarget)
+              }}
               sx={{
                 position: 'absolute',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                display: { xs: 'none', md: 'flex' },
+                display: { xs: 'none', sm: 'flex' },
                 alignItems: 'center',
+                cursor: 'pointer',
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 1,
+                '&:hover': {
+                  bgcolor: (theme) => alpha(theme.palette.common.white, 0.1),
+                },
               }}
             >
-              <Typography
-                variant="body2"
-                component="span"
-                sx={{
-                  fontFamily: 'monospace',
-                  fontWeight: 500,
-                  letterSpacing: 0.5,
-                }}
-              >
-                {currentTime.toLocaleTimeString('en-US', {
-                  hour12: true,
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit',
-                })}
-              </Typography>
+              <AccessTimeIcon sx={{ fontSize: 18, mr: 0.5 }} />
+              <Stack direction="column" spacing={0.25} alignItems="center">
+                <Typography
+                  variant="body2"
+                  component="span"
+                  sx={{
+                    fontFamily: 'monospace',
+                    fontWeight: 500,
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  {currentTime.toLocaleTimeString(language === 'en' ? 'en-US' : language, {
+                    hour12: true,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                  })}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  component="span"
+                  sx={{
+                    textAlign: 'center',
+                    opacity: 0.8,
+                  }}
+                >
+                  {currentTime.toLocaleDateString(getLocaleFromLanguage(language), {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </Typography>
+              </Stack>
             </Box>
 
             <Box
@@ -1219,6 +1352,19 @@ export default function TopBar() {
                 ml: 'auto',
               }}
             >
+              {/* Calendar button for mobile */}
+              <IconButton
+                color="inherit"
+                aria-label={t('topnav.clock.calendar.title')}
+                onClick={(e) => {
+                  setSelectedDate(new Date())
+                  setCalendarAnchor(e.currentTarget)
+                }}
+                sx={{ display: { xs: 'inline-flex', sm: 'none' } }}
+              >
+                <CalendarTodayIcon />
+              </IconButton>
+
               <IconButton
                 color="inherit"
                 aria-label={t('topnav.notifications.aria')}
@@ -1593,6 +1739,172 @@ export default function TopBar() {
             </MenuList>
           )}
         </Menu>
+
+        {/* Calendar Menu */}
+        <Menu
+          anchorEl={calendarAnchor}
+          open={Boolean(calendarAnchor)}
+          onClose={() => setCalendarAnchor(null)}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'center',
+          }}
+          PaperProps={{
+            sx: {
+              width: { xs: 'calc(100vw - 32px)', sm: 580, '@media (min-width: 750px)': 680 },
+              height: 'auto',
+              maxWidth: { xs: 340, sm: 580, '@media (min-width: 750px)': 680 },
+              maxHeight: { xs: 'calc(100vh - 100px)', sm: 'auto' },
+              mt: { xs: 1, sm: 1 },
+              borderRadius: { xs: 2.5, sm: 2.5 },
+              boxShadow: (muiTheme) => muiTheme.shadows[8],
+            },
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: 2,
+              py: 1.5,
+            }}
+          >
+            <Typography variant="subtitle2" fontWeight={600}>
+              {t('topnav.clock.calendar.title')}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Chip
+                size="small"
+                icon={<CalendarTodayIcon fontSize="small" />}
+                label={selectedDate.toLocaleDateString(getLocaleFromLanguage(language), {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+                color="primary"
+                variant="outlined"
+              />
+            </Box>
+          </Box>
+          <Divider />
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              minHeight: { xs: 'auto', sm: 450 },
+              overflow: 'auto',
+            }}
+          >
+            {/* Calendar View */}
+            <Paper
+              elevation={0}
+              sx={{
+                width: { xs: '100%', sm: 300 },
+                borderRight: { xs: 'none', sm: '1px solid' },
+                borderBottom: { xs: '1px solid', sm: 'none' },
+                borderColor: 'divider',
+                p: 2,
+              }}
+            >
+              <Stack spacing={2}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      const newDate = new Date(selectedDate)
+                      newDate.setMonth(newDate.getMonth() - 1)
+                      setSelectedDate(newDate)
+                    }}
+                  >
+                    <ChevronLeftIcon />
+                  </IconButton>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    {selectedDate.toLocaleDateString(getLocaleFromLanguage(language), {
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      const newDate = new Date(selectedDate)
+                      newDate.setMonth(newDate.getMonth() + 1)
+                      setSelectedDate(newDate)
+                    }}
+                  >
+                    <ChevronRightIcon />
+                  </IconButton>
+                </Stack>
+                <CalendarGrid
+                  currentDate={selectedDate}
+                  events={allEvents}
+                  onDateSelect={setSelectedDate}
+                  language={language}
+                />
+              </Stack>
+            </Paper>
+
+            {/* Events List */}
+            <Box sx={{ flex: 1, maxHeight: { xs: 'auto', sm: 450 }, overflow: 'auto' }}>
+              {selectedDateEvents.length === 0 ? (
+                <Box sx={{ px: 2.5, py: 3 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('topnav.clock.calendar.noEvents')}
+                  </Typography>
+                </Box>
+              ) : (
+                <MenuList disablePadding>
+                  {selectedDateEvents.map((event, index) => (
+                    <Fragment key={`${event.time}-${index}`}>
+                      <MenuItem
+                        sx={{
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          py: 1.5,
+                          px: 2,
+                        }}
+                      >
+                        <Stack direction="row" spacing={1.5} sx={{ width: '100%' }}>
+                          <Chip
+                            icon={event.type === 'arrival' ? <AccessTimeIcon /> : <EventIcon />}
+                            label={event.time}
+                            size="small"
+                            color={event.type === 'arrival' ? 'primary' : 'secondary'}
+                            variant="outlined"
+                            sx={{ minWidth: 70 }}
+                          />
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="body2" fontWeight={500}>
+                              {event.title}
+                            </Typography>
+                            <Stack direction="row" spacing={1} sx={{ mt: 0.25 }}>
+                              <Typography variant="caption" color="text.secondary">
+                                {event.location}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                •
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {event.site}
+                              </Typography>
+                            </Stack>
+                          </Box>
+                        </Stack>
+                      </MenuItem>
+                      {index < selectedDateEvents.length - 1 ? <Divider /> : null}
+                    </Fragment>
+                  ))}
+                </MenuList>
+              )}
+            </Box>
+          </Box>
+        </Menu>
+
         <SettingsModal
           open={openSettings}
           onClose={handleSettingsClose}
@@ -1744,5 +2056,171 @@ function ModeSwitchDialog({
         </Button>
       </DialogActions>
     </Dialog>
+  )
+}
+
+function CalendarGrid({
+  currentDate,
+  events,
+  onDateSelect,
+  language = 'en',
+}: {
+  currentDate: Date
+  events: Array<{ date: Date; time: string; title: string }>
+  onDateSelect: (date: Date) => void
+  language?: string
+}) {
+  const today = new Date()
+
+  // Get the first day of the month and find the Monday of that week
+  const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+  const dayOfWeek = startOfMonth.getDay()
+  const dayOfWeekMondayStart = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Convert Sunday=0 to Sunday=6, and shift by -1
+  const startOfCalendar = new Date(startOfMonth)
+  startOfCalendar.setDate(startOfMonth.getDate() - dayOfWeekMondayStart)
+
+  // Get the last day of the month
+  const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+  const daysInMonth = endOfMonth.getDate()
+
+  // Generate all days to display (usually 35 or 42 days for a month calendar)
+  const allDays = useMemo(() => {
+    const days: (Date | null)[] = []
+    const totalDays = Math.ceil((dayOfWeekMondayStart + daysInMonth) / 7) * 7
+
+    // Add empty cells before the first day of month
+    for (let i = 0; i < dayOfWeekMondayStart; i++) {
+      days.push(null)
+    }
+
+    // Add all days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i)
+      days.push(date)
+    }
+
+    // Add empty cells to fill the last week
+    const remainingDays = totalDays - days.length
+    for (let i = 0; i < remainingDays; i++) {
+      days.push(null)
+    }
+
+    return days
+  }, [currentDate.getFullYear(), currentDate.getMonth(), dayOfWeekMondayStart, daysInMonth])
+
+  const dayNames = useMemo(() => {
+    const locale = getLocaleFromLanguage(language)
+    // Start from Monday (January 1, 2024 is a Monday)
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(2024, 0, i + 1) // January 1, 2024 is a Monday
+      return date.toLocaleDateString(locale, { weekday: 'short' })
+    })
+  }, [language])
+
+  const handleDateClick = (date: Date) => {
+    onDateSelect(date)
+  }
+
+  const getDayEvents = (date: Date | null) => {
+    if (!date) return []
+    return events.filter((event) => {
+      const eventDate = event.date
+      return (
+        eventDate.getDate() === date.getDate() &&
+        eventDate.getMonth() === date.getMonth() &&
+        eventDate.getFullYear() === date.getFullYear()
+      )
+    })
+  }
+
+  return (
+    <Stack spacing={1.5}>
+      {/* Day names */}
+      <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'center' }}>
+        {dayNames.map((day) => (
+          <Box key={day} sx={{ width: 36, textAlign: 'center' }}>
+            <Typography variant="caption" color="text.secondary">
+              {day}
+            </Typography>
+          </Box>
+        ))}
+      </Stack>
+
+      {/* Calendar grid - exactly 7 days wide, fixed width */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7, 36px)',
+          gap: 0.5,
+          justifyContent: 'center',
+        }}
+      >
+        {allDays.map((date, index) => {
+          if (!date) {
+            return <Box key={index} sx={{ width: 36, height: 36 }} />
+          }
+
+          const isDayToday =
+            date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear()
+          const isDaySelected =
+            date.getDate() === currentDate.getDate() &&
+            date.getMonth() === currentDate.getMonth() &&
+            date.getFullYear() === currentDate.getFullYear()
+          const dayEvents = getDayEvents(date)
+
+          return (
+            <Box
+              key={index}
+              onClick={() => handleDateClick(date)}
+              sx={{
+                width: 36,
+                height: 36,
+                position: 'relative',
+                cursor: 'pointer',
+              }}
+            >
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 1,
+                  bgcolor: isDaySelected ? 'primary.main' : 'transparent',
+                  color: isDaySelected ? 'primary.contrastText' : 'inherit',
+                  fontWeight: isDaySelected ? 600 : 400,
+                  border: isDayToday ? '2px solid' : 'none',
+                  borderColor: isDayToday ? 'primary.main' : 'transparent',
+                  '&:hover': {
+                    bgcolor: isDaySelected
+                      ? 'primary.main'
+                      : (theme) => alpha(theme.palette.primary.main, 0.1),
+                  },
+                }}
+              >
+                <Typography variant="body2">{date.getDate()}</Typography>
+              </Box>
+              {dayEvents.length > 0 && !isDaySelected && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: 2,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: 4,
+                    height: 4,
+                    borderRadius: '50%',
+                    bgcolor: 'primary.main',
+                  }}
+                />
+              )}
+            </Box>
+          )
+        })}
+      </Box>
+    </Stack>
   )
 }

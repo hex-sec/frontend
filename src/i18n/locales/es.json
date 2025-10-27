@@ -58,6 +58,12 @@
       "billing": "Facturación",
       "logout": "Cerrar sesión"
     },
+    "clock": {
+      "calendar": {
+        "title": "Programa",
+        "noEvents": "No hay eventos programados para esta fecha"
+      }
+    },
     "roleNav": {
       "admin": {
         "dashboard": {
@@ -83,6 +89,10 @@
         "users": {
           "label": "Usuarios",
           "description": "Invita administradores y asigna roles"
+        },
+        "residences": {
+          "label": "Residencias",
+          "description": "Lista de unidades y ocupación"
         },
         "reports": {
           "label": "Reportes",
@@ -565,10 +575,12 @@
       "sections": {
         "kpi": "Métricas clave",
         "operationalStatus": "Estado operativo",
-        "income": "Resumen financiero",
+        "income": "Vista de ingresos",
+        "financialSummary": "Resumen financiero",
         "quickAccess": "Accesos rápidos",
         "navigation": "Navegación",
-        "agenda": "Agenda rápida"
+        "agenda": "Agenda rápida",
+        "enterpriseOverview": "Resumen empresarial"
       },
       "actions": {
         "viewLiveMonitoring": "Abrir monitoreo en vivo",
@@ -641,6 +653,18 @@
         "users": {
           "caption": "{{count}} administradores"
         },
+        "visits": {
+          "caption": "Ver pases de visita e historial de visitantes"
+        },
+        "vehicles": {
+          "caption": "Rastrear calcomanías y permisos de vehículos"
+        },
+        "visitors": {
+          "caption": "Gestionar invitados recurrentes"
+        },
+        "residences": {
+          "caption": "Ver listado de unidades y ocupación"
+        },
         "reports": {
           "caption": "Ver analítica y exportaciones"
         },
@@ -685,6 +709,10 @@
             "secondary": "15:00 • Kiosco norte"
           }
         }
+      },
+      "enterprise": {
+        "activeSites": "Sitios activos",
+        "totalResidents": "Residentes totales"
       }
     },
     "sitesPage": {
@@ -1025,6 +1053,55 @@
         "days_other": "Hace {{count}} días",
         "date": "{{value}}",
         "unknown": "No disponible"
+      }
+    },
+    "visitDetails": {
+      "modal": {
+        "title": "Detalles de la Visita",
+        "visitDetails": "Detalles de la Visita",
+        "hostInformation": "Información del Anfitrión",
+        "visitorInformation": "Información del Visitante",
+        "badgeQrCode": "Código QR de la Placa",
+        "badgeCode": "Código de la Placa",
+        "downloadTooltip": "Descargar PDF de la Placa",
+        "qrInstructions": "Escanea este código QR para validar la placa",
+        "field": {
+          "site": "Sitio",
+          "scheduledFor": "Programado Para",
+          "requestedBy": "Solicitado Por",
+          "requestedAt": "Solicitado El",
+          "expiresAt": "Expira El",
+          "approvedBy": "Aprobado Por",
+          "hostName": "Nombre del Anfitrión",
+          "unit": "Unidad",
+          "name": "Nombre",
+          "email": "Correo Electrónico",
+          "vehiclePlate": "Placa del Vehículo",
+          "lastVisit": "Última Visita"
+        }
+      },
+      "pdf": {
+        "title": "Placa de Visita",
+        "visitorInformation": "Información del Visitante",
+        "hostInformation": "Información del Anfitrión",
+        "visitDetails": "Detalles de la Visita",
+        "qrCode": "Código QR de la Placa",
+        "name": "Nombre",
+        "email": "Correo Electrónico",
+        "vehicle": "Vehículo",
+        "hostName": "Nombre del Anfitrión",
+        "unit": "Unidad",
+        "site": "Sitio",
+        "scheduled": "Programado",
+        "expires": "Expira",
+        "type": "Tipo",
+        "badgeCode": "Código de la Placa",
+        "arrived": "Llegado",
+        "qrInstructions": "Escanea este código QR para validar la placa",
+        "generatedOn": "Generado el",
+        "generatedBy": "Generado por",
+        "system": "Sistema",
+        "visitId": "ID de la Visita"
       }
     }
   },
@@ -1554,12 +1631,14 @@
   "residencesPage": {
     "title": "Residencias",
     "description": "Administra el inventario de unidades, la ocupación y las inspecciones en todo el portafolio.",
+    "meta": {
+      "siteHint": "Mostrando residencias para {{siteName}}."
+    },
     "alerts": {
-      "siteScoped": {
-        "prefix": "Residencias limitadas a",
-        "suffix": "La capacidad, los calendarios de inspección y la ocupación usarán esta propiedad de manera predeterminada."
-      },
-      "enterprise": "Las residencias solo están disponibles en modo enfocado al sitio. Abre la página de un sitio o cambia tu espacio de trabajo a una comunidad específica para continuar."
+      "siteFilter": {
+        "prefix": "Filtrado a residencias en",
+        "suffix": "Borra el selector de sitio para ver todo el portafolio."
+      }
     },
     "chip": {
       "enterprise": "Empresa"
@@ -1573,7 +1652,9 @@
       "vacant": "Desocupadas",
       "maintenance": "En mantenimiento",
       "largeLayout": "Distribuciones amplias (3+ recámaras)",
-      "noResidents": "Sin residentes registrados"
+      "noResidents": "Sin residentes registrados",
+      "site": "Sitio",
+      "allSites": "Todos los sitios"
     },
     "types": {
       "tower": "Torre",

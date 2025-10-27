@@ -1,12 +1,12 @@
 import { useMemo, useState, useCallback, type MouseEvent } from 'react'
-import { Link as RouterLink } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   Alert,
-  Box,
   Button,
   Chip,
   Divider,
   FormControlLabel,
+  IconButton,
   InputAdornment,
   Menu,
   MenuItem,
@@ -27,11 +27,14 @@ import BuildCircleIcon from '@mui/icons-material/BuildCircle'
 import SearchIcon from '@mui/icons-material/Search'
 import AddHomeWorkIcon from '@mui/icons-material/AddHomeWork'
 import SubjectIcon from '@mui/icons-material/Subject'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
+import { useSiteStore } from '@store/site.store'
 import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
 import { type ColumnDefinition } from '../../components/table/useColumnPreferences'
 import { useTranslate } from '@i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
+import PageHeader from './components/PageHeader'
 
 type ResidenceStatus = 'occupied' | 'vacant' | 'maintenance'
 type ResidenceType = 'tower' | 'villa' | 'amenity' | 'parcel'
@@ -89,12 +92,20 @@ const MOCK_RESIDENCES: ResidenceRecord[] = (residencesSeed as Array<Record<strin
 type ResidenceFilter = 'all' | ResidenceStatus
 
 export default function ResidencesPage() {
+  const navigate = useNavigate()
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
+  const { sites } = useSiteStore()
   const { t } = useTranslate()
   const language = useI18nStore((state) => state.language) ?? 'en'
   const isSiteContext = Boolean(derivedSiteSlug)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+
+  // Site filter state - auto-populate from context
+  const [siteFilter, setSiteFilter] = useState<string>(() => {
+    if (derivedSiteSlug) return derivedSiteSlug
+    return 'all'
+  })
 
   const translate = useMemo(
     () => (key: string, defaultValue: string, options?: Record<string, unknown>) =>
@@ -196,18 +207,6 @@ export default function ResidencesPage() {
     'residencesPage.description',
     'Manage unit inventory, occupancy, and inspections across the portfolio.',
   )
-  const siteAlertPrefix = translate(
-    'residencesPage.alerts.siteScoped.prefix',
-    'Residences scoped to',
-  )
-  const siteAlertSuffix = translate(
-    'residencesPage.alerts.siteScoped.suffix',
-    'Capacity, inspection schedules, and occupancy will use this property by default.',
-  )
-  const enterpriseAlert = translate(
-    'residencesPage.alerts.enterprise',
-    'Residences are only available in site-focused mode. Open a site detail page or switch your workspace to a specific community to continue.',
-  )
   const searchPlaceholder = translate(
     'residencesPage.search.placeholder',
     'Search by unit, ID, or resident',
@@ -226,12 +225,6 @@ export default function ResidencesPage() {
     'residencesPage.table.empty.description',
     'Adjust your filters or add a new residence to get started.',
   )
-  const noSiteTitle = translate('residencesPage.noSite.title', 'Select a site to view residences')
-  const noSiteDescription = translate(
-    'residencesPage.noSite.description',
-    'Residences are scoped to individual communities. Choose a site from the workspace switcher or open a site detail page to access unit data.',
-  )
-  const browseSitesLabel = translate('residencesPage.actions.browseSites', 'Browse sites')
   const largeLayoutToggleLabel = translate(
     'residencesPage.filters.largeLayout',
     'Large layouts (3+ BR)',
@@ -249,6 +242,52 @@ export default function ResidencesPage() {
   const [showLargeLayoutsOnly, setShowLargeLayoutsOnly] = useState(false)
   const [showUnassignedResidencesOnly, setShowUnassignedResidencesOnly] = useState(false)
 
+  // PageHeader props
+  const badges = useMemo(() => {
+    const b = []
+    if (isSiteContext && activeSiteName) {
+      b.push({ label: activeSiteName, color: 'secondary' as const })
+    } else if (siteFilter !== 'all') {
+      const site = sites.find((s) => s.slug === siteFilter)
+      if (site) {
+        b.push({ label: site.name, color: 'secondary' as const })
+      }
+    } else {
+      b.push({ label: enterpriseChipLabel, color: 'primary' as const })
+    }
+    return b
+  }, [isSiteContext, activeSiteName, siteFilter, sites, enterpriseChipLabel])
+
+  const rightActions = (
+    <Button variant="contained" startIcon={<HomeWorkIcon />}>
+      {addResidenceLabel}
+    </Button>
+  )
+
+  const mobileBackButton = (
+    <IconButton size="small" onClick={() => navigate(-1)} sx={{ color: 'inherit' }}>
+      <ArrowBackIcon />
+    </IconButton>
+  )
+
+  const mobileActions = (
+    <IconButton size="small" color="primary" aria-label={addResidenceLabel}>
+      <HomeWorkIcon fontSize="small" />
+    </IconButton>
+  )
+
+  const activeMeta = useMemo(
+    () => ({
+      siteHint: (siteName: string) =>
+        t('residencesPage.meta.siteHint', {
+          lng: language,
+          siteName,
+          defaultValue: `Showing residences for ${siteName}.`,
+        }),
+    }),
+    [language, t],
+  )
+
   const filterButtonLabel = useMemo(() => {
     return (
       filterOptions.find((option) => option.value === filter)?.label ??
@@ -260,7 +299,7 @@ export default function ResidencesPage() {
   const filteredResidences = useMemo(() => {
     const needle = search.trim().toLowerCase()
     return MOCK_RESIDENCES.filter((residence) => {
-      if (derivedSiteSlug && residence.siteSlug !== derivedSiteSlug) {
+      if (siteFilter !== 'all' && residence.siteSlug !== siteFilter) {
         return false
       }
       if (filter === 'occupied' || filter === 'vacant' || filter === 'maintenance') {
@@ -282,7 +321,7 @@ export default function ResidencesPage() {
         residentsJoined.includes(needle)
       )
     })
-  }, [derivedSiteSlug, filter, search, showLargeLayoutsOnly, showUnassignedResidencesOnly])
+  }, [siteFilter, filter, search, showLargeLayoutsOnly, showUnassignedResidencesOnly])
 
   const handleOpenFilterMenu = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     setFilterAnchor(event.currentTarget)
@@ -426,54 +465,194 @@ export default function ResidencesPage() {
 
   return (
     <Stack spacing={3}>
-      {isSiteContext && activeSiteName ? (
+      {isSiteContext && activeSite ? (
         <Alert
           severity="info"
           icon={<AddHomeWorkIcon fontSize="inherit" />}
           sx={{ alignItems: 'center', borderRadius: 2 }}
         >
-          <Typography variant="body2">
-            {siteAlertPrefix} <strong>{activeSiteName}</strong>. {siteAlertSuffix}
-          </Typography>
+          {activeMeta.siteHint(activeSite.name)}
         </Alert>
-      ) : (
+      ) : null}
+      {!isSiteContext && siteFilter !== 'all' ? (
         <Alert
           severity="info"
           icon={<AddHomeWorkIcon fontSize="inherit" />}
           sx={{ alignItems: 'center', borderRadius: 2 }}
         >
-          <Typography variant="body2">{enterpriseAlert}</Typography>
+          {t('residencesPage.alerts.siteFilter.prefix', {
+            lng: language,
+            defaultValue: 'Filtered to residences in',
+          })}{' '}
+          <strong>{sites.find((s) => s.slug === siteFilter)?.name ?? siteFilter}</strong>{' '}
+          {t('residencesPage.alerts.siteFilter.suffix', {
+            lng: language,
+            defaultValue: 'Clear the site selector to see the entire portfolio.',
+          })}
         </Alert>
-      )}
+      ) : null}
 
-      {isSiteContext ? (
-        <>
-          <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
-            {isMobile ? (
+      <PageHeader
+        title={residencesTitle}
+        subtitle={residencesDescription}
+        badges={badges}
+        rightActions={rightActions}
+        mobileBackButton={mobileBackButton}
+        mobileActions={mobileActions}
+      />
+
+      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+        {isMobile ? (
+          <Stack spacing={2}>
+            {/* Site selector for enterprise mode */}
+            {!isSiteContext && (
+              <TextField
+                select
+                label={translate('residencesPage.filters.site', 'Site')}
+                value={siteFilter}
+                onChange={(e) => setSiteFilter(e.target.value)}
+                fullWidth
+                SelectProps={{
+                  native: true,
+                }}
+              >
+                <option value="all">
+                  {translate('residencesPage.filters.allSites', 'All sites')}
+                </option>
+                {sites.map((site) => (
+                  <option key={site.slug} value={site.slug}>
+                    {site.name}
+                  </option>
+                ))}
+              </TextField>
+            )}
+
+            <Stack direction="column" spacing={1}>
+              <Button
+                variant="outlined"
+                onClick={handleOpenFilterMenu}
+                color={filter === 'all' ? 'inherit' : 'primary'}
+                fullWidth
+              >
+                {filterButtonLabel}
+              </Button>
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={showLargeLayoutsOnly}
+                    onChange={(event) => setShowLargeLayoutsOnly(event.target.checked)}
+                  />
+                }
+                label={largeLayoutToggleLabel}
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={showUnassignedResidencesOnly}
+                    onChange={(event) => setShowUnassignedResidencesOnly(event.target.checked)}
+                  />
+                }
+                label={noResidentsToggleLabel}
+              />
+            </Stack>
+
+            <TextField
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={searchPlaceholder}
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            {filteredResidences.length === 0 ? (
+              <Stack spacing={2} alignItems="center" sx={{ py: 5 }}>
+                <Typography variant="subtitle1">{tableEmptyTitle}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {tableEmptyDescription}
+                </Typography>
+                <Button variant="contained" startIcon={<HomeWorkIcon />}>
+                  {addResidenceLabel}
+                </Button>
+              </Stack>
+            ) : (
               <Stack spacing={2}>
-                {/* Mobile view with cards */}
-                <Stack spacing={2}>
-                  <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Typography variant="h5" fontWeight={600}>
-                      {residencesTitle}
-                    </Typography>
-                    <Chip
-                      label={activeSiteName || enterpriseChipLabel}
+                {filteredResidences.map((residence) => (
+                  <ResidenceCard
+                    key={residence.id}
+                    residence={residence}
+                    typeMeta={typeMeta}
+                    statusMeta={statusMeta}
+                    translate={translate}
+                    residentsEmptyLabel={residentsEmptyLabel}
+                    layoutBedroomsNA={layoutBedroomsNA}
+                    numberFormatter={numberFormatter}
+                    inspectionCompliantLabel={inspectionCompliantLabel}
+                    inspectionFollowUpLabel={inspectionFollowUpLabel}
+                    dateFormatter={dateFormatter}
+                  />
+                ))}
+              </Stack>
+            )}
+          </Stack>
+        ) : (
+          <ConfigurableTable<ResidenceRecord>
+            storageKey="hex:columns:residences"
+            columns={columnDefs}
+            rows={filteredResidences}
+            getRowId={(residence) => residence.id}
+            size="small"
+            emptyState={{
+              title: tableEmptyTitle,
+              description: tableEmptyDescription,
+              action: (
+                <Button variant="contained" startIcon={<HomeWorkIcon />}>
+                  {addResidenceLabel}
+                </Button>
+              ),
+            }}
+            renderToolbar={({ ColumnPreferencesTrigger }) => (
+              <Stack spacing={3}>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  flexWrap="wrap"
+                  rowGap={1}
+                  sx={{ width: '100%' }}
+                >
+                  {ColumnPreferencesTrigger}
+                  {/* Site selector for enterprise mode */}
+                  {!isSiteContext && (
+                    <TextField
+                      select
+                      label={translate('residencesPage.filters.site', 'Site')}
+                      value={siteFilter}
+                      onChange={(e) => setSiteFilter(e.target.value)}
                       size="small"
-                      color="secondary"
-                    />
-                  </Stack>
-                  <Typography variant="body2" color="text.secondary">
-                    {residencesDescription}
-                  </Typography>
-                </Stack>
-
-                <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                      sx={{ minWidth: 200 }}
+                    >
+                      {sites.map((site) => (
+                        <MenuItem key={site.slug} value={site.slug}>
+                          {site.name}
+                        </MenuItem>
+                      ))}
+                      <MenuItem value="all">
+                        {translate('residencesPage.filters.allSites', 'All sites')}
+                      </MenuItem>
+                    </TextField>
+                  )}
                   <Button
                     variant="outlined"
                     onClick={handleOpenFilterMenu}
                     color={filter === 'all' ? 'inherit' : 'primary'}
-                    fullWidth
                   >
                     {filterButtonLabel}
                   </Button>
@@ -503,7 +682,6 @@ export default function ResidencesPage() {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder={searchPlaceholder}
-                  fullWidth
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -512,171 +690,23 @@ export default function ResidencesPage() {
                     ),
                   }}
                 />
-
-                {filteredResidences.length === 0 ? (
-                  <Stack spacing={2} alignItems="center" sx={{ py: 5 }}>
-                    <Typography variant="subtitle1">{tableEmptyTitle}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {tableEmptyDescription}
-                    </Typography>
-                    <Button variant="contained" startIcon={<HomeWorkIcon />}>
-                      {addResidenceLabel}
-                    </Button>
-                  </Stack>
-                ) : (
-                  <Stack spacing={2}>
-                    {filteredResidences.map((residence) => (
-                      <ResidenceCard
-                        key={residence.id}
-                        residence={residence}
-                        typeMeta={typeMeta}
-                        statusMeta={statusMeta}
-                        translate={translate}
-                        residentsEmptyLabel={residentsEmptyLabel}
-                        layoutBedroomsNA={layoutBedroomsNA}
-                        numberFormatter={numberFormatter}
-                        inspectionCompliantLabel={inspectionCompliantLabel}
-                        inspectionFollowUpLabel={inspectionFollowUpLabel}
-                        dateFormatter={dateFormatter}
-                      />
-                    ))}
-                  </Stack>
-                )}
               </Stack>
-            ) : (
-              <ConfigurableTable<ResidenceRecord>
-                storageKey="hex:columns:residences"
-                columns={columnDefs}
-                rows={filteredResidences}
-                getRowId={(residence) => residence.id}
-                size="small"
-                emptyState={{
-                  title: tableEmptyTitle,
-                  description: tableEmptyDescription,
-                  action: (
-                    <Button variant="contained" startIcon={<HomeWorkIcon />}>
-                      {addResidenceLabel}
-                    </Button>
-                  ),
-                }}
-                renderToolbar={({ ColumnPreferencesTrigger }) => (
-                  <Stack spacing={3}>
-                    <Stack
-                      direction="row"
-                      alignItems="flex-start"
-                      justifyContent="space-between"
-                      flexWrap="wrap"
-                      gap={2}
-                    >
-                      <Box sx={{ flex: '1 1 240px' }}>
-                        <Stack direction="row" alignItems="center" spacing={1.5}>
-                          <Typography variant="h5" fontWeight={600}>
-                            {residencesTitle}
-                          </Typography>
-                          {isSiteContext && activeSiteName ? (
-                            <Chip label={activeSiteName} size="small" color="secondary" />
-                          ) : (
-                            <Chip label={enterpriseChipLabel} size="small" color="primary" />
-                          )}
-                        </Stack>
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                          {residencesDescription}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ flexShrink: 0 }}>
-                        <Button variant="contained" startIcon={<HomeWorkIcon />}>
-                          {addResidenceLabel}
-                        </Button>
-                      </Box>
-                    </Stack>
-
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      spacing={1}
-                      flexWrap="wrap"
-                      rowGap={1}
-                      sx={{ width: '100%' }}
-                    >
-                      {ColumnPreferencesTrigger}
-                      <Button
-                        variant="outlined"
-                        onClick={handleOpenFilterMenu}
-                        color={filter === 'all' ? 'inherit' : 'primary'}
-                      >
-                        {filterButtonLabel}
-                      </Button>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            size="small"
-                            checked={showLargeLayoutsOnly}
-                            onChange={(event) => setShowLargeLayoutsOnly(event.target.checked)}
-                          />
-                        }
-                        label={largeLayoutToggleLabel}
-                      />
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            size="small"
-                            checked={showUnassignedResidencesOnly}
-                            onChange={(event) =>
-                              setShowUnassignedResidencesOnly(event.target.checked)
-                            }
-                          />
-                        }
-                        label={noResidentsToggleLabel}
-                      />
-                    </Stack>
-
-                    <TextField
-                      value={search}
-                      onChange={(event) => setSearch(event.target.value)}
-                      placeholder={searchPlaceholder}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon fontSize="small" />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Stack>
-                )}
-              />
             )}
-          </Paper>
+          />
+        )}
+      </Paper>
 
-          <Menu
-            anchorEl={filterAnchor}
-            open={Boolean(filterAnchor)}
-            onClose={handleCloseFilterMenu}
+      <Menu anchorEl={filterAnchor} open={Boolean(filterAnchor)} onClose={handleCloseFilterMenu}>
+        {filterOptions.map((option) => (
+          <MenuItem
+            key={option.value}
+            selected={filter === option.value}
+            onClick={() => handleSelectFilter(option.value)}
           >
-            {filterOptions.map((option) => (
-              <MenuItem
-                key={option.value}
-                selected={filter === option.value}
-                onClick={() => handleSelectFilter(option.value)}
-              >
-                {option.label}
-              </MenuItem>
-            ))}
-          </Menu>
-        </>
-      ) : (
-        <Paper sx={{ p: 3, borderRadius: 3 }}>
-          <Stack spacing={2} alignItems="flex-start">
-            <Typography variant="h6">{noSiteTitle}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {noSiteDescription}
-            </Typography>
-            <Button variant="contained" component={RouterLink} to="/admin/sites">
-              {browseSitesLabel}
-            </Button>
-          </Stack>
-        </Paper>
-      )}
+            {option.label}
+          </MenuItem>
+        ))}
+      </Menu>
     </Stack>
   )
 }

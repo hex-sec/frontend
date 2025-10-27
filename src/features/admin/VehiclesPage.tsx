@@ -353,6 +353,20 @@ export default function VehiclesPage() {
     const currentSlug = derivedSiteSlug ?? null
     return [
       {
+        id: 'rowActions',
+        label: '',
+        disableToggle: true,
+        minWidth: 60,
+        align: 'center',
+        render: (vehicle) => (
+          <Tooltip title={moreActionsLabel}>
+            <IconButton size="small" onClick={(event) => handleOpenRowMenu(event, vehicle)}>
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        ),
+      },
+      {
         id: 'plate',
         label: columnLabels.plate,
         disableToggle: true,
@@ -469,27 +483,6 @@ export default function VehiclesPage() {
           )
         },
       },
-      {
-        id: 'actions',
-        label: columnLabels.actions,
-        disableToggle: true,
-        align: 'right',
-        minWidth: 160,
-        render: (vehicle) => (
-          <Stack direction="row" spacing={1} justifyContent="flex-end">
-            <Tooltip title={downloadPermitLabel}>
-              <IconButton size="small" onClick={handleDownloadPermit}>
-                <DownloadIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={moreActionsLabel}>
-              <IconButton size="small" onClick={(event) => handleOpenRowMenu(event, vehicle)}>
-                <MoreVertIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Stack>
-        ),
-      },
     ]
   }, [
     columnLabels,
@@ -565,7 +558,7 @@ export default function VehiclesPage() {
       <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
         {isMobile ? (
           <Stack spacing={2}>
-            <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+            <Stack direction="column" spacing={1}>
               <Button
                 variant="outlined"
                 startIcon={<CheckCircleOutlineIcon />}

@@ -38,6 +38,7 @@ import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
 import { useI18nStore } from '@store/i18n.store'
 import { useTranslate } from '@i18n/useTranslate'
 import PageHeader from './components/PageHeader'
+import { VisitDetailsModal } from './components/VisitDetailsModal'
 
 type VisitStatus = 'approved' | 'pending' | 'denied'
 type VisitType = 'guest' | 'delivery' | 'event'
@@ -52,11 +53,21 @@ type VisitRecord = {
   siteSlug: string
   siteName: string
   scheduledFor: string
-  approvedBy?: string
   status: VisitStatus
   type: VisitType
   badgeCode: string
   createdAt: string
+  requestedByName?: string
+  requestedByEmail?: string
+  requestedByRole?: string
+  requestedAt?: string
+  approvedByName?: string
+  approvedByEmail?: string
+  approvedByRole?: string
+  approvedAt?: string
+  arrivedAt?: string | null
+  expiresAt?: string
+  lastVisitAt?: string
 }
 import visitsSeed from '../../mocks/visits.json'
 
@@ -70,11 +81,21 @@ const MOCK_VISITS: VisitRecord[] = (visitsSeed as Array<Record<string, unknown>>
   siteSlug: String(v.siteSlug),
   siteName: String(v.siteName),
   scheduledFor: String(v.scheduledFor),
-  approvedBy: v.approvedBy as string | undefined,
   status: v.status as VisitRecord['status'],
   type: v.type as VisitRecord['type'],
   badgeCode: String(v.badgeCode),
   createdAt: String(v.createdAt),
+  requestedByName: v.requestedByName as string | undefined,
+  requestedByEmail: v.requestedByEmail as string | undefined,
+  requestedByRole: v.requestedByRole as string | undefined,
+  requestedAt: v.requestedAt as string | undefined,
+  approvedByName: v.approvedByName as string | undefined,
+  approvedByEmail: v.approvedByEmail as string | undefined,
+  approvedByRole: v.approvedByRole as string | undefined,
+  approvedAt: v.approvedAt as string | undefined,
+  arrivedAt: v.arrivedAt as string | null,
+  expiresAt: v.expiresAt as string | undefined,
+  lastVisitAt: v.lastVisitAt as string | undefined,
 }))
 
 type VisitFilter = 'all' | VisitStatus | VisitType
@@ -237,6 +258,7 @@ export default function VisitsPage() {
     visit: undefined,
   })
   const [downloading, setDownloading] = useState(false)
+  const [selectedVisit, setSelectedVisit] = useState<VisitRecord | null>(null)
 
   const filterButtonLabel = useMemo(() => {
     return (
@@ -547,7 +569,7 @@ export default function VisitsPage() {
       <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
         {isMobile ? (
           <Stack spacing={2}>
-            <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+            <Stack direction="column" spacing={1}>
               <Button
                 variant="outlined"
                 startIcon={<AccessTimeIcon />}
@@ -607,6 +629,7 @@ export default function VisitsPage() {
                     onOpenRowMenu={handleOpenRowMenu}
                     onDownloadBadge={handleDownloadBadge}
                     downloading={downloading}
+                    onClick={() => setSelectedVisit(visit)}
                   />
                 ))}
               </Stack>
@@ -619,6 +642,7 @@ export default function VisitsPage() {
             rows={filteredVisits}
             getRowId={(visit) => visit.id}
             size="small"
+            onRowClick={(visit) => setSelectedVisit(visit)}
             emptyState={{
               title: emptyStateTitle,
               description: emptyStateDescription,
@@ -748,6 +772,38 @@ export default function VisitsPage() {
           ))
         )}
       </Menu>
+
+      <VisitDetailsModal
+        open={selectedVisit !== null}
+        onClose={() => setSelectedVisit(null)}
+        visit={selectedVisit}
+        statusLabels={{
+          approved: statusMeta.approved.label,
+          pending: statusMeta.pending.label,
+          denied: statusMeta.denied.label,
+        }}
+        statusColors={{
+          approved: statusMeta.approved.color,
+          pending: statusMeta.pending.color,
+          denied: statusMeta.denied.color,
+        }}
+        statusIcons={{
+          approved: CheckCircleOutlineIcon,
+          pending: PendingIcon,
+          denied: ErrorOutlineIcon,
+        }}
+        typeLabels={{
+          guest: typeMeta.guest.label,
+          delivery: typeMeta.delivery.label,
+          event: typeMeta.event.label,
+        }}
+        downloadBadgeLabel={downloadBadgeLabel}
+        resendEmailLabel={resendEmailLabel}
+        cancelVisitLabel={cancelVisitLabel}
+        onDownloadBadge={handleDownloadBadge}
+        onResendEmail={() => {}}
+        onCancelVisit={() => {}}
+      />
     </Stack>
   )
 }
@@ -763,6 +819,7 @@ function VisitCard({
   onOpenRowMenu,
   onDownloadBadge,
   downloading,
+  onClick,
 }: {
   visit: VisitRecord
   statusMeta: Record<
@@ -777,6 +834,7 @@ function VisitCard({
   onOpenRowMenu: (event: React.MouseEvent<HTMLButtonElement>, visit: VisitRecord) => void
   onDownloadBadge: () => void
   downloading: boolean
+  onClick: () => void
 }) {
   const statusChip = statusMeta[visit.status]
   const typeChip = typeMeta[visit.type]
@@ -785,14 +843,17 @@ function VisitCard({
 
   return (
     <Paper
+      onClick={onClick}
       sx={(theme) => ({
         p: 2,
         borderRadius: 2,
         border: '1px solid',
         borderColor: 'divider',
+        cursor: 'pointer',
         transition: theme.transitions.create(['box-shadow', 'transform'], { duration: 180 }),
         '&:hover': {
           boxShadow: theme.shadows[4],
+          transform: 'translateY(-2px)',
         },
       })}
     >

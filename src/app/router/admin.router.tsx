@@ -178,10 +178,42 @@ export const adminRoutes: RouteObject[] = [
         ),
       },
       {
+        path: 'users/admins',
+        element: (
+          <Suspense fallback={null}>
+            <Users />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'users/guards',
+        element: (
+          <Suspense fallback={null}>
+            <Users />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'users/residents',
+        element: (
+          <Suspense fallback={null}>
+            <Users />
+          </Suspense>
+        ),
+      },
+      {
         path: 'users/:userId',
         element: (
           <Suspense fallback={null}>
             <UserProfile />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'residences',
+        element: (
+          <Suspense fallback={null}>
+            <Residences />
           </Suspense>
         ),
       },

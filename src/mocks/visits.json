@@ -9,11 +9,21 @@
     "siteSlug": "vista-azul",
     "siteName": "Vista Azul",
     "scheduledFor": "2025-10-20T15:30:00-06:00",
-    "approvedBy": "Guard Station 2",
     "status": "approved",
     "type": "guest",
     "badgeCode": "QRC-4812",
-    "createdAt": "2025-10-18T10:15:00-06:00"
+    "createdAt": "2025-10-18T10:15:00-06:00",
+    "requestedByName": "Carla Jenkins",
+    "requestedByEmail": "carla@vistaazul.com",
+    "requestedByRole": "resident",
+    "requestedAt": "2025-10-18T09:30:00-06:00",
+    "approvedByRole": "guard",
+    "approvedByName": "Miguel Serrano",
+    "approvedByEmail": "miguel@vistaazul.com",
+    "approvedAt": "2025-10-18T10:30:00-06:00",
+    "arrivedAt": null,
+    "expiresAt": "2025-10-20T23:59:59-06:00",
+    "lastVisitAt": "2025-08-15T14:00:00-06:00"
   },
   {
     "id": "VST-1044",
@@ -27,7 +37,18 @@
     "status": "pending",
     "type": "delivery",
     "badgeCode": "DRV-2045",
-    "createdAt": "2025-10-19T08:50:00-06:00"
+    "createdAt": "2025-10-19T08:50:00-06:00",
+    "requestedByName": "John Martinez",
+    "requestedByEmail": "j.martinez@vista-azul.com",
+    "requestedByRole": "admin",
+    "requestedAt": "2025-10-19T08:45:00-06:00",
+    "approvedByRole": "admin",
+    "approvedByName": "Sarah Johnson",
+    "approvedByEmail": "sarah@vista-azul.com",
+    "approvedAt": "2025-10-19T09:00:00-06:00",
+    "arrivedAt": null,
+    "expiresAt": "2025-10-20T23:59:59-06:00",
+    "lastVisitAt": "2025-10-10T11:30:00-06:00"
   },
   {
     "id": "VST-1045",
@@ -38,11 +59,21 @@
     "siteSlug": "los-olivos",
     "siteName": "Los Olivos",
     "scheduledFor": "2025-10-21T18:00:00-06:00",
-    "approvedBy": "Carlos Díaz",
     "status": "approved",
     "type": "event",
     "badgeCode": "EVT-8801",
-    "createdAt": "2025-10-16T12:10:00-06:00"
+    "createdAt": "2025-10-16T12:10:00-06:00",
+    "requestedByName": "Carlos Díaz",
+    "requestedByEmail": "carlos@losolivos.com",
+    "requestedByRole": "guard",
+    "requestedAt": "2025-10-16T11:45:00-06:00",
+    "approvedByRole": "admin",
+    "approvedByName": "María González",
+    "approvedByEmail": "maria@losolivos.com",
+    "approvedAt": "2025-10-16T12:20:00-06:00",
+    "arrivedAt": null,
+    "expiresAt": "2025-10-21T23:59:59-06:00",
+    "lastVisitAt": "2025-09-05T19:00:00-06:00"
   },
   {
     "id": "VST-1046",
@@ -56,7 +87,18 @@
     "status": "denied",
     "type": "guest",
     "badgeCode": "DEN-1944",
-    "createdAt": "2025-10-20T06:30:00-06:00"
+    "createdAt": "2025-10-20T06:30:00-06:00",
+    "requestedByName": "John Martinez",
+    "requestedByEmail": "j.martinez@vista-azul.com",
+    "requestedByRole": "admin",
+    "requestedAt": "2025-10-20T06:25:00-06:00",
+    "approvedByRole": "admin",
+    "approvedByName": "Ana López",
+    "approvedByEmail": "ana@losolivos.com",
+    "approvedAt": "2025-10-20T06:40:00-06:00",
+    "arrivedAt": null,
+    "expiresAt": "2025-10-20T23:59:59-06:00",
+    "lastVisitAt": "2025-09-20T08:00:00-06:00"
   },
   {
     "id": "VST-1047",
@@ -70,6 +112,17 @@
     "status": "pending",
     "type": "guest",
     "badgeCode": "PEN-3920",
-    "createdAt": "2025-10-19T09:45:00-06:00"
+    "createdAt": "2025-10-19T09:45:00-06:00",
+    "requestedByName": "Zoe Ramirez",
+    "requestedByEmail": "zoe@losolivos.com",
+    "requestedByRole": "resident",
+    "requestedAt": "2025-10-19T09:20:00-06:00",
+    "approvedByRole": "guard",
+    "approvedByName": "Luis Hernández",
+    "approvedByEmail": "luis@losolivos.com",
+    "approvedAt": "2025-10-19T10:15:00-06:00",
+    "arrivedAt": null,
+    "expiresAt": "2025-10-21T23:59:59-06:00",
+    "lastVisitAt": "2025-10-05T15:00:00-06:00"
   }
 ]

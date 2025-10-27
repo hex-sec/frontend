@@ -561,7 +561,7 @@ export default function VisitorsPage() {
       <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
         {isMobile ? (
           <Stack spacing={2}>
-            <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+            <Stack direction="column" spacing={1}>
               <Button
                 variant="outlined"
                 startIcon={<InsightsIcon />}
