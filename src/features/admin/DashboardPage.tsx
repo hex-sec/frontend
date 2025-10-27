@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Box, Button, Divider, Paper, Stack, Typography, useMediaQuery } from '@mui/material'
+import { Box, Button, Paper, Stack, Typography, useMediaQuery } from '@mui/material'
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline'
 import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 import AlarmOnOutlinedIcon from '@mui/icons-material/AlarmOnOutlined'
@@ -9,18 +9,17 @@ import LaunchIcon from '@mui/icons-material/Launch'
 import { KpiCard } from './dashboard/cards/KpiCard'
 import { TimelineCard } from './dashboard/cards/TimelineCard'
 import { AlertsCard } from './dashboard/cards/AlertsCard'
-import { IncomeCard } from './dashboard/cards/IncomeCard'
 import { EnterpriseSummaryCard } from './dashboard/cards/EnterpriseSummaryCard'
 import { QuickAccessCard } from './dashboard/cards/QuickAccessCard'
 import { NavigationCard } from './dashboard/cards/NavigationCard'
 import { QuickAgendaCard } from './dashboard/cards/QuickAgendaCard'
-import { FinancialSummaryCard } from './dashboard/cards/FinancialSummaryCard'
 import Grid from '@mui/material/Grid2'
 import { useTheme, type SxProps, type Theme } from '@mui/material/styles'
 import { useTranslate } from '../../i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
 import { useSiteStore } from '@store/site.store'
 import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
+import { AnalyticsSection } from './analytics'
 
 const surfaceCard: SxProps<Theme> = {
   p: 2,
@@ -240,22 +239,6 @@ export default function DashboardPage() {
     [language, t, siteBase],
   )
 
-  const billingEntries = useMemo(
-    () => [
-      {
-        key: 'vistaAzul',
-        title: t('admin.dashboard.income.billingEntries.first.title', { lng: language }),
-        subtitle: t('admin.dashboard.income.billingEntries.first.subtitle', { lng: language }),
-      },
-      {
-        key: 'losOlivos',
-        title: t('admin.dashboard.income.billingEntries.second.title', { lng: language }),
-        subtitle: t('admin.dashboard.income.billingEntries.second.subtitle', { lng: language }),
-      },
-    ],
-    [language, t],
-  )
-
   const agendaItems = useMemo(
     () => [
       {
@@ -399,57 +382,7 @@ export default function DashboardPage() {
         <Grid container spacing={2} columns={12} sx={{ width: '100%', mt: 0 }}>
           <Grid size={12}>
             <Paper sx={{ ...surfaceCard }}>
-              <Stack spacing={3}>
-                {/* Income View */}
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    {t('admin.dashboard.sections.income', { lng: language })}
-                  </Typography>
-                  <IncomeCard
-                    title=""
-                    collectionRate={financialSnapshot.collectionRate}
-                    topLineVsLastMonth={financialSnapshot.topLineVsLastMonth}
-                    growthNote={t('admin.dashboard.income.growthNote', { lng: language })}
-                    marginVsLastMonth={t('admin.dashboard.income.marginVsLastMonth', {
-                      lng: language,
-                    })}
-                    overdueInvoicesCount={financialSnapshot.overdueInvoices}
-                    overdueInvoicesLabel={t('admin.dashboard.income.overdueInvoices', {
-                      lng: language,
-                    })}
-                    billingEntries={billingEntries}
-                    monthlyCollectionsLabel={t('admin.dashboard.income.monthlyCollections', {
-                      lng: language,
-                    })}
-                    recentBillingLabel={t('admin.dashboard.income.recentBilling', {
-                      lng: language,
-                    })}
-                  />
-                </Box>
-
-                <Divider />
-
-                {/* Financial Summary */}
-                <FinancialSummaryCard
-                  mrr={financialSnapshot.mrr}
-                  arr={financialSnapshot.arr}
-                  collectionRate={financialSnapshot.collectionRate}
-                  upcomingRenewals={financialSnapshot.upcomingRenewals}
-                  overdueInvoicesCount={financialSnapshot.overdueInvoices}
-                  mrrLabel={t('admin.dashboard.income.mrr', { lng: language })}
-                  arrProjectedLabel={t('admin.dashboard.income.arrProjected', { lng: language })}
-                  upcomingRenewalsLabel={t('admin.dashboard.income.upcomingRenewals', {
-                    lng: language,
-                  })}
-                  contractsSuffix={t('admin.dashboard.income.contractsSuffix', { lng: language })}
-                  monthlyCollectionsLabel={t('admin.dashboard.income.monthlyCollections', {
-                    lng: language,
-                  })}
-                  overdueInvoicesLabel={t('admin.dashboard.income.overdueInvoices', {
-                    lng: language,
-                  })}
-                />
-              </Stack>
+              <Stack spacing={3}></Stack>
             </Paper>
           </Grid>
         </Grid>
@@ -550,61 +483,19 @@ export default function DashboardPage() {
         <Grid container spacing={2} columns={12} sx={{ width: '100%', mt: 2 }}>
           <Grid size={12}>
             <Paper sx={{ ...surfaceCard }}>
-              <Stack spacing={3}>
-                {/* Income View */}
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    {t('admin.dashboard.sections.income', { lng: language })}
-                  </Typography>
-                  <IncomeCard
-                    title=""
-                    collectionRate={financialSnapshot.collectionRate}
-                    topLineVsLastMonth={financialSnapshot.topLineVsLastMonth}
-                    growthNote={t('admin.dashboard.income.growthNote', { lng: language })}
-                    marginVsLastMonth={t('admin.dashboard.income.marginVsLastMonth', {
-                      lng: language,
-                    })}
-                    overdueInvoicesCount={financialSnapshot.overdueInvoices}
-                    overdueInvoicesLabel={t('admin.dashboard.income.overdueInvoices', {
-                      lng: language,
-                    })}
-                    billingEntries={billingEntries}
-                    monthlyCollectionsLabel={t('admin.dashboard.income.monthlyCollections', {
-                      lng: language,
-                    })}
-                    recentBillingLabel={t('admin.dashboard.income.recentBilling', {
-                      lng: language,
-                    })}
-                  />
-                </Box>
-
-                <Divider />
-
-                {/* Financial Summary */}
-                <FinancialSummaryCard
-                  mrr={financialSnapshot.mrr}
-                  arr={financialSnapshot.arr}
-                  collectionRate={financialSnapshot.collectionRate}
-                  upcomingRenewals={financialSnapshot.upcomingRenewals}
-                  overdueInvoicesCount={financialSnapshot.overdueInvoices}
-                  mrrLabel={t('admin.dashboard.income.mrr', { lng: language })}
-                  arrProjectedLabel={t('admin.dashboard.income.arrProjected', { lng: language })}
-                  upcomingRenewalsLabel={t('admin.dashboard.income.upcomingRenewals', {
-                    lng: language,
-                  })}
-                  contractsSuffix={t('admin.dashboard.income.contractsSuffix', { lng: language })}
-                  monthlyCollectionsLabel={t('admin.dashboard.income.monthlyCollections', {
-                    lng: language,
-                  })}
-                  overdueInvoicesLabel={t('admin.dashboard.income.overdueInvoices', {
-                    lng: language,
-                  })}
-                />
-              </Stack>
+              <Stack spacing={3}></Stack>
             </Paper>
           </Grid>
         </Grid>
       )}
+
+      {/* Analytics Section */}
+      <Box sx={{ mt: 4, mb: 2 }}>
+        <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>
+          {t('admin.dashboard.sections.analytics', { lng: language, defaultValue: 'Analítica' })}
+        </Typography>
+        <AnalyticsSection />
+      </Box>
     </Box>
   )
 }
