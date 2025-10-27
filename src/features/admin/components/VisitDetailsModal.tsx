@@ -91,10 +91,8 @@ export function VisitDetailsModal({
   statusColors,
   statusIcons,
   typeLabels,
-  downloadBadgeLabel,
   resendEmailLabel,
   cancelVisitLabel,
-  onDownloadBadge,
   onResendEmail,
   onCancelVisit,
 }: VisitDetailsModalProps) {
@@ -255,10 +253,10 @@ export function VisitDetailsModal({
             <Divider />
 
             {/* Content Grid - Responsive layout */}
-            <Grid container spacing={2} alignItems="flex-start">
-              {/* Column 1: Visit Details - full width on sm, 4/12 on md+ */}
-              <Grid size={{ xs: 12, sm: 12, md: 4 }}>
-                <Paper sx={{ p: 2.5, width: '100%', height: '100%' }}>
+            <Grid container spacing={2} alignItems="stretch">
+              {/* Row 1: Visit Details - full width on sm, 6/12 on md+ */}
+              <Grid size={{ xs: 12, sm: 12, md: 6 }} sx={{ display: 'flex' }}>
+                <Paper sx={{ p: 2.5, width: '100%', display: 'flex', flexDirection: 'column' }}>
                   <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                     {t('visitDetails.modal.visitDetails', {
                       lng: language,
@@ -344,128 +342,31 @@ export function VisitDetailsModal({
                 </Paper>
               </Grid>
 
-              {/* Column 2: Host Information and QR Code */}
-              <Grid size={{ xs: 12, sm: 12, md: 4 }}>
-                <Grid container spacing={2}>
-                  {/* Host Information */}
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Paper sx={{ p: 2.5, width: '100%', height: '100%' }}>
-                      <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                        {t('visitDetails.modal.hostInformation', {
-                          lng: language,
-                          defaultValue: 'Host Information',
-                        })}
-                      </Typography>
-                      <Stack spacing={2} sx={{ mt: 2 }}>
-                        <InfoRow
-                          icon={<HomeIcon fontSize="small" />}
-                          label={t('visitDetails.modal.field.hostName', {
-                            lng: language,
-                            defaultValue: 'Host Name',
-                          })}
-                          value={visit.hostName}
-                        />
-                        <InfoRow
-                          icon={<HomeIcon fontSize="small" />}
-                          label={t('visitDetails.modal.field.unit', {
-                            lng: language,
-                            defaultValue: 'Unit',
-                          })}
-                          value={visit.hostUnit}
-                        />
-                      </Stack>
-                    </Paper>
-                  </Grid>
-
-                  {/* QR Code */}
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Paper sx={{ p: 2.5, width: '100%', height: '100%' }}>
-                      <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                        {t('visitDetails.modal.badgeQrCode', {
-                          lng: language,
-                          defaultValue: 'Badge QR Code',
-                        })}
-                      </Typography>
-                      <Stack spacing={2} sx={{ mt: 2, alignItems: 'center' }}>
-                        {qrCodeDataUrl && (
-                          <Box
-                            component="img"
-                            src={qrCodeDataUrl}
-                            alt="QR Code"
-                            sx={{
-                              width: { xs: 200, sm: 150 },
-                              height: { xs: 200, sm: 150 },
-                              border: '1px solid',
-                              borderColor: 'divider',
-                              borderRadius: 2,
-                            }}
-                          />
-                        )}
-                        <Typography variant="caption" color="text.secondary" align="center">
-                          {t('visitDetails.modal.qrInstructions', {
-                            lng: language,
-                            defaultValue: isMobile
-                              ? 'Scan this QR code to validate the badge'
-                              : 'Scan to validate',
-                          })}
-                        </Typography>
-                        {qrCodeDataUrl && (
-                          <Stack
-                            direction="row"
-                            spacing={2}
-                            alignItems="center"
-                            justifyContent="space-between"
-                            sx={{ width: '100%', p: 1.5 }}
-                          >
-                            <Box>
-                              <Typography variant="caption" color="text.secondary">
-                                {t('visitDetails.modal.badgeCode', {
-                                  lng: language,
-                                  defaultValue: 'Badge Code',
-                                })}
-                              </Typography>
-                              <Typography variant="body2" fontWeight={600}>
-                                {visit.badgeCode}
-                              </Typography>
-                            </Box>
-                            <Tooltip
-                              title={t('visitDetails.modal.downloadTooltip', {
-                                lng: language,
-                                defaultValue: 'Download Badge PDF',
-                              })}
-                              arrow
-                            >
-                              <IconButton
-                                size="small"
-                                onClick={handleDownloadQR}
-                                sx={{
-                                  bgcolor: 'background.paper',
-                                  '&:hover': { bgcolor: 'action.hover' },
-                                }}
-                              >
-                                <DownloadIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          </Stack>
-                        )}
-                      </Stack>
-                    </Paper>
-                  </Grid>
-                </Grid>
-              </Grid>
-
-              {/* Column 3: Visitor Information - full width on sm, 4/12 on md+ */}
-              <Grid size={{ xs: 12, sm: 12, md: 4 }}>
-                <Paper sx={{ p: 2.5, width: '100%', height: '100%' }}>
+              {/* Row 1: Visitor Information - full width on sm, 6/12 on md+ */}
+              <Grid size={{ xs: 12, sm: 12, md: 6 }} sx={{ display: 'flex' }}>
+                <Paper sx={{ p: 2.5, width: '100%', display: 'flex', flexDirection: 'column' }}>
                   <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                     {t('visitDetails.modal.visitorInformation', {
                       lng: language,
                       defaultValue: 'Visitor Information',
                     })}
                   </Typography>
-                  <Grid container spacing={2} sx={{ mt: 2 }}>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Stack spacing={2}>
+                  <Stack spacing={2} sx={{ mt: 2 }}>
+                    {/* Email - Full width on desktop */}
+                    {visit.visitorEmail && (
+                      <InfoRow
+                        icon={<EmailIcon fontSize="small" />}
+                        label={t('visitDetails.modal.field.email', {
+                          lng: language,
+                          defaultValue: 'Email',
+                        })}
+                        value={visit.visitorEmail}
+                      />
+                    )}
+
+                    {/* Two-column layout for Name and Vehicle Plate */}
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
                         <InfoRow
                           icon={<PersonAddAltIcon fontSize="small" />}
                           label={t('visitDetails.modal.field.name', {
@@ -474,16 +375,8 @@ export function VisitDetailsModal({
                           })}
                           value={visit.visitorName}
                         />
-                        {visit.visitorEmail && (
-                          <InfoRow
-                            icon={<EmailIcon fontSize="small" />}
-                            label={t('visitDetails.modal.field.email', {
-                              lng: language,
-                              defaultValue: 'Email',
-                            })}
-                            value={visit.visitorEmail}
-                          />
-                        )}
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
                         {visit.vehiclePlate && (
                           <InfoRow
                             icon={<DirectionsCarFilledIcon fontSize="small" />}
@@ -494,40 +387,46 @@ export function VisitDetailsModal({
                             value={visit.vehiclePlate}
                           />
                         )}
-                      </Stack>
+                      </Grid>
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Stack spacing={2}>
-                        {visit.requestedByRole && visit.requestedByName && (
-                          <InfoRow
-                            icon={
-                              visit.requestedByRole === 'resident' ? (
-                                <PersonIcon fontSize="small" />
-                              ) : visit.requestedByRole === 'guard' ? (
-                                <ShieldIcon fontSize="small" />
-                              ) : visit.requestedByRole === 'admin' ? (
-                                <AdminPanelSettingsIcon fontSize="small" />
-                              ) : (
-                                <SettingsIcon fontSize="small" />
-                              )
-                            }
-                            label={t('visitDetails.modal.field.requestedBy', {
-                              lng: language,
-                              defaultValue: 'Requested By',
-                            })}
-                            value={`${visit.requestedByName || visit.requestedByEmail}${visit.requestedByRole ? ` (${visit.requestedByRole.charAt(0).toUpperCase() + visit.requestedByRole.slice(1)})` : ''}`}
-                          />
-                        )}
-                        {visit.approvedByName && (
-                          <InfoRow
-                            icon={<CheckCircleOutlineIcon fontSize="small" />}
-                            label={t('visitDetails.modal.field.approvedBy', {
-                              lng: language,
-                              defaultValue: 'Approved By',
-                            })}
-                            value={`${visit.approvedByName || visit.approvedByEmail}${visit.approvedByRole ? ` (${visit.approvedByRole.charAt(0).toUpperCase() + visit.approvedByRole.slice(1)})` : ''}`}
-                          />
-                        )}
+
+                    {/* Two-column layout for other fields */}
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Stack spacing={2}>
+                          {visit.requestedByRole && visit.requestedByName && (
+                            <InfoRow
+                              icon={
+                                visit.requestedByRole === 'resident' ? (
+                                  <PersonIcon fontSize="small" />
+                                ) : visit.requestedByRole === 'guard' ? (
+                                  <ShieldIcon fontSize="small" />
+                                ) : visit.requestedByRole === 'admin' ? (
+                                  <AdminPanelSettingsIcon fontSize="small" />
+                                ) : (
+                                  <SettingsIcon fontSize="small" />
+                                )
+                              }
+                              label={t('visitDetails.modal.field.requestedBy', {
+                                lng: language,
+                                defaultValue: 'Requested By',
+                              })}
+                              value={`${visit.requestedByName || visit.requestedByEmail}${visit.requestedByRole ? ` (${visit.requestedByRole.charAt(0).toUpperCase() + visit.requestedByRole.slice(1)})` : ''}`}
+                            />
+                          )}
+                          {visit.approvedByName && (
+                            <InfoRow
+                              icon={<CheckCircleOutlineIcon fontSize="small" />}
+                              label={t('visitDetails.modal.field.approvedBy', {
+                                lng: language,
+                                defaultValue: 'Approved By',
+                              })}
+                              value={`${visit.approvedByName || visit.approvedByEmail}${visit.approvedByRole ? ` (${visit.approvedByRole.charAt(0).toUpperCase() + visit.approvedByRole.slice(1)})` : ''}`}
+                            />
+                          )}
+                        </Stack>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
                         {visit.lastVisitAt && (
                           <InfoRow
                             icon={<CalendarTodayIcon fontSize="small" />}
@@ -538,9 +437,114 @@ export function VisitDetailsModal({
                             value={new Date(visit.lastVisitAt).toLocaleDateString()}
                           />
                         )}
-                      </Stack>
+                      </Grid>
                     </Grid>
-                  </Grid>
+                  </Stack>
+                </Paper>
+              </Grid>
+
+              {/* Row 2: Host Information - full width on sm, 6/12 on md+ */}
+              <Grid size={{ xs: 12, sm: 12, md: 6 }} sx={{ display: 'flex' }}>
+                <Paper sx={{ p: 2.5, width: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                    {t('visitDetails.modal.hostInformation', {
+                      lng: language,
+                      defaultValue: 'Host Information',
+                    })}
+                  </Typography>
+                  <Stack spacing={2} sx={{ mt: 2 }}>
+                    <InfoRow
+                      icon={<HomeIcon fontSize="small" />}
+                      label={t('visitDetails.modal.field.hostName', {
+                        lng: language,
+                        defaultValue: 'Host Name',
+                      })}
+                      value={visit.hostName}
+                    />
+                    <InfoRow
+                      icon={<HomeIcon fontSize="small" />}
+                      label={t('visitDetails.modal.field.unit', {
+                        lng: language,
+                        defaultValue: 'Unit',
+                      })}
+                      value={visit.hostUnit}
+                    />
+                  </Stack>
+                </Paper>
+              </Grid>
+
+              {/* Row 2: QR Code - full width on sm, 6/12 on md+ */}
+              <Grid size={{ xs: 12, sm: 12, md: 6 }} sx={{ display: 'flex' }}>
+                <Paper sx={{ p: 2.5, width: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                    {t('visitDetails.modal.badgeQrCode', {
+                      lng: language,
+                      defaultValue: 'Badge QR Code',
+                    })}
+                  </Typography>
+                  <Stack spacing={2} sx={{ mt: 2, alignItems: 'center' }}>
+                    {qrCodeDataUrl && (
+                      <Box
+                        component="img"
+                        src={qrCodeDataUrl}
+                        alt="QR Code"
+                        sx={{
+                          width: { xs: 200, sm: 150 },
+                          height: { xs: 200, sm: 150 },
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: 2,
+                        }}
+                      />
+                    )}
+                    <Typography variant="caption" color="text.secondary" align="center">
+                      {t('visitDetails.modal.qrInstructions', {
+                        lng: language,
+                        defaultValue: isMobile
+                          ? 'Scan this QR code to validate the badge'
+                          : 'Scan to validate',
+                      })}
+                    </Typography>
+                    {qrCodeDataUrl && (
+                      <Stack
+                        direction="row"
+                        spacing={2}
+                        alignItems="center"
+                        justifyContent="space-between"
+                        sx={{ width: '100%', p: 1.5 }}
+                      >
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">
+                            {t('visitDetails.modal.badgeCode', {
+                              lng: language,
+                              defaultValue: 'Badge Code',
+                            })}
+                          </Typography>
+                          <Typography variant="body2" fontWeight={600}>
+                            {visit.badgeCode}
+                          </Typography>
+                        </Box>
+                        <Tooltip
+                          title={t('visitDetails.modal.downloadTooltip', {
+                            lng: language,
+                            defaultValue: 'Download Badge PDF',
+                          })}
+                          arrow
+                        >
+                          <IconButton
+                            size="small"
+                            onClick={handleDownloadQR}
+                            sx={{
+                              bgcolor: 'background.paper',
+                              '&:hover': { bgcolor: 'action.hover' },
+                            }}
+                          >
+                            <DownloadIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    )}
+                  </Stack>
                 </Paper>
               </Grid>
             </Grid>
@@ -548,25 +552,6 @@ export function VisitDetailsModal({
             {/* Actions - Mobile */}
             {isMobile && (
               <Stack spacing={1}>
-                <Tooltip title={downloadBadgeLabel} arrow>
-                  <Paper
-                    component="button"
-                    onClick={onDownloadBadge}
-                    sx={{
-                      p: 2,
-                      border: 'none',
-                      bgcolor: 'background.paper',
-                      cursor: 'pointer',
-                      '&:hover': { bgcolor: 'action.hover' },
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 2,
-                    }}
-                  >
-                    <DownloadIcon />
-                    <Typography>{downloadBadgeLabel}</Typography>
-                  </Paper>
-                </Tooltip>
                 <Tooltip title={resendEmailLabel} arrow>
                   <Paper
                     component="button"

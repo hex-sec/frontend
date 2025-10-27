@@ -676,30 +676,6 @@ export default function SiteDetailsPage() {
           <Stack spacing={2}>
             <Paper sx={{ p: 2 }}>
               <SectionHeader
-                title={translate('siteDetails.sections.timeline.title')}
-                actionLabel={translate('siteDetails.sections.timeline.action')}
-              />
-              <Stack spacing={1.5}>
-                {timelineEntries.map((activity) => (
-                  <TimelineRow key={activity.time} {...activity} />
-                ))}
-              </Stack>
-            </Paper>
-
-            <Paper sx={{ p: 3 }}>
-              <SectionHeader
-                title={translate('siteDetails.sections.guardRoster.title')}
-                actionLabel={translate('siteDetails.sections.guardRoster.action')}
-              />
-              <Stack spacing={1.5}>
-                {guardRoster.map((guard) => (
-                  <GuardRow key={guard.name} {...guard} />
-                ))}
-              </Stack>
-            </Paper>
-
-            <Paper sx={{ p: 2 }}>
-              <SectionHeader
                 title={translate('siteDetails.sections.incidents.title')}
                 actionLabel={translate('siteDetails.sections.incidents.action')}
               />
@@ -745,6 +721,30 @@ export default function SiteDetailsPage() {
                     </Stack>
                   ))}
                 </Stack>
+              </Stack>
+            </Paper>
+
+            <Paper sx={{ p: 2 }}>
+              <SectionHeader
+                title={translate('siteDetails.sections.timeline.title')}
+                actionLabel={translate('siteDetails.sections.timeline.action')}
+              />
+              <Stack spacing={1.5}>
+                {timelineEntries.map((activity) => (
+                  <TimelineRow key={activity.time} {...activity} />
+                ))}
+              </Stack>
+            </Paper>
+
+            <Paper sx={{ p: 3 }}>
+              <SectionHeader
+                title={translate('siteDetails.sections.guardRoster.title')}
+                actionLabel={translate('siteDetails.sections.guardRoster.action')}
+              />
+              <Stack spacing={1.5}>
+                {guardRoster.map((guard) => (
+                  <GuardRow key={guard.name} {...guard} />
+                ))}
               </Stack>
             </Paper>
 

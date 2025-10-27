@@ -1,27 +1,8 @@
 import { useMemo } from 'react'
-import { Link as RouterLink } from 'react-router-dom'
-import {
-  Avatar,
-  Box,
-  Button,
-  Chip,
-  Divider,
-  IconButton,
-  LinearProgress,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Paper,
-  Stack,
-  Tooltip,
-  Typography,
-  useMediaQuery,
-} from '@mui/material'
+import { Box, Button, Divider, Paper, Stack, Typography, useMediaQuery } from '@mui/material'
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline'
 import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 import AlarmOnOutlinedIcon from '@mui/icons-material/AlarmOnOutlined'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import AddIcon from '@mui/icons-material/Add'
 import CurrencyExchangeOutlinedIcon from '@mui/icons-material/CurrencyExchangeOutlined'
 import LaunchIcon from '@mui/icons-material/Launch'
@@ -29,6 +10,11 @@ import { KpiCard } from './dashboard/cards/KpiCard'
 import { TimelineCard } from './dashboard/cards/TimelineCard'
 import { AlertsCard } from './dashboard/cards/AlertsCard'
 import { IncomeCard } from './dashboard/cards/IncomeCard'
+import { EnterpriseSummaryCard } from './dashboard/cards/EnterpriseSummaryCard'
+import { QuickAccessCard } from './dashboard/cards/QuickAccessCard'
+import { NavigationCard } from './dashboard/cards/NavigationCard'
+import { QuickAgendaCard } from './dashboard/cards/QuickAgendaCard'
+import { FinancialSummaryCard } from './dashboard/cards/FinancialSummaryCard'
 import Grid from '@mui/material/Grid2'
 import { useTheme, type SxProps, type Theme } from '@mui/material/styles'
 import { useTranslate } from '../../i18n/useTranslate'
@@ -327,101 +313,19 @@ export default function DashboardPage() {
 
       {/* Enterprise Summary - Full width on tablet */}
       {isTablet && (
-        <Paper
-          sx={{
-            ...surfaceCard,
-            mb: 2,
-            background: (theme) =>
-              theme.palette.mode === 'dark'
-                ? `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`
-                : `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`,
-            color: 'primary.contrastText',
-          }}
-        >
-          <Stack spacing={1}>
-            <Typography variant="subtitle2" color="inherit" sx={{ opacity: 0.9 }}>
-              {t('admin.dashboard.sections.enterpriseOverview', { lng: language })}
-            </Typography>
-            <Stack direction="row" spacing={4} sx={{ mt: 1, flexWrap: 'wrap' }}>
-              <Box>
-                <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <Typography variant="h5" fontWeight={600} color="inherit">
-                    12
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: '50%',
-                      bgcolor: 'success.light',
-                    }}
-                  />
-                </Stack>
-                <Typography variant="caption" color="inherit" sx={{ opacity: 0.8 }}>
-                  {t('admin.dashboard.enterprise.activeSites', { lng: language })}
-                </Typography>
-              </Box>
-              <Box>
-                <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <Typography variant="h5" fontWeight={600} color="inherit">
-                    3.2K
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: '50%',
-                      bgcolor: 'info.light',
-                    }}
-                  />
-                </Stack>
-                <Typography variant="caption" color="inherit" sx={{ opacity: 0.8 }}>
-                  {t('admin.dashboard.enterprise.totalResidents', { lng: language })}
-                </Typography>
-              </Box>
-              <Box>
-                <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <Typography variant="h5" fontWeight={600} color="inherit">
-                    {financialSnapshot.mrr}
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: '50%',
-                      bgcolor: 'warning.light',
-                    }}
-                  />
-                </Stack>
-                <Typography variant="caption" color="inherit" sx={{ opacity: 0.8 }}>
-                  {t('admin.dashboard.income.mrr', { lng: language })}
-                </Typography>
-              </Box>
-              <Box>
-                <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <Typography variant="h5" fontWeight={600} color="inherit">
-                    {financialSnapshot.arr}
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: '50%',
-                      bgcolor: 'error.light',
-                    }}
-                  />
-                </Stack>
-                <Typography variant="caption" color="inherit" sx={{ opacity: 0.8 }}>
-                  {t('admin.dashboard.income.arrProjected', { lng: language })}
-                </Typography>
-              </Box>
-            </Stack>
-          </Stack>
-        </Paper>
+        <Box sx={{ mb: 2 }}>
+          <EnterpriseSummaryCard
+            activeSites={12}
+            totalResidents="3.2K"
+            mrr={financialSnapshot.mrr}
+            arr={financialSnapshot.arr}
+            isDesktop={false}
+          />
+        </Box>
       )}
 
-      <Grid container spacing={2} columns={12} sx={{ width: '100%' }}>
-        {isTablet ? (
+      {isTablet ? (
+        <Grid container spacing={2} columns={12} sx={{ width: '100%' }}>
           <>
             {/* Left Column - Quick Access, Navigation, Financial Summary */}
             <Grid size={6}>
@@ -434,155 +338,19 @@ export default function DashboardPage() {
                 }}
               >
                 {/* Quick Access */}
-                <Paper sx={{ ...surfaceCard }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography variant="subtitle2" color="text.secondary">
-                      {t('admin.dashboard.sections.quickAccess', { lng: language })}
-                    </Typography>
-                    <Tooltip
-                      title={t('admin.dashboard.quickActions.customizeTooltip', { lng: language })}
-                    >
-                      <IconButton size="small" color="primary">
-                        <AddIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                  <Stack spacing={1.5} sx={{ mt: 2 }}>
-                    {quickActions.map((action) => (
-                      <Paper
-                        key={action.key}
-                        variant="outlined"
-                        sx={{ p: 1.5, borderRadius: 2, borderColor: 'divider' }}
-                      >
-                        <Stack direction="row" spacing={1.5} alignItems="center">
-                          <Avatar sx={{ bgcolor: 'primary.main', color: 'common.white' }}>
-                            {action.icon}
-                          </Avatar>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" fontWeight={600}>
-                              {action.label}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {action.description}
-                            </Typography>
-                          </Box>
-                          <IconButton size="small" color="primary" href={action.href}>
-                            <ArrowForwardIcon fontSize="small" />
-                          </IconButton>
-                        </Stack>
-                      </Paper>
-                    ))}
-                  </Stack>
-                </Paper>
+                <QuickAccessCard
+                  title={t('admin.dashboard.sections.quickAccess', { lng: language })}
+                  customizeTooltip={t('admin.dashboard.quickActions.customizeTooltip', {
+                    lng: language,
+                  })}
+                  quickActions={quickActions}
+                />
 
                 {/* Navigation Links */}
-                <Paper sx={{ ...surfaceCard }}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    {t('admin.dashboard.sections.navigation', { lng: language })}
-                  </Typography>
-                  <Stack spacing={1.5} sx={{ mt: 2 }}>
-                    {navShortcuts.map((item) => (
-                      <Paper
-                        key={item.key}
-                        variant="outlined"
-                        component={RouterLink}
-                        to={item.to}
-                        sx={{
-                          p: 1.5,
-                          borderRadius: 2,
-                          borderColor: 'divider',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          textDecoration: 'none',
-                          color: 'inherit',
-                          transition: (theme: Theme) =>
-                            theme.transitions.create(['transform', 'box-shadow'], {
-                              duration: theme.transitions.duration.shortest,
-                            }),
-                          '&:hover': {
-                            transform: 'translateX(4px)',
-                            boxShadow: (theme: Theme) => theme.shadows[3],
-                            borderColor: (theme: Theme) => theme.palette.primary.light,
-                            backgroundColor: (theme: Theme) => theme.palette.action.hover,
-                          },
-                        }}
-                      >
-                        <Box>
-                          <Typography variant="body2" fontWeight={600}>
-                            {item.label}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {item.caption}
-                          </Typography>
-                        </Box>
-                        <LaunchIcon color="action" fontSize="small" />
-                      </Paper>
-                    ))}
-                  </Stack>
-                </Paper>
-
-                {/* Financial Summary */}
-                <Paper sx={{ ...surfaceCard }}>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
-                    {t('admin.dashboard.sections.financialSummary', { lng: language })}
-                  </Typography>
-                  <Stack spacing={3}>
-                    {/* MRR */}
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5 }}>
-                        {t('admin.dashboard.income.mrr', { lng: language })}
-                      </Typography>
-                      <Typography variant="h5" fontWeight={600}>
-                        {financialSnapshot.mrr}
-                      </Typography>
-                    </Box>
-
-                    <Divider />
-
-                    {/* ARR & Renewals */}
-                    <Stack direction="column" spacing={2}>
-                      <MetricPill
-                        label={t('admin.dashboard.income.arrProjected', { lng: language })}
-                        value={financialSnapshot.arr}
-                      />
-                      <MetricPill
-                        label={t('admin.dashboard.income.upcomingRenewals', { lng: language })}
-                        value={`${financialSnapshot.upcomingRenewals} ${t('admin.dashboard.income.contractsSuffix', { lng: language })}`}
-                      />
-                    </Stack>
-
-                    <Divider />
-
-                    {/* Collection Rate */}
-                    <Box>
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        sx={{ mb: 1 }}
-                      >
-                        <Typography variant="caption" color="text.secondary">
-                          {t('admin.dashboard.income.monthlyCollections', { lng: language })}
-                        </Typography>
-                        <Typography variant="body2" fontWeight={600}>
-                          {financialSnapshot.collectionRate}%
-                        </Typography>
-                      </Stack>
-                      <LinearProgress
-                        variant="determinate"
-                        value={financialSnapshot.collectionRate}
-                        sx={{ height: 8, borderRadius: 4 }}
-                      />
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-                        {t('admin.dashboard.income.overdueInvoices', {
-                          lng: language,
-                          count: financialSnapshot.overdueInvoices,
-                        })}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Paper>
+                <NavigationCard
+                  title={t('admin.dashboard.sections.navigation', { lng: language })}
+                  navShortcuts={navShortcuts}
+                />
               </Stack>
             </Grid>
 
@@ -599,33 +367,11 @@ export default function DashboardPage() {
                 </Paper>
 
                 {/* Quick Agenda */}
-                <Paper sx={{ ...surfaceCard }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography variant="subtitle2" color="text.secondary">
-                      {t('admin.dashboard.sections.agenda', { lng: language })}
-                    </Typography>
-                    <Chip
-                      size="small"
-                      label={t('admin.dashboard.agenda.today', { lng: language })}
-                      color="primary"
-                    />
-                  </Stack>
-                  <List dense sx={{ mt: 1 }}>
-                    {agendaItems.map((item, index) => (
-                      <Box key={item.key} component="li" sx={{ listStyle: 'none' }}>
-                        <ListItem disableGutters>
-                          <ListItemAvatar>
-                            <Avatar>{item.icon}</Avatar>
-                          </ListItemAvatar>
-                          <ListItemText primary={item.primary} secondary={item.secondary} />
-                        </ListItem>
-                        {index === agendaItems.length - 1 ? null : (
-                          <Divider flexItem component="div" />
-                        )}
-                      </Box>
-                    ))}
-                  </List>
-                </Paper>
+                <QuickAgendaCard
+                  title={t('admin.dashboard.sections.agenda', { lng: language })}
+                  todayLabel={t('admin.dashboard.agenda.today', { lng: language })}
+                  agendaItems={agendaItems}
+                />
 
                 {/* Recent Activity (Timeline) */}
                 <Paper sx={{ ...surfaceCard }}>
@@ -642,11 +388,25 @@ export default function DashboardPage() {
                     title={t('admin.dashboard.sections.kpi', { lng: language })}
                   />
                 </Paper>
+              </Stack>
+            </Grid>
+          </>
+        </Grid>
+      ) : null}
 
+      {/* Full-width Financial Component for Tablet */}
+      {isTablet && (
+        <Grid container spacing={2} columns={12} sx={{ width: '100%', mt: 0 }}>
+          <Grid size={12}>
+            <Paper sx={{ ...surfaceCard }}>
+              <Stack spacing={3}>
                 {/* Income View */}
-                <Paper sx={{ ...surfaceCard }}>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    {t('admin.dashboard.sections.income', { lng: language })}
+                  </Typography>
                   <IncomeCard
-                    title={t('admin.dashboard.sections.income', { lng: language })}
+                    title=""
                     collectionRate={financialSnapshot.collectionRate}
                     topLineVsLastMonth={financialSnapshot.topLineVsLastMonth}
                     growthNote={t('admin.dashboard.income.growthNote', { lng: language })}
@@ -665,11 +425,39 @@ export default function DashboardPage() {
                       lng: language,
                     })}
                   />
-                </Paper>
+                </Box>
+
+                <Divider />
+
+                {/* Financial Summary */}
+                <FinancialSummaryCard
+                  mrr={financialSnapshot.mrr}
+                  arr={financialSnapshot.arr}
+                  collectionRate={financialSnapshot.collectionRate}
+                  upcomingRenewals={financialSnapshot.upcomingRenewals}
+                  overdueInvoicesCount={financialSnapshot.overdueInvoices}
+                  mrrLabel={t('admin.dashboard.income.mrr', { lng: language })}
+                  arrProjectedLabel={t('admin.dashboard.income.arrProjected', { lng: language })}
+                  upcomingRenewalsLabel={t('admin.dashboard.income.upcomingRenewals', {
+                    lng: language,
+                  })}
+                  contractsSuffix={t('admin.dashboard.income.contractsSuffix', { lng: language })}
+                  monthlyCollectionsLabel={t('admin.dashboard.income.monthlyCollections', {
+                    lng: language,
+                  })}
+                  overdueInvoicesLabel={t('admin.dashboard.income.overdueInvoices', {
+                    lng: language,
+                  })}
+                />
               </Stack>
-            </Grid>
-          </>
-        ) : (
+            </Paper>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* Desktop Layout Grid */}
+      {!isTablet && (
+        <Grid container spacing={2} columns={12} sx={{ width: '100%' }}>
           <>
             {/* Desktop layout */}
             <Grid size={leftColumnSpan}>
@@ -682,111 +470,29 @@ export default function DashboardPage() {
                 }}
               >
                 {/* Enterprise Overview */}
-                <Paper
-                  sx={{
-                    ...surfaceCard,
-                    background: (theme) =>
-                      theme.palette.mode === 'dark'
-                        ? `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`
-                        : `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`,
-                    color: 'primary.contrastText',
-                  }}
-                >
-                  <Stack spacing={1}>
-                    <Typography variant="subtitle2" color="inherit" sx={{ opacity: 0.9 }}>
-                      {t('admin.dashboard.sections.enterpriseOverview', { lng: language })}
-                    </Typography>
-                    <Stack direction="row" spacing={3} sx={{ mt: 1 }}>
-                      <Box>
-                        <Typography variant="h5" fontWeight={600} color="inherit">
-                          12
-                        </Typography>
-                        <Typography variant="caption" color="inherit" sx={{ opacity: 0.8 }}>
-                          {t('admin.dashboard.enterprise.activeSites', { lng: language })}
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Typography variant="h5" fontWeight={600} color="inherit">
-                          3.2K
-                        </Typography>
-                        <Typography variant="caption" color="inherit" sx={{ opacity: 0.8 }}>
-                          {t('admin.dashboard.enterprise.totalResidents', { lng: language })}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Stack>
-                </Paper>
+                <EnterpriseSummaryCard
+                  activeSites={12}
+                  totalResidents="3.2K"
+                  mrr={financialSnapshot.mrr}
+                  arr={financialSnapshot.arr}
+                  isDesktop={isDesktop}
+                />
 
                 {/* Quick Agenda */}
-                <Paper sx={{ ...surfaceCard }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography variant="subtitle2" color="text.secondary">
-                      {t('admin.dashboard.sections.agenda', { lng: language })}
-                    </Typography>
-                    <Chip
-                      size="small"
-                      label={t('admin.dashboard.agenda.today', { lng: language })}
-                      color="primary"
-                    />
-                  </Stack>
-                  <List dense sx={{ mt: 1 }}>
-                    {agendaItems.map((item, index) => (
-                      <Box key={item.key} component="li" sx={{ listStyle: 'none' }}>
-                        <ListItem disableGutters>
-                          <ListItemAvatar>
-                            <Avatar>{item.icon}</Avatar>
-                          </ListItemAvatar>
-                          <ListItemText primary={item.primary} secondary={item.secondary} />
-                        </ListItem>
-                        {index === agendaItems.length - 1 ? null : (
-                          <Divider flexItem component="div" />
-                        )}
-                      </Box>
-                    ))}
-                  </List>
-                </Paper>
+                <QuickAgendaCard
+                  title={t('admin.dashboard.sections.agenda', { lng: language })}
+                  todayLabel={t('admin.dashboard.agenda.today', { lng: language })}
+                  agendaItems={agendaItems}
+                />
 
                 {/* Quick Access */}
-                <Paper sx={{ ...surfaceCard }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography variant="subtitle2" color="text.secondary">
-                      {t('admin.dashboard.sections.quickAccess', { lng: language })}
-                    </Typography>
-                    <Tooltip
-                      title={t('admin.dashboard.quickActions.customizeTooltip', { lng: language })}
-                    >
-                      <IconButton size="small" color="primary">
-                        <AddIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                  <Stack spacing={1.5} sx={{ mt: 2 }}>
-                    {quickActions.map((action) => (
-                      <Paper
-                        key={action.key}
-                        variant="outlined"
-                        sx={{ p: 1.5, borderRadius: 2, borderColor: 'divider' }}
-                      >
-                        <Stack direction="row" spacing={1.5} alignItems="center">
-                          <Avatar sx={{ bgcolor: 'primary.main', color: 'common.white' }}>
-                            {action.icon}
-                          </Avatar>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" fontWeight={600}>
-                              {action.label}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {action.description}
-                            </Typography>
-                          </Box>
-                          <IconButton size="small" color="primary" href={action.href}>
-                            <ArrowForwardIcon fontSize="small" />
-                          </IconButton>
-                        </Stack>
-                      </Paper>
-                    ))}
-                  </Stack>
-                </Paper>
+                <QuickAccessCard
+                  title={t('admin.dashboard.sections.quickAccess', { lng: language })}
+                  customizeTooltip={t('admin.dashboard.quickActions.customizeTooltip', {
+                    lng: language,
+                  })}
+                  quickActions={quickActions}
+                />
               </Stack>
             </Grid>
 
@@ -815,10 +521,43 @@ export default function DashboardPage() {
                     title={t('admin.dashboard.sections.kpi', { lng: language })}
                   />
                 </Paper>
+              </Stack>
+            </Grid>
 
-                <Paper sx={{ ...surfaceCard }}>
+            {/* Right Column */}
+            <Grid size={rightColumnSpan}>
+              <Stack
+                spacing={2}
+                sx={{
+                  position: isDesktop ? 'sticky' : 'static',
+                  top: isDesktop ? 88 : undefined,
+                  zIndex: isDesktop ? 1 : undefined,
+                }}
+              >
+                {/* Navigation Links */}
+                <NavigationCard
+                  title={t('admin.dashboard.sections.navigation', { lng: language })}
+                  navShortcuts={navShortcuts}
+                />
+              </Stack>
+            </Grid>
+          </>
+        </Grid>
+      )}
+
+      {/* Financial Component - Full width below for desktop */}
+      {!isTablet && (
+        <Grid container spacing={2} columns={12} sx={{ width: '100%', mt: 2 }}>
+          <Grid size={12}>
+            <Paper sx={{ ...surfaceCard }}>
+              <Stack spacing={3}>
+                {/* Income View */}
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    {t('admin.dashboard.sections.income', { lng: language })}
+                  </Typography>
                   <IncomeCard
-                    title={t('admin.dashboard.sections.income', { lng: language })}
+                    title=""
                     collectionRate={financialSnapshot.collectionRate}
                     topLineVsLastMonth={financialSnapshot.topLineVsLastMonth}
                     growthNote={t('admin.dashboard.income.growthNote', { lng: language })}
@@ -837,162 +576,35 @@ export default function DashboardPage() {
                       lng: language,
                     })}
                   />
-                </Paper>
+                </Box>
+
+                <Divider />
 
                 {/* Financial Summary */}
-                <Paper sx={{ ...surfaceCard }}>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
-                    {t('admin.dashboard.sections.financialSummary', { lng: language })}
-                  </Typography>
-                  <Stack spacing={3}>
-                    {/* MRR */}
-                    <Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5 }}>
-                        {t('admin.dashboard.income.mrr', { lng: language })}
-                      </Typography>
-                      <Typography variant="h5" fontWeight={600}>
-                        {financialSnapshot.mrr}
-                      </Typography>
-                    </Box>
-
-                    <Divider />
-
-                    {/* ARR & Renewals */}
-                    <Stack direction="column" spacing={2}>
-                      <MetricPill
-                        label={t('admin.dashboard.income.arrProjected', { lng: language })}
-                        value={financialSnapshot.arr}
-                      />
-                      <MetricPill
-                        label={t('admin.dashboard.income.upcomingRenewals', { lng: language })}
-                        value={`${financialSnapshot.upcomingRenewals} ${t('admin.dashboard.income.contractsSuffix', { lng: language })}`}
-                      />
-                    </Stack>
-
-                    <Divider />
-
-                    {/* Collection Rate */}
-                    <Box>
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        sx={{ mb: 1 }}
-                      >
-                        <Typography variant="caption" color="text.secondary">
-                          {t('admin.dashboard.income.monthlyCollections', { lng: language })}
-                        </Typography>
-                        <Typography variant="body2" fontWeight={600}>
-                          {financialSnapshot.collectionRate}%
-                        </Typography>
-                      </Stack>
-                      <LinearProgress
-                        variant="determinate"
-                        value={financialSnapshot.collectionRate}
-                        sx={{ height: 8, borderRadius: 4 }}
-                      />
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-                        {t('admin.dashboard.income.overdueInvoices', {
-                          lng: language,
-                          count: financialSnapshot.overdueInvoices,
-                        })}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Paper>
+                <FinancialSummaryCard
+                  mrr={financialSnapshot.mrr}
+                  arr={financialSnapshot.arr}
+                  collectionRate={financialSnapshot.collectionRate}
+                  upcomingRenewals={financialSnapshot.upcomingRenewals}
+                  overdueInvoicesCount={financialSnapshot.overdueInvoices}
+                  mrrLabel={t('admin.dashboard.income.mrr', { lng: language })}
+                  arrProjectedLabel={t('admin.dashboard.income.arrProjected', { lng: language })}
+                  upcomingRenewalsLabel={t('admin.dashboard.income.upcomingRenewals', {
+                    lng: language,
+                  })}
+                  contractsSuffix={t('admin.dashboard.income.contractsSuffix', { lng: language })}
+                  monthlyCollectionsLabel={t('admin.dashboard.income.monthlyCollections', {
+                    lng: language,
+                  })}
+                  overdueInvoicesLabel={t('admin.dashboard.income.overdueInvoices', {
+                    lng: language,
+                  })}
+                />
               </Stack>
-            </Grid>
-
-            <Grid size={rightColumnSpan}>
-              <Stack
-                spacing={2}
-                sx={{
-                  position: isDesktop ? 'sticky' : 'static',
-                  top: isDesktop ? 88 : undefined,
-                  zIndex: isDesktop ? 1 : undefined,
-                }}
-              >
-                {/* Navigation Links */}
-                <Paper sx={{ ...surfaceCard }}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    {t('admin.dashboard.sections.navigation', { lng: language })}
-                  </Typography>
-                  <Stack spacing={1.5} sx={{ mt: 2 }}>
-                    {navShortcuts.map((item) => (
-                      <Paper
-                        key={item.key}
-                        variant="outlined"
-                        component={RouterLink}
-                        to={item.to}
-                        sx={{
-                          p: 1.5,
-                          borderRadius: 2,
-                          borderColor: 'divider',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          textDecoration: 'none',
-                          color: 'inherit',
-                          transition: (theme: Theme) =>
-                            theme.transitions.create(['transform', 'box-shadow'], {
-                              duration: theme.transitions.duration.shortest,
-                            }),
-                          '&:hover': {
-                            transform: 'translateX(4px)',
-                            boxShadow: (theme: Theme) => theme.shadows[3],
-                            borderColor: (theme: Theme) => theme.palette.primary.light,
-                            backgroundColor: (theme: Theme) => theme.palette.action.hover,
-                          },
-                        }}
-                      >
-                        <Box>
-                          <Typography variant="body2" fontWeight={600}>
-                            {item.label}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {item.caption}
-                          </Typography>
-                        </Box>
-                        <LaunchIcon color="action" fontSize="small" />
-                      </Paper>
-                    ))}
-                  </Stack>
-                </Paper>
-              </Stack>
-            </Grid>
-          </>
-        )}
-      </Grid>
-    </Box>
-  )
-}
-
-function MetricPill({ label, value }: { label: string; value: string }) {
-  return (
-    <Box
-      sx={{
-        borderRadius: 2,
-        border: '1px solid',
-        borderColor: 'divider',
-        bgcolor: 'background.default',
-        p: 1.5,
-        minWidth: 0,
-        transition: (theme) =>
-          theme.transitions.create(['border-color', 'background-color'], {
-            duration: theme.transitions.duration.shortest,
-          }),
-        '&:hover': {
-          borderColor: 'primary.light',
-          bgcolor: 'action.hover',
-        },
-      }}
-    >
-      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5 }}>
-        {label}
-      </Typography>
-      <Typography variant="subtitle2" fontWeight={600}>
-        {value}
-      </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+      )}
     </Box>
   )
 }

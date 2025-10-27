@@ -4,7 +4,6 @@ import {
   useMemo,
   useRef,
   useState,
-  Fragment,
   type ElementType,
   type MouseEvent,
   type SyntheticEvent,
@@ -25,18 +24,9 @@ import {
   ListItemText,
   ListItemIcon,
   Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  TextField,
   Avatar,
   Chip,
   ListSubheader,
-  MenuList,
   useMediaQuery,
 } from '@mui/material'
 import Snackbar from '@mui/material/Snackbar'
@@ -65,21 +55,21 @@ import Badge from '@mui/material/Badge'
 import SearchIcon from '@mui/icons-material/Search'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
-import EventIcon from '@mui/icons-material/Event'
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import type { ButtonProps } from '@mui/material/Button'
 import { alpha, useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
+import { LogoMark } from './components/topbar/LogoMark'
+import { ModeSwitchDialog } from './components/topbar/ModeSwitchDialog'
+import { CalendarMenu } from './components/topbar/CalendarMenu'
+import { NotificationsMenu } from './components/topbar/NotificationsMenu'
 import { useAuthStore } from '@app/auth/auth.store'
 import { useUIStore } from '@store/ui.store'
 import { useI18nStore } from '@store/i18n.store'
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from '@i18n/i18n'
 import SettingsModal, { SETTINGS_DEFAULT_VALUES } from './SettingsModal'
 import { useTranslate } from '../../i18n/useTranslate'
-import { useSiteStore, type SiteMode, type Site } from '@store/site.store'
+import { useSiteStore, type SiteMode } from '@store/site.store'
 import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
 import { useUserSettings, type UserSettings } from '@app/hooks/useUserSettings'
 import { useThemeStore } from '@store/theme.store'
@@ -133,24 +123,6 @@ function getUserInitials(source?: string): string {
   const parts = trimmed.split(/\s+/)
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
   return `${parts[0][0] ?? ''}${parts[parts.length - 1][0] ?? ''}`.toUpperCase()
-}
-
-function LogoMark({ size = 36 }: { size?: number }) {
-  return (
-    <Box
-      component="svg"
-      viewBox="0 0 64 64"
-      sx={{
-        width: size,
-        height: size,
-        color: 'primary.main',
-      }}
-    >
-      <polygon points="32 4 56 18 56 46 32 60 8 46 8 18" fill="currentColor" opacity={0.9} />
-      <polygon points="32 16 44 23 44 41 32 48 20 41 20 23" fill="#ffffff" opacity={0.25} />
-      <polygon points="32 24 38 28 38 36 32 40 26 36 26 28" fill="#ffffff" opacity={0.55} />
-    </Box>
-  )
 }
 
 export default function TopBar() {
@@ -1637,273 +1609,34 @@ export default function TopBar() {
             </Box>
           </Box>
         </Drawer>
-        <Menu
+        <NotificationsMenu
           anchorEl={notificationsAnchor}
           open={Boolean(notificationsAnchor)}
           onClose={closeNotificationsMenu}
-          MenuListProps={{ disablePadding: true }}
-          PaperProps={{
-            sx: {
-              width: 360,
-              mt: 1,
-              borderRadius: 2.5,
-              boxShadow: (muiTheme) => muiTheme.shadows[8],
-            },
+          menuTitle={t('topnav.notifications.menuTitle')}
+          unreadCount={unreadCount}
+          notifications={notifications}
+          onMarkAllRead={() => {
+            setNotifications([])
+            closeNotificationsMenu()
           }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              px: 2,
-              py: 1.5,
-            }}
-          >
-            <Typography variant="subtitle2">{t('topnav.notifications.menuTitle')}</Typography>
-            {unreadCount > 0 ? (
-              <Button
-                size="small"
-                color="inherit"
-                onClick={() => {
-                  setNotifications([])
-                  closeNotificationsMenu()
-                }}
-              >
-                {t('topnav.notifications.markAllRead')}
-              </Button>
-            ) : null}
-          </Box>
-          <Divider />
-          {unreadCount === 0 ? (
-            <Box sx={{ px: 2.5, py: 3 }}>
-              <Typography variant="body2" color="text.secondary">
-                {t('topnav.notifications.empty')}
-              </Typography>
-            </Box>
-          ) : (
-            <MenuList disablePadding component="div">
-              {notifications.map((notification, index) => {
-                const actions = getActionsForNotification(notification)
-                const lastItem = index === notifications.length - 1
-                const chipColor =
-                  notification.type === 'incident'
-                    ? 'error'
-                    : notification.type === 'visitor'
-                      ? 'primary'
-                      : 'secondary'
-                const chipLabelKey =
-                  notification.type === 'incident'
-                    ? 'incident'
-                    : notification.type === 'visitor'
-                      ? 'visitor'
-                      : 'announcement'
-
-                return (
-                  <Box key={notification.id} sx={{ px: 2.5, py: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Chip
-                        size="small"
-                        color={chipColor}
-                        label={t(`topnav.notifications.chip.${chipLabelKey}`)}
-                      />
-                      <Typography variant="subtitle2" sx={{ flex: 1 }}>
-                        {notification.title}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {notification.timestamp}
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" sx={{ mt: 1.25 }} color="text.secondary">
-                      {notification.message}
-                    </Typography>
-                    {actions.length > 0 ? (
-                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1.5 }}>
-                        {actions.map((action) => (
-                          <Button
-                            key={action.label}
-                            size="small"
-                            variant={action.variant ?? 'text'}
-                            color={action.color ?? 'primary'}
-                            onClick={action.onClick}
-                          >
-                            {action.label}
-                          </Button>
-                        ))}
-                      </Box>
-                    ) : null}
-                    {lastItem ? null : <Divider sx={{ mt: 2, mb: -0.5 }} />}
-                  </Box>
-                )
-              })}
-            </MenuList>
-          )}
-        </Menu>
+          emptyMessage={t('topnav.notifications.empty')}
+          getActionsForNotification={getActionsForNotification}
+        />
 
         {/* Calendar Menu */}
-        <Menu
+        <CalendarMenu
           anchorEl={calendarAnchor}
           open={Boolean(calendarAnchor)}
           onClose={() => setCalendarAnchor(null)}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'center',
-          }}
-          PaperProps={{
-            sx: {
-              width: { xs: 'calc(100vw - 32px)', sm: 580, '@media (min-width: 750px)': 680 },
-              height: 'auto',
-              maxWidth: { xs: 340, sm: 580, '@media (min-width: 750px)': 680 },
-              maxHeight: { xs: 'calc(100vh - 100px)', sm: 'auto' },
-              mt: { xs: 1, sm: 1 },
-              borderRadius: { xs: 2.5, sm: 2.5 },
-              boxShadow: (muiTheme) => muiTheme.shadows[8],
-            },
-          }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              px: 2,
-              py: 1.5,
-            }}
-          >
-            <Typography variant="subtitle2" fontWeight={600}>
-              {t('topnav.clock.calendar.title')}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Chip
-                size="small"
-                icon={<CalendarTodayIcon fontSize="small" />}
-                label={selectedDate.toLocaleDateString(getLocaleFromLanguage(language), {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-                color="primary"
-                variant="outlined"
-              />
-            </Box>
-          </Box>
-          <Divider />
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              minHeight: { xs: 'auto', sm: 450 },
-              overflow: 'auto',
-            }}
-          >
-            {/* Calendar View */}
-            <Paper
-              elevation={0}
-              sx={{
-                width: { xs: '100%', sm: 300 },
-                borderRight: { xs: 'none', sm: '1px solid' },
-                borderBottom: { xs: '1px solid', sm: 'none' },
-                borderColor: 'divider',
-                p: 2,
-              }}
-            >
-              <Stack spacing={2}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      const newDate = new Date(selectedDate)
-                      newDate.setMonth(newDate.getMonth() - 1)
-                      setSelectedDate(newDate)
-                    }}
-                  >
-                    <ChevronLeftIcon />
-                  </IconButton>
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    {selectedDate.toLocaleDateString(getLocaleFromLanguage(language), {
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      const newDate = new Date(selectedDate)
-                      newDate.setMonth(newDate.getMonth() + 1)
-                      setSelectedDate(newDate)
-                    }}
-                  >
-                    <ChevronRightIcon />
-                  </IconButton>
-                </Stack>
-                <CalendarGrid
-                  currentDate={selectedDate}
-                  events={allEvents}
-                  onDateSelect={setSelectedDate}
-                  language={language}
-                />
-              </Stack>
-            </Paper>
-
-            {/* Events List */}
-            <Box sx={{ flex: 1, maxHeight: { xs: 'auto', sm: 450 }, overflow: 'auto' }}>
-              {selectedDateEvents.length === 0 ? (
-                <Box sx={{ px: 2.5, py: 3 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    {t('topnav.clock.calendar.noEvents')}
-                  </Typography>
-                </Box>
-              ) : (
-                <MenuList disablePadding>
-                  {selectedDateEvents.map((event, index) => (
-                    <Fragment key={`${event.time}-${index}`}>
-                      <MenuItem
-                        sx={{
-                          flexDirection: 'column',
-                          alignItems: 'flex-start',
-                          py: 1.5,
-                          px: 2,
-                        }}
-                      >
-                        <Stack direction="row" spacing={1.5} sx={{ width: '100%' }}>
-                          <Chip
-                            icon={event.type === 'arrival' ? <AccessTimeIcon /> : <EventIcon />}
-                            label={event.time}
-                            size="small"
-                            color={event.type === 'arrival' ? 'primary' : 'secondary'}
-                            variant="outlined"
-                            sx={{ minWidth: 70 }}
-                          />
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" fontWeight={500}>
-                              {event.title}
-                            </Typography>
-                            <Stack direction="row" spacing={1} sx={{ mt: 0.25 }}>
-                              <Typography variant="caption" color="text.secondary">
-                                {event.location}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                •
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {event.site}
-                              </Typography>
-                            </Stack>
-                          </Box>
-                        </Stack>
-                      </MenuItem>
-                      {index < selectedDateEvents.length - 1 ? <Divider /> : null}
-                    </Fragment>
-                  ))}
-                </MenuList>
-              )}
-            </Box>
-          </Box>
-        </Menu>
+          title={t('topnav.clock.calendar.title')}
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
+          selectedDateEvents={selectedDateEvents}
+          allEvents={allEvents}
+          language={language}
+          noEventsMessage={t('topnav.clock.calendar.noEvents')}
+        />
 
         <SettingsModal
           open={openSettings}
@@ -1975,252 +1708,5 @@ export default function TopBar() {
         sites={sites}
       />
     </>
-  )
-}
-
-function ModeSwitchDialog({
-  open,
-  onClose,
-  selectedMode,
-  onModeChange,
-  selectedSiteSlug,
-  onSiteChange,
-  onConfirm,
-  canSelectSite,
-  disableConfirm,
-  sites,
-}: {
-  open: boolean
-  onClose: () => void
-  selectedMode: SiteMode
-  onModeChange: (mode: SiteMode) => void
-  selectedSiteSlug: string
-  onSiteChange: (slug: string) => void
-  onConfirm: () => void
-  canSelectSite: boolean
-  disableConfirm: boolean
-  sites: Site[]
-}) {
-  const showSiteSelect = selectedMode === 'site'
-  const { t } = useTranslate()
-
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>{t('topnav.modeDialog.title')}</DialogTitle>
-      <DialogContent dividers>
-        <RadioGroup
-          value={selectedMode}
-          onChange={(event) => onModeChange(event.target.value as SiteMode)}
-        >
-          <FormControlLabel
-            value="enterprise"
-            control={<Radio />}
-            label={t('topnav.modeDialog.enterpriseOption')}
-          />
-          <FormControlLabel
-            value="site"
-            control={<Radio />}
-            label={t('topnav.modeDialog.siteOption')}
-            disabled={!canSelectSite}
-          />
-        </RadioGroup>
-        {showSiteSelect ? (
-          <Box sx={{ mt: 2 }}>
-            <TextField
-              select
-              label={t('topnav.modeDialog.selectSite')}
-              value={selectedSiteSlug}
-              onChange={(event) => onSiteChange(event.target.value)}
-              fullWidth
-              helperText={!canSelectSite ? t('topnav.modeDialog.noSites') : undefined}
-            >
-              {canSelectSite ? (
-                sites.map((site) => (
-                  <MenuItem key={site.slug} value={site.slug}>
-                    {site.name}
-                  </MenuItem>
-                ))
-              ) : (
-                <MenuItem value="" disabled>
-                  {t('topnav.modeDialog.noSites')}
-                </MenuItem>
-              )}
-            </TextField>
-          </Box>
-        ) : null}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>{t('common.cancel')}</Button>
-        <Button variant="contained" onClick={onConfirm} disabled={disableConfirm}>
-          {t('common.apply')}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  )
-}
-
-function CalendarGrid({
-  currentDate,
-  events,
-  onDateSelect,
-  language = 'en',
-}: {
-  currentDate: Date
-  events: Array<{ date: Date; time: string; title: string }>
-  onDateSelect: (date: Date) => void
-  language?: string
-}) {
-  const today = new Date()
-
-  // Get the first day of the month and find the Monday of that week
-  const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-  const dayOfWeek = startOfMonth.getDay()
-  const dayOfWeekMondayStart = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Convert Sunday=0 to Sunday=6, and shift by -1
-  const startOfCalendar = new Date(startOfMonth)
-  startOfCalendar.setDate(startOfMonth.getDate() - dayOfWeekMondayStart)
-
-  // Get the last day of the month
-  const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
-  const daysInMonth = endOfMonth.getDate()
-
-  // Generate all days to display (usually 35 or 42 days for a month calendar)
-  const allDays = useMemo(() => {
-    const days: (Date | null)[] = []
-    const totalDays = Math.ceil((dayOfWeekMondayStart + daysInMonth) / 7) * 7
-
-    // Add empty cells before the first day of month
-    for (let i = 0; i < dayOfWeekMondayStart; i++) {
-      days.push(null)
-    }
-
-    // Add all days of the month
-    for (let i = 1; i <= daysInMonth; i++) {
-      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i)
-      days.push(date)
-    }
-
-    // Add empty cells to fill the last week
-    const remainingDays = totalDays - days.length
-    for (let i = 0; i < remainingDays; i++) {
-      days.push(null)
-    }
-
-    return days
-  }, [currentDate.getFullYear(), currentDate.getMonth(), dayOfWeekMondayStart, daysInMonth])
-
-  const dayNames = useMemo(() => {
-    const locale = getLocaleFromLanguage(language)
-    // Start from Monday (January 1, 2024 is a Monday)
-    return Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(2024, 0, i + 1) // January 1, 2024 is a Monday
-      return date.toLocaleDateString(locale, { weekday: 'short' })
-    })
-  }, [language])
-
-  const handleDateClick = (date: Date) => {
-    onDateSelect(date)
-  }
-
-  const getDayEvents = (date: Date | null) => {
-    if (!date) return []
-    return events.filter((event) => {
-      const eventDate = event.date
-      return (
-        eventDate.getDate() === date.getDate() &&
-        eventDate.getMonth() === date.getMonth() &&
-        eventDate.getFullYear() === date.getFullYear()
-      )
-    })
-  }
-
-  return (
-    <Stack spacing={1.5}>
-      {/* Day names */}
-      <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'center' }}>
-        {dayNames.map((day) => (
-          <Box key={day} sx={{ width: 36, textAlign: 'center' }}>
-            <Typography variant="caption" color="text.secondary">
-              {day}
-            </Typography>
-          </Box>
-        ))}
-      </Stack>
-
-      {/* Calendar grid - exactly 7 days wide, fixed width */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(7, 36px)',
-          gap: 0.5,
-          justifyContent: 'center',
-        }}
-      >
-        {allDays.map((date, index) => {
-          if (!date) {
-            return <Box key={index} sx={{ width: 36, height: 36 }} />
-          }
-
-          const isDayToday =
-            date.getDate() === today.getDate() &&
-            date.getMonth() === today.getMonth() &&
-            date.getFullYear() === today.getFullYear()
-          const isDaySelected =
-            date.getDate() === currentDate.getDate() &&
-            date.getMonth() === currentDate.getMonth() &&
-            date.getFullYear() === currentDate.getFullYear()
-          const dayEvents = getDayEvents(date)
-
-          return (
-            <Box
-              key={index}
-              onClick={() => handleDateClick(date)}
-              sx={{
-                width: 36,
-                height: 36,
-                position: 'relative',
-                cursor: 'pointer',
-              }}
-            >
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 1,
-                  bgcolor: isDaySelected ? 'primary.main' : 'transparent',
-                  color: isDaySelected ? 'primary.contrastText' : 'inherit',
-                  fontWeight: isDaySelected ? 600 : 400,
-                  border: isDayToday ? '2px solid' : 'none',
-                  borderColor: isDayToday ? 'primary.main' : 'transparent',
-                  '&:hover': {
-                    bgcolor: isDaySelected
-                      ? 'primary.main'
-                      : (theme) => alpha(theme.palette.primary.main, 0.1),
-                  },
-                }}
-              >
-                <Typography variant="body2">{date.getDate()}</Typography>
-              </Box>
-              {dayEvents.length > 0 && !isDaySelected && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    bottom: 2,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: 4,
-                    height: 4,
-                    borderRadius: '50%',
-                    bgcolor: 'primary.main',
-                  }}
-                />
-              )}
-            </Box>
-          )
-        })}
-      </Box>
-    </Stack>
   )
 }
