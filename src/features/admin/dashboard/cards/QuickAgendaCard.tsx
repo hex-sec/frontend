@@ -46,7 +46,7 @@ export function QuickAgendaCard({ title, todayLabel, agendaItems }: QuickAgendaC
       </Stack>
       <List dense sx={{ mt: 1 }}>
         {agendaItems.map((item, index) => (
-          <Box key={item.key} component="li" sx={{ listStyle: 'none' }}>
+          <Box key={item.key}>
             <ListItem disableGutters>
               <ListItemAvatar>
                 <Avatar>{item.icon}</Avatar>

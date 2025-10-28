@@ -45,6 +45,7 @@ import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import DomainIcon from '@mui/icons-material/Domain'
 import BarChartIcon from '@mui/icons-material/BarChart'
+import AnalyticsIcon from '@mui/icons-material/Analytics'
 import DoorFrontIcon from '@mui/icons-material/DoorFront'
 import HomeWorkIcon from '@mui/icons-material/HomeWork'
 import LocalPoliceIcon from '@mui/icons-material/LocalPolice'
@@ -238,6 +239,12 @@ export default function TopBar() {
           Icon: BarChartIcon,
           description: t('topnav.siteNav.reports.description', { siteName: current.name }),
         },
+        {
+          label: t('topnav.siteNav.analytics.label'),
+          to: buildEntityUrl('analytics', undefined, { mode: 'site', currentSlug: current.slug }),
+          Icon: AnalyticsIcon,
+          description: t('topnav.siteNav.analytics.description', { siteName: current.name }),
+        },
       ]
     }
 
@@ -309,6 +316,12 @@ export default function TopBar() {
             to: buildEntityUrl('reports'),
             Icon: BarChartIcon,
             description: t('topnav.roleNav.admin.reports.description'),
+          },
+          {
+            label: t('topnav.roleNav.admin.analytics.label'),
+            to: buildEntityUrl('analytics'),
+            Icon: AnalyticsIcon,
+            description: t('topnav.roleNav.admin.analytics.description'),
           },
         ]
       case 'guard':

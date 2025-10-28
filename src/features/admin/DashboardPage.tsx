@@ -19,7 +19,6 @@ import { useTranslate } from '../../i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
 import { useSiteStore } from '@store/site.store'
 import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
-import { AnalyticsSection } from './analytics'
 
 const surfaceCard: SxProps<Theme> = {
   p: 2,
@@ -377,17 +376,6 @@ export default function DashboardPage() {
         </Grid>
       ) : null}
 
-      {/* Full-width Financial Component for Tablet */}
-      {isTablet && (
-        <Grid container spacing={2} columns={12} sx={{ width: '100%', mt: 0 }}>
-          <Grid size={12}>
-            <Paper sx={{ ...surfaceCard }}>
-              <Stack spacing={3}></Stack>
-            </Paper>
-          </Grid>
-        </Grid>
-      )}
-
       {/* Desktop Layout Grid */}
       {!isTablet && (
         <Grid container spacing={2} columns={12} sx={{ width: '100%' }}>
@@ -477,25 +465,6 @@ export default function DashboardPage() {
           </>
         </Grid>
       )}
-
-      {/* Financial Component - Full width below for desktop */}
-      {!isTablet && (
-        <Grid container spacing={2} columns={12} sx={{ width: '100%', mt: 2 }}>
-          <Grid size={12}>
-            <Paper sx={{ ...surfaceCard }}>
-              <Stack spacing={3}></Stack>
-            </Paper>
-          </Grid>
-        </Grid>
-      )}
-
-      {/* Analytics Section */}
-      <Box sx={{ mt: 4, mb: 2 }}>
-        <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>
-          {t('admin.dashboard.sections.analytics', { lng: language, defaultValue: 'Analítica' })}
-        </Typography>
-        <AnalyticsSection />
-      </Box>
     </Box>
   )
 }

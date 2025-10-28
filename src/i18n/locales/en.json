@@ -97,6 +97,10 @@
         "reports": {
           "label": "Reports",
           "description": "Deep dives and exports"
+        },
+        "analytics": {
+          "label": "Analytics",
+          "description": "Operational insights and dashboard metrics"
         }
       },
       "guard": {
@@ -152,6 +156,10 @@
       "reports": {
         "label": "Site reports",
         "description": "Insights tailored to {{siteName}}"
+      },
+      "analytics": {
+        "label": "Analytics",
+        "description": "Operational insights for {{siteName}}"
       }
     },
     "notifications": {
@@ -210,9 +218,24 @@
     "modeDialog": {
       "title": "Choose workspace mode",
       "enterpriseOption": "Enterprise dashboard",
-      "siteOption": "Site dashboard",
+      "enterpriseDescription": "Portfolio-wide insights and management",
+      "siteOption": "Site dashboard", 
+      "siteDescription": "Focus on a specific site's operations",
       "selectSite": "Select site",
-      "noSites": "No sites available"
+      "chooseSite": "Choose Site",
+      "searchSites": "Search sites...",
+      "searchPlaceholder": "Type to search sites",
+      "selected": "Selected",
+      "selectedSite": "Selected Site",
+      "verified": "Verified",
+      "premium": "Premium", 
+      "active": "Active",
+      "online": "Online",
+      "offline": "Offline",
+      "users": "users",
+      "noSites": "No sites available",
+      "noResults": "No sites found",
+      "tryDifferentSearch": "Try a different search term"
     }
   },
   "settings": {
@@ -556,6 +579,7 @@
       "visitors": "Visitors",
       "policies": "Policies",
       "reports": "Reports",
+      "analytics": "Analytics",
       "visits": "Visits",
       "guards": "Guards",
       "admins": "Admins"
@@ -725,6 +749,59 @@
       "enterprise": {
         "activeSites": "Active sites",
         "totalResidents": "Total residents"
+      }
+    },
+    "analytics": {
+      "pageTitle": "Analytics",
+      "pageDescription": "Portfolio-wide analytics and operational insights",
+      "pageDescriptionSite": "Analytics and insights for {{siteName}}",
+      "error": "Error loading analytics data",
+      "accessFlow": {
+        "title": "Access Flow",
+        "totalEntries": "Total Entries",
+        "totalExits": "Total Exits",
+        "avgEntries": "Average Entries/Day",
+        "avgExits": "Average Exits/Day",
+        "trend": "Trend (Last 7 days)"
+      },
+      "finance": {
+        "title": "Monthly Collections",
+        "totalRevenue": "Total Revenue",
+        "history": "History (Last 6 months)"
+      },
+      "visitsFunnel": {
+        "title": "Visits Funnel",
+        "scheduled": "Scheduled",
+        "admitted": "Admitted",
+        "completed": "Completed",
+        "completedVisits": "Completed Visits",
+        "admissionRate": "Admission Rate: {rate}%",
+        "completionRate": "Completion Rate: {rate}%",
+        "funnel": "Visits Funnel"
+      },
+      "visitsMetrics": {
+        "title": "Visits Metrics",
+        "expectedToday": "Expected Today",
+        "entered": "Entered",
+        "gone": "Gone",
+        "entryRate": "Entry Rate: {rate}%",
+        "exitRate": "Exit Rate: {rate}%",
+        "weeklyTrend": "Weekly Trend"
+      },
+      "visitTypes": {
+        "title": "Visit Types",
+        "business": "Business",
+        "personal": "Personal",
+        "delivery": "Delivery",
+        "maintenance": "Maintenance",
+        "totalVisits": "Total Visits"
+      },
+      "incidents": {
+        "byCategory": "By Category",
+        "bySeverity": "By Severity",
+        "title": "Incidents by Category",
+        "total": "Total Incidents",
+        "percentageOfTotal": "{percentage}% of total"
       }
     },
     "sitesPage": {

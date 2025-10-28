@@ -13,6 +13,7 @@ const Residences = lazy(() => import('@features/admin/ResidencesPage'))
 const Vehicles = lazy(() => import('@features/admin/VehiclesPage'))
 const Policies = lazy(() => import('@features/admin/PoliciesPage'))
 const Reports = lazy(() => import('@features/admin/ReportsPage'))
+const Analytics = lazy(() => import('@features/admin/AnalyticsPage'))
 const Users = lazy(() => import('@features/admin/UsersPage'))
 const UserProfile = lazy(() => import('@features/admin/users/UserProfilePage'))
 
@@ -122,6 +123,14 @@ export const adminRoutes: RouteObject[] = [
         ),
       },
       {
+        path: 'sites/:slug/analytics',
+        element: (
+          <Suspense fallback={null}>
+            <Analytics />
+          </Suspense>
+        ),
+      },
+      {
         path: 'visits',
         element: (
           <Suspense fallback={null}>
@@ -166,6 +175,14 @@ export const adminRoutes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <Reports />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'analytics',
+        element: (
+          <Suspense fallback={null}>
+            <Analytics />
           </Suspense>
         ),
       },

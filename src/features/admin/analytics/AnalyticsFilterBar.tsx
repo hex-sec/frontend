@@ -85,7 +85,7 @@ export function AnalyticsFilterBar({ value, onChange, availableSites }: Analytic
               Rango de fechas
             </Typography>
           </Stack>
-          <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {PRESETS.map((preset) => (
               <Button
                 key={preset.key}
@@ -96,11 +96,11 @@ export function AnalyticsFilterBar({ value, onChange, availableSites }: Analytic
                 {preset.label}
               </Button>
             ))}
-          </Stack>
+          </Box>
         </Box>
 
         {/* Granularity and Site Scope */}
-        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-start' }}>
           <Box>
             <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.5 }}>
               <TimelineIcon fontSize="small" color="action" />
@@ -180,7 +180,7 @@ export function AnalyticsFilterBar({ value, onChange, availableSites }: Analytic
               ))}
             </Menu>
           </Box>
-        </Stack>
+        </Box>
       </Stack>
     </Paper>
   )

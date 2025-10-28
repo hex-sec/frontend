@@ -10,6 +10,7 @@ import PersonIcon from '@mui/icons-material/Person'
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar'
 import GavelIcon from '@mui/icons-material/Gavel'
 import BarChartIcon from '@mui/icons-material/BarChart'
+import AnalyticsIcon from '@mui/icons-material/Analytics'
 import DoorFrontIcon from '@mui/icons-material/DoorFront'
 import BadgeIcon from '@mui/icons-material/Badge'
 import HomeWorkIcon from '@mui/icons-material/HomeWork'
@@ -35,13 +36,22 @@ const CRUMB_META_MAP: Record<string, { labelKey: string; Icon?: ElementType }> =
   visitors: { labelKey: 'layout.breadcrumbs.visitors', Icon: BadgeIcon },
   policies: { labelKey: 'layout.breadcrumbs.policies', Icon: GavelIcon },
   reports: { labelKey: 'layout.breadcrumbs.reports', Icon: BarChartIcon },
+  analytics: { labelKey: 'layout.breadcrumbs.analytics', Icon: AnalyticsIcon },
   visits: { labelKey: 'layout.breadcrumbs.visits', Icon: DoorFrontIcon },
   guards: { labelKey: 'layout.breadcrumbs.guards', Icon: LocalPoliceIcon },
   admins: { labelKey: 'layout.breadcrumbs.admins', Icon: ManageAccountsIcon },
 }
 
 // Sibling pages for second-level breadcrumbs (main admin sections)
-const SECOND_LEVEL_SIBLINGS = ['sites', 'users', 'visits', 'visitors', 'vehicles', 'reports']
+const SECOND_LEVEL_SIBLINGS = [
+  'sites',
+  'users',
+  'visits',
+  'visitors',
+  'vehicles',
+  'reports',
+  'analytics',
+]
 
 // Sibling pages for site-level breadcrumbs (site-specific pages)
 const SITE_LEVEL_SIBLINGS = [
