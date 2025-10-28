@@ -626,6 +626,10 @@ export default function VehiclesPage() {
                     dateFormatter={dateFormatter}
                     timeFormatter={timeFormatter}
                     onOpenRowMenu={handleOpenRowMenu}
+                    onCardClick={() => {
+                      // Navigate to vehicle detail page
+                      navigate(`/admin/vehicles/${vehicle.id}`)
+                    }}
                   />
                 ))}
               </Stack>
@@ -775,6 +779,7 @@ function VehicleCard({
   dateFormatter,
   timeFormatter,
   onOpenRowMenu,
+  onCardClick,
 }: {
   vehicle: VehicleRecord
   usageMeta: Record<
@@ -797,6 +802,7 @@ function VehicleCard({
   dateFormatter: Intl.DateTimeFormat
   timeFormatter: Intl.DateTimeFormat
   onOpenRowMenu: (event: React.MouseEvent<HTMLButtonElement>, vehicle: VehicleRecord) => void
+  onCardClick?: () => void
 }) {
   const usageChip = usageMeta[vehicle.usage]
   const statusChip = statusMeta[vehicle.status]
@@ -805,14 +811,17 @@ function VehicleCard({
 
   return (
     <Paper
+      onClick={onCardClick}
       sx={(theme) => ({
         p: 2,
         borderRadius: 2,
         border: '1px solid',
         borderColor: 'divider',
+        cursor: onCardClick ? 'pointer' : 'default',
         transition: theme.transitions.create(['box-shadow', 'transform'], { duration: 180 }),
         '&:hover': {
           boxShadow: theme.shadows[4],
+          transform: onCardClick ? 'translateY(-2px)' : 'none',
         },
       })}
     >
@@ -900,7 +909,13 @@ function VehicleCard({
           <Button size="small" variant="outlined" startIcon={<DownloadIcon fontSize="small" />}>
             {translate('vehiclesPage.actions.downloadPermit', 'Download permit')}
           </Button>
-          <IconButton size="small" onClick={(event) => onOpenRowMenu(event, vehicle)}>
+          <IconButton
+            size="small"
+            onClick={(event) => {
+              event.stopPropagation()
+              onOpenRowMenu(event, vehicle)
+            }}
+          >
             <MoreVertIcon fontSize="small" />
           </IconButton>
         </Stack>

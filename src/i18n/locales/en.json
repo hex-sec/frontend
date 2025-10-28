@@ -806,6 +806,18 @@
     },
     "sitesPage": {
       "title": "Sites",
+      "subtitle": "Manage all your sites and their configurations",
+      "search": {
+        "placeholder": "Search sites by name or slug...",
+        "filters": "Filters",
+        "status": "Status",
+        "plan": "Plan",
+        "allStatuses": "All Statuses",
+        "allPlans": "All Plans",
+        "adminPlaceholder": "Filter by admin name...",
+        "clearFilters": "Clear all filters",
+        "resultsCount": "Showing {count} of {total} sites"
+      },
       "actions": {
         "refresh": "Refresh",
         "refreshAria": "Refresh sites",
@@ -831,6 +843,12 @@
         "active": "Active",
         "trial": "Trial",
         "suspended": "Suspended"
+      },
+      "plans": {
+        "free": "Free",
+        "basic": "Basic",
+        "pro": "Pro",
+        "enterprise": "Enterprise"
       }
     },
     "userProfile": {

@@ -16,6 +16,9 @@ const Reports = lazy(() => import('@features/admin/ReportsPage'))
 const Analytics = lazy(() => import('@features/admin/AnalyticsPage'))
 const Users = lazy(() => import('@features/admin/UsersPage'))
 const UserProfile = lazy(() => import('@features/admin/users/UserProfilePage'))
+const VisitProfile = lazy(() => import('@features/admin/VisitProfilePage'))
+const VehicleDetail = lazy(() => import('@features/admin/VehicleDetailPage'))
+const Incidents = lazy(() => import('@features/admin/IncidentsPage'))
 
 export const adminRoutes: RouteObject[] = [
   {
@@ -83,10 +86,42 @@ export const adminRoutes: RouteObject[] = [
         ),
       },
       {
+        path: 'sites/:slug/users/:userId',
+        element: (
+          <Suspense fallback={null}>
+            <UserProfile />
+          </Suspense>
+        ),
+      },
+      {
         path: 'sites/:slug/visits',
         element: (
           <Suspense fallback={null}>
             <Visits />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'sites/:slug/visits/:visitId',
+        element: (
+          <Suspense fallback={null}>
+            <VisitProfile />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'sites/:slug/vehicles/:vehicleId',
+        element: (
+          <Suspense fallback={null}>
+            <VehicleDetail />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'sites/:slug/incidents',
+        element: (
+          <Suspense fallback={null}>
+            <Incidents />
           </Suspense>
         ),
       },
@@ -223,6 +258,22 @@ export const adminRoutes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <UserProfile />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'visits/:visitId',
+        element: (
+          <Suspense fallback={null}>
+            <VisitProfile />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'vehicles/:vehicleId',
+        element: (
+          <Suspense fallback={null}>
+            <VehicleDetail />
           </Suspense>
         ),
       },

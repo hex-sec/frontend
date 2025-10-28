@@ -794,6 +794,18 @@
     },
     "sitesPage": {
       "title": "Sitios",
+      "subtitle": "Administra todos tus sitios y sus configuraciones",
+      "search": {
+        "placeholder": "Buscar sitios por nombre o slug...",
+        "filters": "Filtros",
+        "status": "Estado",
+        "plan": "Plan",
+        "allStatuses": "Todos los Estados",
+        "allPlans": "Todos los Planes",
+        "adminPlaceholder": "Filtrar por nombre de admin...",
+        "clearFilters": "Limpiar todos los filtros",
+        "resultsCount": "Mostrando {count} de {total} sitios"
+      },
       "actions": {
         "refresh": "Refrescar",
         "refreshAria": "Refrescar lista de sitios",
@@ -819,6 +831,12 @@
         "active": "Activo",
         "trial": "Prueba",
         "suspended": "Suspendido"
+      },
+      "plans": {
+        "free": "Gratis",
+        "basic": "Básico",
+        "pro": "Pro",
+        "enterprise": "Empresarial"
       }
     },
     "userProfile": {

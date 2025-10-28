@@ -23,6 +23,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import SettingsIcon from '@mui/icons-material/Settings'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import ReportProblemIcon from '@mui/icons-material/ReportProblem'
+import NotificationImportantIcon from '@mui/icons-material/NotificationImportant'
 import PageHeader from '../components/PageHeader'
 import AddHomeWorkIcon from '@mui/icons-material/AddHomeWork'
 import HomeWorkIcon from '@mui/icons-material/HomeWork'
@@ -172,6 +173,12 @@ const PANEL_SHORTCUTS: PanelShortcutConfig[] = [
     sitePath: 'reports',
     enterprisePath: (slug) => `/admin/sites/${slug}/reports`,
     Icon: BarChartIcon,
+  },
+  {
+    key: 'incidents',
+    sitePath: 'incidents',
+    enterprisePath: (slug) => `/admin/sites/${slug}/incidents`,
+    Icon: NotificationImportantIcon,
   },
 ]
 

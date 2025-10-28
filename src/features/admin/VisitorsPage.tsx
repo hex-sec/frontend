@@ -618,6 +618,12 @@ export default function VisitorsPage() {
                     dateFormatter={dateFormatter}
                     timeFormatter={timeFormatter}
                     onOpenRowMenu={handleOpenRowMenu}
+                    onCardClick={() => {
+                      // Navigate to visitor's most recent visit
+                      if (visitor.id) {
+                        navigate(`/admin/visits/visit-${visitor.id}`)
+                      }
+                    }}
                   />
                 ))}
               </Stack>
@@ -756,6 +762,7 @@ function VisitorCard({
   dateFormatter,
   timeFormatter,
   onOpenRowMenu,
+  onCardClick,
 }: {
   visitor: VisitorRecord
   categoryMeta: Record<
@@ -775,6 +782,7 @@ function VisitorCard({
   dateFormatter: Intl.DateTimeFormat
   timeFormatter: Intl.DateTimeFormat
   onOpenRowMenu: (event: React.MouseEvent<HTMLButtonElement>, visitor: VisitorRecord) => void
+  onCardClick?: () => void
 }) {
   const categoryChip = categoryMeta[visitor.category]
   const statusChip = statusMeta[visitor.status]
@@ -783,14 +791,17 @@ function VisitorCard({
 
   return (
     <Paper
+      onClick={onCardClick}
       sx={(theme) => ({
         p: 2,
         borderRadius: 2,
         border: '1px solid',
         borderColor: 'divider',
+        cursor: onCardClick ? 'pointer' : 'default',
         transition: theme.transitions.create(['box-shadow', 'transform'], { duration: 180 }),
         '&:hover': {
           boxShadow: theme.shadows[4],
+          transform: onCardClick ? 'translateY(-2px)' : 'none',
         },
       })}
     >
@@ -811,7 +822,10 @@ function VisitorCard({
           </Stack>
           <IconButton
             size="small"
-            onClick={(event) => onOpenRowMenu(event, visitor)}
+            onClick={(event) => {
+              event.stopPropagation()
+              onOpenRowMenu(event, visitor)
+            }}
             sx={{ flexShrink: 0 }}
           >
             <MoreVertIcon fontSize="small" />
