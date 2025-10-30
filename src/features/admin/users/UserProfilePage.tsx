@@ -668,15 +668,7 @@ export default function UserProfilePage() {
                                 {entry.subtitle}
                               </Typography>
                             </Box>
-                            {entry.timeOfDay ? (
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                                sx={{ whiteSpace: 'nowrap' }}
-                              >
-                                {entry.timeOfDay}
-                              </Typography>
-                            ) : null}
+                            {/* Right-side time removed per request */}
                           </Stack>
                         ))}
                       </Stack>

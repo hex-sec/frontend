@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import {
   Box,
-  CircularProgress,
   Paper,
   Typography,
   Stack,
   useMediaQuery,
   ToggleButton,
   ToggleButtonGroup,
+  Skeleton,
+  Fade,
 } from '@mui/material'
 import Grid from '@mui/material/Grid2'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
@@ -1134,118 +1135,257 @@ export function AnalyticsSection() {
   }
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%', position: 'relative', minHeight: 600 }}>
       <AnalyticsFilterBar value={params} onChange={setParams} />
 
       {isLoading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
-        </Box>
+        <Fade in={isLoading} timeout={{ enter: 0, exit: 300 }} unmountOnExit>
+          <Box
+            sx={{ position: 'absolute', inset: 0, zIndex: 1, bgcolor: 'background.paper', pt: 3 }}
+          >
+            <Grid container spacing={3}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Paper sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Skeleton variant="text" width="40%" height={32} sx={{ mb: 2 }} />
+                  <Stack spacing={2}>
+                    <Stack direction="row" spacing={2}>
+                      <Skeleton
+                        variant="rectangular"
+                        width="100%"
+                        height={80}
+                        sx={{ borderRadius: 2 }}
+                      />
+                      <Skeleton
+                        variant="rectangular"
+                        width="100%"
+                        height={80}
+                        sx={{ borderRadius: 2 }}
+                      />
+                    </Stack>
+                    <Stack direction="row" spacing={2}>
+                      <Skeleton
+                        variant="rectangular"
+                        width="100%"
+                        height={80}
+                        sx={{ borderRadius: 2 }}
+                      />
+                      <Skeleton
+                        variant="rectangular"
+                        width="100%"
+                        height={80}
+                        sx={{ borderRadius: 2 }}
+                      />
+                    </Stack>
+                    <Skeleton
+                      variant="rectangular"
+                      width="100%"
+                      height={120}
+                      sx={{ borderRadius: 2 }}
+                    />
+                  </Stack>
+                </Paper>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Paper sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Skeleton variant="text" width="40%" height={32} sx={{ mb: 2 }} />
+                  <Stack spacing={2}>
+                    <Skeleton
+                      variant="rectangular"
+                      width="100%"
+                      height={120}
+                      sx={{ borderRadius: 2 }}
+                    />
+                    <Skeleton
+                      variant="rectangular"
+                      width="100%"
+                      height={80}
+                      sx={{ borderRadius: 2 }}
+                    />
+                    <Skeleton
+                      variant="rectangular"
+                      width="100%"
+                      height={120}
+                      sx={{ borderRadius: 2 }}
+                    />
+                  </Stack>
+                </Paper>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+                <Paper sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Skeleton variant="text" width="40%" height={32} sx={{ mb: 2 }} />
+                  <Stack spacing={2}>
+                    <Stack direction="row" spacing={1.5}>
+                      <Skeleton
+                        variant="rectangular"
+                        width="100%"
+                        height={80}
+                        sx={{ borderRadius: 2 }}
+                      />
+                      <Skeleton
+                        variant="rectangular"
+                        width="100%"
+                        height={80}
+                        sx={{ borderRadius: 2 }}
+                      />
+                      <Skeleton
+                        variant="rectangular"
+                        width="100%"
+                        height={80}
+                        sx={{ borderRadius: 2 }}
+                      />
+                    </Stack>
+                    <Skeleton
+                      variant="rectangular"
+                      width="100%"
+                      height={100}
+                      sx={{ borderRadius: 2 }}
+                    />
+                    <Skeleton
+                      variant="rectangular"
+                      width="100%"
+                      height={80}
+                      sx={{ borderRadius: 2 }}
+                    />
+                    <Skeleton
+                      variant="rectangular"
+                      width="100%"
+                      height={200}
+                      sx={{ borderRadius: 2 }}
+                    />
+                  </Stack>
+                </Paper>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6, lg: 8 }}>
+                <Paper sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Skeleton variant="text" width="40%" height={32} sx={{ mb: 2 }} />
+                  <Skeleton
+                    variant="rectangular"
+                    width="100%"
+                    height={420}
+                    sx={{ borderRadius: 2 }}
+                  />
+                </Paper>
+              </Grid>
+            </Grid>
+          </Box>
+        </Fade>
       )}
 
       {data && !isLoading && (
-        <Grid container spacing={3}>
-          {data.accessFlow && (
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Paper
-                sx={{
-                  p: 3,
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                  <TrendingUpIcon fontSize="small" color="primary" />
-                  <Typography variant="h6" fontWeight={600}>
-                    {t('admin.analytics.accessFlow.title', {
-                      lng: language,
-                      defaultValue: 'Access Flow',
-                    })}
-                  </Typography>
-                </Stack>
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <AccessFlowChart data={data.accessFlow} />
-                </Box>
-              </Paper>
+        <Fade in={!isLoading} timeout={{ enter: 400, exit: 0 }} mountOnEnter unmountOnExit>
+          <Box
+            sx={{
+              position: isLoading ? 'absolute' : 'static',
+              top: 0,
+              left: 0,
+              right: 0,
+              opacity: isLoading ? 0 : 1,
+            }}
+          >
+            <Grid container spacing={3}>
+              {data.accessFlow && (
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Paper
+                    sx={{
+                      p: 3,
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                      <TrendingUpIcon fontSize="small" color="primary" />
+                      <Typography variant="h6" fontWeight={600}>
+                        {t('admin.analytics.accessFlow.title', {
+                          lng: language,
+                          defaultValue: 'Access Flow',
+                        })}
+                      </Typography>
+                    </Stack>
+                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <AccessFlowChart data={data.accessFlow} />
+                    </Box>
+                  </Paper>
+                </Grid>
+              )}
+              {data.financeAR && (
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Paper
+                    sx={{
+                      p: 3,
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                      <AttachMoneyIcon fontSize="small" color="success" />
+                      <Typography variant="h6" fontWeight={600}>
+                        {t('admin.analytics.finance.title', {
+                          lng: language,
+                          defaultValue: 'Monthly Collections',
+                        })}
+                      </Typography>
+                    </Stack>
+                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <FinanceChart data={data.financeAR} />
+                    </Box>
+                  </Paper>
+                </Grid>
+              )}
+              {data.visitsFunnel && (
+                <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+                  <Paper
+                    sx={{
+                      p: 3,
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                      <CompareArrowsIcon fontSize="small" color="primary" />
+                      <Typography variant="h6" fontWeight={600}>
+                        {t('admin.analytics.visitsMetrics.title', {
+                          lng: language,
+                          defaultValue: 'Visits Metrics',
+                        })}
+                      </Typography>
+                    </Stack>
+                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <VisitsMetricsChart data={data.visitsFunnel} />
+                    </Box>
+                  </Paper>
+                </Grid>
+              )}
+              {data.incidents && (
+                <Grid size={{ xs: 12, md: 6, lg: 8 }}>
+                  <Paper
+                    sx={{
+                      p: 3,
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                      <WarningIcon fontSize="small" color="error" />
+                      <Typography variant="h6" fontWeight={600}>
+                        {t('admin.analytics.incidents.title', {
+                          lng: language,
+                          defaultValue: 'Incidents by Category',
+                        })}
+                      </Typography>
+                    </Stack>
+                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <IncidentsChart data={data.incidents} />
+                    </Box>
+                  </Paper>
+                </Grid>
+              )}
             </Grid>
-          )}
-          {data.financeAR && (
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Paper
-                sx={{
-                  p: 3,
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                  <AttachMoneyIcon fontSize="small" color="success" />
-                  <Typography variant="h6" fontWeight={600}>
-                    {t('admin.analytics.finance.title', {
-                      lng: language,
-                      defaultValue: 'Monthly Collections',
-                    })}
-                  </Typography>
-                </Stack>
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <FinanceChart data={data.financeAR} />
-                </Box>
-              </Paper>
-            </Grid>
-          )}
-          {data.visitsFunnel && (
-            <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-              <Paper
-                sx={{
-                  p: 3,
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                  <CompareArrowsIcon fontSize="small" color="primary" />
-                  <Typography variant="h6" fontWeight={600}>
-                    {t('admin.analytics.visitsMetrics.title', {
-                      lng: language,
-                      defaultValue: 'Visits Metrics',
-                    })}
-                  </Typography>
-                </Stack>
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <VisitsMetricsChart data={data.visitsFunnel} />
-                </Box>
-              </Paper>
-            </Grid>
-          )}
-          {data.incidents && (
-            <Grid size={{ xs: 12, md: 6, lg: 8 }}>
-              <Paper
-                sx={{
-                  p: 3,
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                  <WarningIcon fontSize="small" color="error" />
-                  <Typography variant="h6" fontWeight={600}>
-                    {t('admin.analytics.incidents.title', {
-                      lng: language,
-                      defaultValue: 'Incidents by Category',
-                    })}
-                  </Typography>
-                </Stack>
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <IncidentsChart data={data.incidents} />
-                </Box>
-              </Paper>
-            </Grid>
-          )}
-        </Grid>
+          </Box>
+        </Fade>
       )}
     </Box>
   )

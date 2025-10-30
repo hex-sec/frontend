@@ -43,7 +43,7 @@ import { formatBackLabel } from './backNavigation'
 import { scrollWindowToTop } from './scrollToTop'
 import vehiclesSeed from '../../mocks/vehicles.json'
 import visitorsSeed from '../../mocks/visitors.json'
-import { USERS as USERS_DATA } from '@features/admin/users/userData'
+import { USERS as USERS_DATA, PATH_ROLE_SEGMENT_MAP } from '@features/admin/users/userData'
 
 const CRUMB_META_MAP: Record<string, { labelKey: string; Icon?: ElementType }> = {
   admin: { labelKey: 'layout.breadcrumbs.adminDashboard', Icon: DashboardIcon },
@@ -95,6 +95,7 @@ function getSiblingSegments(
   allSites?: Array<{ slug: string; name: string }>,
   isSiteCrumb?: boolean,
   crumbs?: Array<{ segment: string; to: string }>,
+  roleFromQuery?: string | null,
 ): string[] {
   // Skip first level (enterprise dashboard)
   if (breadcrumbIndex === 0) {
@@ -157,16 +158,58 @@ function getSiblingSegments(
         const filteredResidences =
           allSites && current ? residences.filter((r) => r.siteSlug === current.slug) : residences
         return filteredResidences.map((r) => r.id).filter((id) => id !== segment)
-      } else if (previousSegment === 'users') {
+      } else if (
+        previousSegment === 'users' ||
+        ((previousSegment === 'admins' ||
+          previousSegment === 'guards' ||
+          previousSegment === 'residents') &&
+          crumbs?.[breadcrumbIndex - 2]?.segment === 'users')
+      ) {
         type SiteRef = { slug: string }
-        type UserLite = { id: string | number; sites?: SiteRef[] }
+        type UserLite = {
+          id: string | number
+          role?: string
+          sites?: SiteRef[]
+        }
+        // Derive role from path pattern /users/:role/users/:userId, or from query (?role=)
+        let effectiveRole: string | undefined
+        // From path: either users -> role -> users -> id OR users -> role -> id
+        if (
+          (breadcrumbIndex >= 4 &&
+            crumbs?.[breadcrumbIndex - 3]?.segment === 'users' &&
+            crumbs?.[breadcrumbIndex - 1]?.segment === 'users') ||
+          (breadcrumbIndex >= 3 &&
+            (crumbs?.[breadcrumbIndex - 1]?.segment === 'admins' ||
+              crumbs?.[breadcrumbIndex - 1]?.segment === 'guards' ||
+              crumbs?.[breadcrumbIndex - 1]?.segment === 'residents') &&
+            crumbs?.[breadcrumbIndex - 2]?.segment === 'users')
+        ) {
+          const rolePathSeg =
+            crumbs?.[breadcrumbIndex - 2]?.segment ?? crumbs?.[breadcrumbIndex - 1]?.segment
+          effectiveRole = rolePathSeg ? PATH_ROLE_SEGMENT_MAP[rolePathSeg] : undefined
+        }
+        // From query string
+        if (!effectiveRole && roleFromQuery) {
+          if (
+            roleFromQuery === 'admin' ||
+            roleFromQuery === 'guard' ||
+            roleFromQuery === 'resident'
+          ) {
+            effectiveRole = roleFromQuery
+          }
+        }
+
         const users = (USERS_DATA as unknown as UserLite[]).map((u) => ({
           id: String(u.id),
+          role: u.role ? String(u.role) : undefined,
           sites: Array.isArray(u.sites) ? u.sites.map((s) => String(s.slug)) : [],
         }))
         const filteredUsers =
           allSites && current ? users.filter((u) => u.sites.includes(current.slug)) : users
-        return filteredUsers.map((u) => u.id).filter((id) => id !== segment)
+        const filteredByRole = effectiveRole
+          ? filteredUsers.filter((u) => u.role === effectiveRole)
+          : filteredUsers
+        return filteredByRole.map((u) => u.id).filter((id) => id !== segment)
       }
     }
     // For deeper site-level pages, show section siblings
@@ -196,6 +239,7 @@ export default function AdminLayout() {
   const [menuAnchor, setMenuAnchor] = useState<Record<number, HTMLElement | null>>({})
   const [siteSearch, setSiteSearch] = useState('')
   const [vehicleSearch, setVehicleSearch] = useState('')
+  const [debouncedVehicleSearch, setDebouncedVehicleSearch] = useState('')
 
   const crumbs: Array<{ segment: string; to: string }> =
     (isSitePath && current) || (isSiteMode && current)
@@ -206,6 +250,12 @@ export default function AdminLayout() {
       : parts.map((p, i, arr) => ({ segment: p, to: '/' + arr.slice(0, i + 1).join('/') }))
 
   const previousSiteSlugRef = useRef<string | undefined>()
+
+  // Debounce detail search input for better UX and performance
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedVehicleSearch(vehicleSearch), 200)
+    return () => clearTimeout(id)
+  }, [vehicleSearch])
 
   const handleBackClick = useCallback(() => {
     if (!back) return
@@ -382,11 +432,18 @@ export default function AdminLayout() {
                   c.segment.match(/^[A-Za-z0-9-]+$/) &&
                   index > 0 &&
                   crumbs[index - 1]?.segment === 'residences'
-                const isUserDetailCrumb =
-                  index >= 2 &&
-                  c.segment.match(/^[A-Za-z0-9-]+$/) &&
-                  index > 0 &&
-                  crumbs[index - 1]?.segment === 'users'
+                const isUserDetailCrumb = (() => {
+                  if (!(index >= 2 && c.segment.match(/^[A-Za-z0-9-]+$/) && index > 0)) return false
+                  const prev = crumbs[index - 1]?.segment
+                  const prev2 = crumbs[index - 2]?.segment
+                  const isRoleSeg = prev === 'admins' || prev === 'guards' || prev === 'residents'
+                  // Detail when .../users/:id OR .../users/:role/:id
+                  const underUsers = prev === 'users' || (isRoleSeg && prev2 === 'users')
+                  // Exclude when the ID segment itself is a role key
+                  const idIsRole =
+                    c.segment === 'admins' || c.segment === 'guards' || c.segment === 'residents'
+                  return underUsers && !idIsRole
+                })()
                 const isDetailCrumb =
                   isVehicleDetailCrumb ||
                   isVisitorDetailCrumb ||
@@ -399,6 +456,7 @@ export default function AdminLayout() {
                   sites,
                   isSiteCrumb,
                   crumbs,
+                  new URLSearchParams(loc.search).get('role'),
                 )
                 const hasMenu = siblings.length > 0
 
@@ -479,7 +537,11 @@ export default function AdminLayout() {
                                 value={siteSearch}
                                 onChange={(e) => setSiteSearch(e.target.value)}
                                 onClick={(e) => e.stopPropagation()}
-                                onKeyDown={(e) => e.stopPropagation()}
+                                onKeyDown={(e) => {
+                                  // Allow arrow keys to bubble for menu item focus
+                                  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') return
+                                  e.stopPropagation()
+                                }}
                                 slotProps={{
                                   input: {
                                     startAdornment: (
@@ -537,14 +599,59 @@ export default function AdminLayout() {
                                 value={vehicleSearch}
                                 onChange={(e) => setVehicleSearch(e.target.value)}
                                 onClick={(e) => e.stopPropagation()}
-                                onKeyDown={(e) => e.stopPropagation()}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') return
+                                  e.stopPropagation()
+                                }}
                                 slotProps={{
                                   input: {
-                                    startAdornment: (
-                                      <InputAdornment position="start">
-                                        <SearchIcon fontSize="small" />
-                                      </InputAdornment>
-                                    ),
+                                    startAdornment: (() => {
+                                      // For user detail, show role icon; otherwise keep search icon
+                                      if (isUserDetailCrumb) {
+                                        let effectiveRole:
+                                          | 'admin'
+                                          | 'guard'
+                                          | 'resident'
+                                          | undefined
+                                        if (
+                                          index >= 4 &&
+                                          crumbs[index - 3]?.segment === 'users' &&
+                                          crumbs[index - 1]?.segment === 'users'
+                                        ) {
+                                          const roleSeg = crumbs[index - 2]?.segment
+                                          const mapped = roleSeg
+                                            ? PATH_ROLE_SEGMENT_MAP[roleSeg]
+                                            : undefined
+                                          if (mapped) effectiveRole = mapped
+                                        }
+                                        if (!effectiveRole) {
+                                          const qRole = new URLSearchParams(loc.search).get('role')
+                                          if (
+                                            qRole === 'admin' ||
+                                            qRole === 'guard' ||
+                                            qRole === 'resident'
+                                          ) {
+                                            effectiveRole = qRole
+                                          }
+                                        }
+                                        const RoleIcon =
+                                          effectiveRole === 'admin'
+                                            ? ManageAccountsIcon
+                                            : effectiveRole === 'guard'
+                                              ? LocalPoliceIcon
+                                              : PersonIcon
+                                        return (
+                                          <InputAdornment position="start">
+                                            <RoleIcon fontSize="small" />
+                                          </InputAdornment>
+                                        )
+                                      }
+                                      return (
+                                        <InputAdornment position="start">
+                                          <SearchIcon fontSize="small" />
+                                        </InputAdornment>
+                                      )
+                                    })(),
                                   },
                                 }}
                               />
@@ -580,7 +687,7 @@ export default function AdminLayout() {
                                   plate: String(v.plate),
                                 }))
                                 const vehicle = vehicles.find((v) => v.id === sibling)
-                                const searchLower = vehicleSearch.toLowerCase()
+                                const searchLower = debouncedVehicleSearch.toLowerCase()
                                 return (
                                   sibling.toLowerCase().includes(searchLower) ||
                                   vehicle?.plate.toLowerCase().includes(searchLower)
@@ -593,7 +700,7 @@ export default function AdminLayout() {
                                   name: String(v.name),
                                 }))
                                 const visitor = visitors.find((v) => v.id === sibling)
-                                const searchLower = vehicleSearch.toLowerCase()
+                                const searchLower = debouncedVehicleSearch.toLowerCase()
                                 return (
                                   sibling.toLowerCase().includes(searchLower) ||
                                   visitor?.name.toLowerCase().includes(searchLower)
@@ -608,7 +715,7 @@ export default function AdminLayout() {
                                   { id: 'PRC-12', label: 'Parcel · 12' },
                                 ]
                                 const residence = residences.find((r) => r.id === sibling)
-                                const searchLower = vehicleSearch.toLowerCase()
+                                const searchLower = debouncedVehicleSearch.toLowerCase()
                                 return (
                                   sibling.toLowerCase().includes(searchLower) ||
                                   residence?.label.toLowerCase().includes(searchLower)
@@ -619,7 +726,7 @@ export default function AdminLayout() {
                                   name: String(u.name),
                                 }))
                                 const user = users.find((u) => u.id === sibling)
-                                const searchLower = vehicleSearch.toLowerCase()
+                                const searchLower = debouncedVehicleSearch.toLowerCase()
                                 return (
                                   sibling.toLowerCase().includes(searchLower) ||
                                   (user?.name.toLowerCase().includes(searchLower) ?? false)
@@ -696,10 +803,9 @@ export default function AdminLayout() {
                                   name: String(u.name),
                                 }))
                                 const user = users.find((u) => u.id === sibling)
-                                const base = isSitePath
-                                  ? `/site/${current?.slug}/users/${sibling}`
-                                  : `/admin/users/${sibling}`
-                                siblingPath = base
+                                // Preserve nested users/role/users path and query params
+                                const parentUsersPath = crumbs[index - 1]?.to || ''
+                                siblingPath = `${parentUsersPath}/${sibling}${loc.search}`
                                 siblingLabel = user?.name || sibling
                                 siblingIcon = PersonIcon
                               }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Box, Button, Paper, Stack, Typography, useMediaQuery } from '@mui/material'
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline'
 import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
@@ -19,6 +19,7 @@ import { useTranslate } from '../../i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
 import { useSiteStore } from '@store/site.store'
 import buildEntityUrl, { siteRoot } from '@app/utils/contextPaths'
+import { fetchDashboardData, type DashboardData } from '@services/dashboard.service'
 
 const surfaceCard: SxProps<Theme> = {
   p: 2,
@@ -34,99 +35,58 @@ export default function DashboardPage() {
   const { mode, current } = useSiteStore()
   const siteBase = mode === 'site' && current ? siteRoot(current.slug) : buildEntityUrl('')
 
-  const financialSnapshot = {
-    mrr: '$18,450',
-    arr: '$219K',
-    overdueInvoices: 3,
-    collectionRate: 97,
-    topLineVsLastMonth: 6.4,
-    upcomingRenewals: 8,
-  }
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  const kpiData = useMemo(
-    () => [
-      {
-        label: t('admin.dashboard.kpis.activeResidents.label', { lng: language }),
-        value: '1,284',
-        delta: '+3.2%',
-        sublabel: t('admin.dashboard.kpis.activeResidents.sublabel', { lng: language }),
-        icon: <PeopleOutlineIcon fontSize="small" />,
-        accent: 'primary.main',
-      },
-      {
-        label: t('admin.dashboard.kpis.scheduledVisits.label', { lng: language }),
-        value: '86',
-        delta: '+12',
-        sublabel: t('admin.dashboard.kpis.scheduledVisits.sublabel', { lng: language }),
-        icon: <DirectionsCarFilledOutlinedIcon fontSize="small" />,
-        accent: 'info.main',
-      },
-      {
-        label: t('admin.dashboard.kpis.openIncidents.label', { lng: language }),
-        value: '5',
-        delta: '-2',
-        sublabel: t('admin.dashboard.kpis.openIncidents.sublabel', { lng: language }),
-        icon: <AlarmOnOutlinedIcon fontSize="small" />,
-        accent: 'warning.main',
-      },
-    ],
-    [language, t],
-  )
+  useEffect(() => {
+    let mounted = true
+    setLoading(true)
+    fetchDashboardData({ mode, currentSlug: current?.slug ?? null, language })
+      .then((res) => {
+        if (mounted) setData(res)
+      })
+      .finally(() => {
+        if (mounted) setLoading(false)
+      })
+    return () => {
+      mounted = false
+    }
+  }, [mode, current?.slug, language])
 
-  const timelineItems = useMemo(
-    () => [
-      {
-        key: 'authorizedEntry',
-        avatarSx: { bgcolor: 'primary.main', color: 'common.white' } as SxProps<Theme>,
-        icon: <DirectionsCarFilledOutlinedIcon fontSize="small" />,
-        primary: t('admin.dashboard.timeline.authorizedEntry.primary', { lng: language }),
-        secondary: t('admin.dashboard.timeline.authorizedEntry.secondary', { lng: language }),
-        chipLabel: t('admin.dashboard.timeline.authorizedEntry.chip', { lng: language }),
-        chipColor: 'default' as const,
-      },
-      {
-        key: 'incidentResolved',
-        avatarSx: { bgcolor: 'warning.main', color: 'common.black' } as SxProps<Theme>,
-        icon: <AlarmOnOutlinedIcon fontSize="small" />,
-        primary: t('admin.dashboard.timeline.incidentResolved.primary', { lng: language }),
-        secondary: t('admin.dashboard.timeline.incidentResolved.secondary', { lng: language }),
-        chipLabel: t('admin.dashboard.timeline.incidentResolved.chip', { lng: language }),
-        chipColor: 'success' as const,
-      },
-      {
-        key: 'residentRegistered',
-        avatarSx: { bgcolor: 'info.main', color: 'common.white' } as SxProps<Theme>,
-        icon: <PeopleOutlineIcon fontSize="small" />,
-        primary: t('admin.dashboard.timeline.residentRegistered.primary', { lng: language }),
-        secondary: t('admin.dashboard.timeline.residentRegistered.secondary', { lng: language }),
-        chipLabel: t('admin.dashboard.timeline.residentRegistered.chip', { lng: language }),
-        chipColor: 'default' as const,
-      },
-    ],
-    [language, t],
-  )
+  const kpiData = useMemo(() => {
+    if (!data) return []
+    return data.kpis.map((k) => ({
+      ...k,
+      icon: k.label.toLowerCase().includes('resident') ? (
+        <PeopleOutlineIcon fontSize="small" />
+      ) : k.label.toLowerCase().includes('visit') ? (
+        <DirectionsCarFilledOutlinedIcon fontSize="small" />
+      ) : (
+        <AlarmOnOutlinedIcon fontSize="small" />
+      ),
+      // Localize labels if desired (keeping service strings as defaults)
+      label: k.label,
+      sublabel: k.sublabel,
+    }))
+  }, [data])
 
-  const alertCards = useMemo(
-    () => [
-      {
-        key: 'guestPasses',
-        borderColor: 'warning.light' as const,
-        title: t('admin.dashboard.alerts.guestPasses.title', { lng: language }),
-        description: t('admin.dashboard.alerts.guestPasses.description', { lng: language }),
-        actionLabel: t('admin.dashboard.alerts.renew', { lng: language }),
-        actionColor: 'primary' as const,
-      },
-      {
-        key: 'cameraOffline',
-        borderColor: 'error.light' as const,
-        title: t('admin.dashboard.alerts.cameraOffline.title', { lng: language }),
-        description: t('admin.dashboard.alerts.cameraOffline.description', { lng: language }),
-        actionLabel: t('admin.dashboard.alerts.assignGuard', { lng: language }),
-        actionColor: 'primary' as const,
-      },
-    ],
-    [language, t],
-  )
+  const timelineItems = useMemo(() => {
+    if (!data) return []
+    const mapIcon = (k: string) =>
+      k === 'car' ? (
+        <DirectionsCarFilledOutlinedIcon fontSize="small" />
+      ) : k === 'alarm' ? (
+        <AlarmOnOutlinedIcon fontSize="small" />
+      ) : (
+        <PeopleOutlineIcon fontSize="small" />
+      )
+    return data.timeline.map((it) => ({
+      ...it,
+      icon: mapIcon(it.iconKey),
+    }))
+  }, [data])
+
+  const alertCards = useMemo(() => data?.alerts ?? [], [data])
 
   const quickActions = useMemo(
     () => [
@@ -232,29 +192,18 @@ export default function DashboardPage() {
     [language, t, siteBase],
   )
 
-  const agendaItems = useMemo(
-    () => [
-      {
-        key: 'securityCommittee',
-        icon: <PeopleOutlineIcon fontSize="small" />,
-        primary: t('admin.dashboard.agenda.items.securityCommittee.primary', { lng: language }),
-        secondary: t('admin.dashboard.agenda.items.securityCommittee.secondary', { lng: language }),
-      },
-      {
-        key: 'billingReview',
-        icon: <CurrencyExchangeOutlinedIcon fontSize="small" />,
-        primary: t('admin.dashboard.agenda.items.billingReview.primary', { lng: language }),
-        secondary: t('admin.dashboard.agenda.items.billingReview.secondary', { lng: language }),
-      },
-      {
-        key: 'guardOnboarding',
-        icon: <AlarmOnOutlinedIcon fontSize="small" />,
-        primary: t('admin.dashboard.agenda.items.guardOnboarding.primary', { lng: language }),
-        secondary: t('admin.dashboard.agenda.items.guardOnboarding.secondary', { lng: language }),
-      },
-    ],
-    [language, t],
-  )
+  const agendaItems = useMemo(() => {
+    if (!data) return []
+    const iconFor = (k: string) =>
+      k === 'people' ? (
+        <PeopleOutlineIcon fontSize="small" />
+      ) : k === 'currency' ? (
+        <CurrencyExchangeOutlinedIcon fontSize="small" />
+      ) : (
+        <AlarmOnOutlinedIcon fontSize="small" />
+      )
+    return data.agenda.map((a) => ({ ...a, icon: iconFor(a.iconKey) }))
+  }, [data])
 
   const theme = useTheme()
   const isDesktop = useMediaQuery(theme.breakpoints.up(1024))
@@ -281,7 +230,12 @@ export default function DashboardPage() {
               {t('admin.dashboard.subtitle', { lng: language })}
             </Typography>
           </Box>
-          <Button variant="contained" endIcon={<LaunchIcon />} sx={{ borderRadius: 999 }}>
+          <Button
+            variant="contained"
+            endIcon={<LaunchIcon />}
+            sx={{ borderRadius: 999 }}
+            disabled={loading}
+          >
             {t('admin.dashboard.actions.viewLiveMonitoring', { lng: language })}
           </Button>
         </Stack>
@@ -293,8 +247,8 @@ export default function DashboardPage() {
           <EnterpriseSummaryCard
             activeSites={12}
             totalResidents="3.2K"
-            mrr={financialSnapshot.mrr}
-            arr={financialSnapshot.arr}
+            mrr={data?.financialSnapshot.mrr ?? ''}
+            arr={data?.financialSnapshot.arr ?? ''}
             isDesktop={false}
           />
         </Box>
@@ -388,8 +342,8 @@ export default function DashboardPage() {
                 <EnterpriseSummaryCard
                   activeSites={12}
                   totalResidents="3.2K"
-                  mrr={financialSnapshot.mrr}
-                  arr={financialSnapshot.arr}
+                  mrr={data?.financialSnapshot.mrr ?? ''}
+                  arr={data?.financialSnapshot.arr ?? ''}
                   isDesktop={isDesktop}
                 />
 
