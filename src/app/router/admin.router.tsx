@@ -158,6 +158,14 @@ export const adminRoutes: RouteObject[] = [
         ),
       },
       {
+        path: 'sites/:slug/policies',
+        element: (
+          <Suspense fallback={null}>
+            <Policies />
+          </Suspense>
+        ),
+      },
+      {
         path: 'sites/:slug/analytics',
         element: (
           <Suspense fallback={null}>

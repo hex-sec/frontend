@@ -32,6 +32,7 @@ import UpdateIcon from '@mui/icons-material/Update'
 import DownloadIcon from '@mui/icons-material/Download'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useNavigate } from 'react-router-dom'
+import buildEntityUrl from '@app/utils/contextPaths'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
 import type { ColumnDefinition } from '../../components/table/useColumnPreferences'
 import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
@@ -627,8 +628,13 @@ export default function VehiclesPage() {
                     timeFormatter={timeFormatter}
                     onOpenRowMenu={handleOpenRowMenu}
                     onCardClick={() => {
-                      // Navigate to vehicle detail page
-                      navigate(`/admin/vehicles/${vehicle.id}`)
+                      const base = buildEntityUrl('vehicles', vehicle.id, {
+                        mode: derivedSiteSlug ? 'site' : 'enterprise',
+                        currentSlug: derivedSiteSlug ?? null,
+                        routeParamSlug: derivedSiteSlug ?? null,
+                        preferSiteWhenPossible: true,
+                      })
+                      navigate(base)
                     }}
                   />
                 ))}
@@ -642,6 +648,15 @@ export default function VehiclesPage() {
             rows={filteredVehicles}
             getRowId={(vehicle) => vehicle.id}
             size="small"
+            onRowClick={(vehicle) => {
+              const base = buildEntityUrl('vehicles', vehicle.id, {
+                mode: derivedSiteSlug ? 'site' : 'enterprise',
+                currentSlug: derivedSiteSlug ?? null,
+                routeParamSlug: derivedSiteSlug ?? null,
+                preferSiteWhenPossible: true,
+              })
+              navigate(base)
+            }}
             emptyState={{
               title: noVehiclesTitle,
               description: noVehiclesDescription,

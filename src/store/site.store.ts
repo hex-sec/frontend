@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import sitesSeed from '../mocks/sites.json'
+import { SettingsService } from '../services/settings.service'
 
 export type Site = { id: string; name: string; slug: string }
 
@@ -12,6 +13,8 @@ type SiteState = {
   setCurrent: (site: Site) => void
   setMode: (mode: SiteMode) => void
   hydrate: () => void
+  persistMode: () => void
+  loadMode: (userId: string) => void
 }
 
 export const useSiteStore = create<SiteState>((set, get) => ({
@@ -20,6 +23,24 @@ export const useSiteStore = create<SiteState>((set, get) => ({
   mode: 'enterprise',
   setCurrent: (site) => set({ current: site }),
   setMode: (mode) => set({ mode }),
+  persistMode: () => {
+    const store = get()
+    if (typeof window === 'undefined') return
+    const userId = localStorage.getItem('hex:userId')
+    if (!userId) return
+    const settings = SettingsService.load(userId)
+    if (settings) {
+      const updated = { ...settings, workspaceMode: store.mode }
+      SettingsService.save(userId, updated)
+    }
+  },
+  loadMode: (userId: string) => {
+    if (!userId) return
+    const settings = SettingsService.load(userId)
+    if (settings?.workspaceMode === 'enterprise' || settings?.workspaceMode === 'site') {
+      set({ mode: settings.workspaceMode })
+    }
+  },
   hydrate: () => {
     if (get().sites.length === 0) {
       const seed = sitesSeed as Array<Record<string, unknown>>

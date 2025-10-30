@@ -40,8 +40,8 @@ export function LanguageMenu({
   const triggerLabel =
     buttonLabel ??
     (variant === 'icon'
-      ? t('languageSwitcher.aria')
-      : `${t('languageSwitcher.label')}: ${t(`languages.${language}`)}`)
+      ? t('languageSwitcher.aria', { defaultValue: 'Change language' })
+      : `${t('languageSwitcher.label', { defaultValue: 'Language' })}: ${t(`languages.${language}`, { defaultValue: language })}`)
 
   return (
     <>
@@ -88,7 +88,7 @@ export function LanguageMenu({
                   sx={{ visibility: isSelected ? 'visible' : 'hidden' }}
                 />
               </Box>
-              <ListItemText primary={t(option.labelKey)} />
+              <ListItemText primary={t(option.labelKey, { defaultValue: option.labelKey })} />
             </MenuItem>
           )
         })}

@@ -1,6 +1,7 @@
 {
   "common": {
     "close": "Cerrar",
+    "edit": "Editar",
     "save": "Guardar",
     "cancel": "Cancelar",
     "apply": "Aplicar",
@@ -89,6 +90,18 @@
         "users": {
           "label": "Usuarios",
           "description": "Invita administradores y asigna roles"
+        },
+        "admins": {
+          "label": "Administradores",
+          "description": "Gestionar usuarios administrativos"
+        },
+        "guards": {
+          "label": "Guardias",
+          "description": "Gestionar personal de seguridad"
+        },
+        "residents": {
+          "label": "Residentes",
+          "description": "Gestionar usuarios residentes"
         },
         "residences": {
           "label": "Residencias",
@@ -224,6 +237,9 @@
       "selectSite": "Seleccionar sitio",
       "chooseSite": "Elegir Sitio",
       "searchSites": "Buscar sitios...",
+      "searchVehicles": "Buscar vehículos por placa o ID...",
+      "searchVisitors": "Buscar visitantes por nombre o ID...",
+      "searchResidences": "Buscar residencias por unidad o ID...",
       "searchPlaceholder": "Escribe para buscar sitios",
       "selected": "Seleccionado",
       "selectedSite": "Sitio Seleccionado",
@@ -582,7 +598,9 @@
       "analytics": "Analítica",
       "visits": "Visitas",
       "guards": "Guardias",
-      "admins": "Administradores"
+      "admins": "Administradores",
+      "incidents": "Incidentes",
+      "searchSites": "Buscar sitios..."
     },
     "backNavigation": {
       "prefix": "Volver a",
@@ -593,6 +611,38 @@
     }
   },
   "admin": {
+    "policies": {
+      "title": "Políticas y reglamentos",
+      "subtitle": "Gestiona políticas comunitarias, reglas y guías",
+      "alerts": {
+        "siteScoped": "Las políticas mostradas están limitadas a"
+      },
+      "actions": {
+        "create": "Nueva política"
+      },
+      "search": {
+        "placeholder": "Buscar políticas..."
+      },
+      "filters": {
+        "allSections": "Todas las secciones",
+        "allStatuses": "Todos los estados"
+      },
+      "resultsCount": "Mostrando {count} políticas",
+      "sections": {
+        "rules": "Reglas y guías",
+        "consequences": "Infracciones y consecuencias",
+        "details": "Detalles de la política"
+      },
+      "fields": {
+        "effectiveDate": "Fecha de vigencia",
+        "lastUpdated": "Última actualización",
+        "updatedBy": "Actualizado por"
+      },
+      "empty": {
+        "title": "No se encontraron políticas",
+        "description": "Ajusta tus filtros o crea una nueva política."
+      }
+    },
     "dashboard": {
       "title": "Panel empresarial",
       "subtitle": "Monitorea operaciones de guardias y actividad residencial entre sitios.",
@@ -1325,6 +1375,14 @@
       "reports": {
         "label": "Reportes",
         "description": "Analítica y exportaciones."
+      },
+      "policies": {
+        "label": "Políticas",
+        "description": "Políticas y guías del sitio."
+      },
+      "incidents": {
+        "label": "Incidentes",
+        "description": "Revisar cola de incidentes."
       }
     },
     "incidents": {

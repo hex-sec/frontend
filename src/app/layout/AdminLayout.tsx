@@ -1,6 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ElementType } from 'react'
 import { Outlet, Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Toolbar, Breadcrumbs, Link, Menu, MenuItem } from '@mui/material'
+import {
+  Box,
+  Button,
+  Toolbar,
+  Breadcrumbs,
+  Link,
+  Menu,
+  MenuItem,
+  TextField,
+  InputAdornment,
+  Divider,
+  IconButton,
+} from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DashboardIcon from '@mui/icons-material/Dashboard'
@@ -8,9 +21,11 @@ import DomainIcon from '@mui/icons-material/Domain'
 import PeopleIcon from '@mui/icons-material/People'
 import PersonIcon from '@mui/icons-material/Person'
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar'
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber'
 import GavelIcon from '@mui/icons-material/Gavel'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import AnalyticsIcon from '@mui/icons-material/Analytics'
+import ReportProblemIcon from '@mui/icons-material/ReportProblem'
 import DoorFrontIcon from '@mui/icons-material/DoorFront'
 import BadgeIcon from '@mui/icons-material/Badge'
 import HomeWorkIcon from '@mui/icons-material/HomeWork'
@@ -25,6 +40,8 @@ import { useI18nStore } from '@store/i18n.store'
 import { useBackStore } from '@store/back.store'
 import { formatBackLabel } from './backNavigation'
 import { scrollWindowToTop } from './scrollToTop'
+import vehiclesSeed from '../../mocks/vehicles.json'
+import visitorsSeed from '../../mocks/visitors.json'
 
 const CRUMB_META_MAP: Record<string, { labelKey: string; Icon?: ElementType }> = {
   admin: { labelKey: 'layout.breadcrumbs.adminDashboard', Icon: DashboardIcon },
@@ -40,6 +57,7 @@ const CRUMB_META_MAP: Record<string, { labelKey: string; Icon?: ElementType }> =
   visits: { labelKey: 'layout.breadcrumbs.visits', Icon: DoorFrontIcon },
   guards: { labelKey: 'layout.breadcrumbs.guards', Icon: LocalPoliceIcon },
   admins: { labelKey: 'layout.breadcrumbs.admins', Icon: ManageAccountsIcon },
+  incidents: { labelKey: 'layout.breadcrumbs.incidents', Icon: ReportProblemIcon },
 }
 
 // Sibling pages for second-level breadcrumbs (main admin sections)
@@ -56,14 +74,17 @@ const SECOND_LEVEL_SIBLINGS = [
 // Sibling pages for site-level breadcrumbs (site-specific pages)
 const SITE_LEVEL_SIBLINGS = [
   'users',
-  'admins',
-  'guards',
-  'residents',
   'visits',
   'vehicles',
   'visitors',
   'residences',
+  'reports',
+  'policies',
+  'analytics',
 ]
+
+// Sibling pages under Users section
+const USERS_SECTION_SIBLINGS = ['admins', 'guards', 'residents']
 
 function getSiblingSegments(
   segment: string,
@@ -71,6 +92,7 @@ function getSiblingSegments(
   current?: { slug: string } | null,
   allSites?: Array<{ slug: string; name: string }>,
   isSiteCrumb?: boolean,
+  crumbs?: Array<{ segment: string; to: string }>,
 ): string[] {
   // Skip first level (enterprise dashboard)
   if (breadcrumbIndex === 0) {
@@ -87,8 +109,55 @@ function getSiblingSegments(
     return allSites.filter((site) => site.slug !== segment).map((site) => site.slug)
   }
 
+  // Check if we're on a role page at index 2 (e.g., /admin/users/admins)
+  if (
+    breadcrumbIndex === 2 &&
+    (segment === 'admins' || segment === 'guards' || segment === 'residents')
+  ) {
+    return USERS_SECTION_SIBLINGS.filter((s) => s !== segment.toLowerCase())
+  }
+
   // Fourth level and beyond: site-level pages, filter out current
   if (breadcrumbIndex >= 3) {
+    // If we're on a users sub-page (admins, guards, residents), show those siblings
+    if (segment === 'admins' || segment === 'guards' || segment === 'residents') {
+      return USERS_SECTION_SIBLINGS.filter((s) => s !== segment.toLowerCase())
+    }
+    // If we're on a detail page (ID), show other IDs based on context
+    if (segment.match(/^[A-Z0-9-]+$/) && crumbs && breadcrumbIndex > 0) {
+      const previousSegment = crumbs[breadcrumbIndex - 1]?.segment
+
+      if (previousSegment === 'vehicles') {
+        const vehicles = (vehiclesSeed as Array<Record<string, unknown>>).map((v) => ({
+          id: String(v.id),
+          siteSlug: String(v.siteSlug),
+        }))
+        const filteredVehicles =
+          allSites && current ? vehicles.filter((v) => v.siteSlug === current.slug) : vehicles
+        return filteredVehicles.map((v) => v.id).filter((id) => id !== segment)
+      } else if (previousSegment === 'visitors') {
+        const visitors = (visitorsSeed as Array<Record<string, unknown>>).map((v) => ({
+          id: String(v.id),
+          siteSlug: String(v.siteSlug),
+        }))
+        const filteredVisitors =
+          allSites && current ? visitors.filter((v) => v.siteSlug === current.slug) : visitors
+        return filteredVisitors.map((v) => v.id).filter((id) => id !== segment)
+      } else if (previousSegment === 'residences') {
+        const residences = [
+          { id: 'UNIT-TA-1408', siteSlug: 'vista-azul' },
+          { id: 'UNIT-TA-PH3', siteSlug: 'vista-azul' },
+          { id: 'VIL-08', siteSlug: 'los-olivos' },
+          { id: 'VIL-11', siteSlug: 'los-olivos' },
+          { id: 'AMN-CLB', siteSlug: 'vista-azul' },
+          { id: 'PRC-12', siteSlug: 'los-olivos' },
+        ]
+        const filteredResidences =
+          allSites && current ? residences.filter((r) => r.siteSlug === current.slug) : residences
+        return filteredResidences.map((r) => r.id).filter((id) => id !== segment)
+      }
+    }
+    // Otherwise, show site-level siblings
     return SITE_LEVEL_SIBLINGS.filter((s) => s !== segment.toLowerCase())
   }
 
@@ -111,6 +180,8 @@ export default function AdminLayout() {
   const clearBack = useBackStore((s) => s.clearBack)
 
   const [menuAnchor, setMenuAnchor] = useState<Record<number, HTMLElement | null>>({})
+  const [siteSearch, setSiteSearch] = useState('')
+  const [vehicleSearch, setVehicleSearch] = useState('')
 
   const crumbs: Array<{ segment: string; to: string }> =
     (isSitePath && current) || (isSiteMode && current)
@@ -141,6 +212,8 @@ export default function AdminLayout() {
 
   const handleCloseMenu = useCallback((index: number) => {
     setMenuAnchor((prev) => ({ ...prev, [index]: null }))
+    setSiteSearch('')
+    setVehicleSearch('')
   }, [])
 
   const shouldUpdateBack = useMemo(() => {
@@ -280,7 +353,31 @@ export default function AdminLayout() {
                 const meta = getCrumbMeta(c.segment)
                 const Icon = meta.Icon
                 const isSiteCrumb = current?.slug === c.segment
-                const siblings = getSiblingSegments(c.segment, index, current, sites, isSiteCrumb)
+                const isVehicleDetailCrumb =
+                  index >= 3 &&
+                  c.segment.match(/^[A-Z0-9-]+$/) &&
+                  index > 0 &&
+                  crumbs[index - 1]?.segment === 'vehicles'
+                const isVisitorDetailCrumb =
+                  index >= 3 &&
+                  c.segment.match(/^[A-Z0-9-]+$/) &&
+                  index > 0 &&
+                  crumbs[index - 1]?.segment === 'visitors'
+                const isResidenceDetailCrumb =
+                  index >= 3 &&
+                  c.segment.match(/^[A-Z0-9-]+$/) &&
+                  index > 0 &&
+                  crumbs[index - 1]?.segment === 'residences'
+                const isDetailCrumb =
+                  isVehicleDetailCrumb || isVisitorDetailCrumb || isResidenceDetailCrumb
+                const siblings = getSiblingSegments(
+                  c.segment,
+                  index,
+                  current,
+                  sites,
+                  isSiteCrumb,
+                  crumbs,
+                )
                 const hasMenu = siblings.length > 0
 
                 const contents = (
@@ -288,7 +385,11 @@ export default function AdminLayout() {
                     component="span"
                     sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
                   >
-                    {Icon ? <Icon fontSize="small" /> : null}
+                    {isVehicleDetailCrumb || isVisitorDetailCrumb || isResidenceDetailCrumb ? (
+                      <ConfirmationNumberIcon fontSize="small" />
+                    ) : Icon ? (
+                      <Icon fontSize="small" />
+                    ) : null}
                     {meta.label}
                   </Box>
                 )
@@ -298,14 +399,6 @@ export default function AdminLayout() {
                     <Link
                       component={RouterLink}
                       to={c.to}
-                      onClick={
-                        hasMenu
-                          ? (e) => {
-                              e.preventDefault()
-                              handleOpenMenu(index, e)
-                            }
-                          : undefined
-                      }
                       sx={{
                         color: 'text.secondary',
                         typography: 'caption',
@@ -319,8 +412,22 @@ export default function AdminLayout() {
                       }}
                     >
                       {contents}
-                      {hasMenu && <ArrowDropDownIcon sx={{ fontSize: 16 }} />}
                     </Link>
+                    {hasMenu && (
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleOpenMenu(index, e)}
+                        sx={{
+                          color: 'text.secondary',
+                          p: 0.25,
+                          '&:hover': {
+                            bgcolor: 'action.hover',
+                          },
+                        }}
+                      >
+                        <ArrowDropDownIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    )}
 
                     {hasMenu && (
                       <Menu
@@ -333,59 +440,262 @@ export default function AdminLayout() {
                           },
                         }}
                       >
-                        <MenuItem
-                          component={RouterLink}
-                          to={c.to}
-                          onClick={() => handleCloseMenu(index)}
-                          selected
-                        >
-                          {contents}
-                        </MenuItem>
-                        {siblings.map((sibling) => {
-                          // Build the correct path for siblings
-                          let siblingPath: string
-                          let siblingLabel: string
-                          let siblingIcon: ElementType | undefined
+                        {index === 2 && isSiteCrumb ? (
+                          <>
+                            <Box sx={{ px: 1.5, pt: 1, pb: 0.5 }}>
+                              <TextField
+                                size="small"
+                                fullWidth
+                                autoFocus
+                                placeholder={t('layout.breadcrumbs.searchSites', {
+                                  lng: language,
+                                  defaultValue: 'Search sites...',
+                                })}
+                                value={siteSearch}
+                                onChange={(e) => setSiteSearch(e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                onKeyDown={(e) => e.stopPropagation()}
+                                InputProps={{
+                                  startAdornment: (
+                                    <InputAdornment position="start">
+                                      <SearchIcon fontSize="small" />
+                                    </InputAdornment>
+                                  ),
+                                }}
+                              />
+                            </Box>
+                            <Divider />
+                          </>
+                        ) : isDetailCrumb ? (
+                          <>
+                            <Box sx={{ px: 1.5, pt: 1, pb: 0.5 }}>
+                              <TextField
+                                size="small"
+                                fullWidth
+                                autoFocus
+                                placeholder={
+                                  isVisitorDetailCrumb
+                                    ? t('layout.breadcrumbs.searchVisitors', {
+                                        lng: language,
+                                        defaultValue: 'Search visitors by name or ID...',
+                                      })
+                                    : isResidenceDetailCrumb
+                                      ? t('layout.breadcrumbs.searchResidences', {
+                                          lng: language,
+                                          defaultValue: 'Search residences by unit or ID...',
+                                        })
+                                      : t('layout.breadcrumbs.searchVehicles', {
+                                          lng: language,
+                                          defaultValue: 'Search vehicles by plate or ID...',
+                                        })
+                                }
+                                value={vehicleSearch}
+                                onChange={(e) => setVehicleSearch(e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                onKeyDown={(e) => e.stopPropagation()}
+                                InputProps={{
+                                  startAdornment: (
+                                    <InputAdornment position="start">
+                                      <SearchIcon fontSize="small" />
+                                    </InputAdornment>
+                                  ),
+                                }}
+                              />
+                            </Box>
+                            <Divider />
+                          </>
+                        ) : (
+                          <MenuItem
+                            component={RouterLink}
+                            to={c.to}
+                            onClick={() => handleCloseMenu(index)}
+                            selected
+                          >
+                            {contents}
+                          </MenuItem>
+                        )}
+                        {siblings
+                          .filter((sibling) => {
+                            if (index === 2 && isSiteCrumb && siteSearch) {
+                              const siblingSite = sites.find((s) => s.slug === sibling)
+                              const searchLower = siteSearch.toLowerCase()
+                              return (
+                                sibling.toLowerCase().includes(searchLower) ||
+                                siblingSite?.name.toLowerCase().includes(searchLower)
+                              )
+                            }
+                            if (isDetailCrumb && vehicleSearch) {
+                              if (isVehicleDetailCrumb) {
+                                const vehicles = (
+                                  vehiclesSeed as Array<Record<string, unknown>>
+                                ).map((v) => ({
+                                  id: String(v.id),
+                                  plate: String(v.plate),
+                                }))
+                                const vehicle = vehicles.find((v) => v.id === sibling)
+                                const searchLower = vehicleSearch.toLowerCase()
+                                return (
+                                  sibling.toLowerCase().includes(searchLower) ||
+                                  vehicle?.plate.toLowerCase().includes(searchLower)
+                                )
+                              } else if (isVisitorDetailCrumb) {
+                                const visitors = (
+                                  visitorsSeed as Array<Record<string, unknown>>
+                                ).map((v) => ({
+                                  id: String(v.id),
+                                  name: String(v.name),
+                                }))
+                                const visitor = visitors.find((v) => v.id === sibling)
+                                const searchLower = vehicleSearch.toLowerCase()
+                                return (
+                                  sibling.toLowerCase().includes(searchLower) ||
+                                  visitor?.name.toLowerCase().includes(searchLower)
+                                )
+                              } else if (isResidenceDetailCrumb) {
+                                const residences = [
+                                  { id: 'UNIT-TA-1408', label: 'Tower A · 1408' },
+                                  { id: 'UNIT-TA-PH3', label: 'Tower A · Penthouse 3' },
+                                  { id: 'VIL-08', label: 'Villa 08' },
+                                  { id: 'VIL-11', label: 'Villa 11' },
+                                  { id: 'AMN-CLB', label: 'Clubhouse' },
+                                  { id: 'PRC-12', label: 'Parcel · 12' },
+                                ]
+                                const residence = residences.find((r) => r.id === sibling)
+                                const searchLower = vehicleSearch.toLowerCase()
+                                return (
+                                  sibling.toLowerCase().includes(searchLower) ||
+                                  residence?.label.toLowerCase().includes(searchLower)
+                                )
+                              }
+                            }
+                            return true
+                          })
+                          .map((sibling) => {
+                            // Build the correct path for siblings
+                            let siblingPath: string = ''
+                            let siblingLabel: string = ''
+                            let siblingIcon: ElementType | undefined
 
-                          if (index === 2 && isSiteCrumb) {
-                            // For sites (index 2), sibling is a site slug
-                            siblingPath = `/admin/sites/${sibling}`
-                            const siblingSite = sites.find((s) => s.slug === sibling)
-                            siblingLabel = siblingSite?.name || sibling
-                            siblingIcon = DomainIcon
-                          } else if (index >= 3) {
-                            // For site-level pages (index 3+)
-                            siblingPath = `/admin/sites/${current?.slug}/${sibling}`
-                            const siblingMeta = getCrumbMeta(sibling)
-                            siblingLabel = siblingMeta.label
-                            siblingIcon = siblingMeta.Icon
-                          } else {
-                            // For admin-level pages (index 1)
-                            const basePath = crumbs
-                              .slice(0, index)
-                              .map((cr) => cr.segment)
-                              .join('/')
-                            siblingPath = basePath ? `/${basePath}/${sibling}` : `/${sibling}`
-                            const siblingMeta = getCrumbMeta(sibling)
-                            siblingLabel = siblingMeta.label
-                            siblingIcon = siblingMeta.Icon
-                          }
+                            if (index === 2 && isSiteCrumb) {
+                              // For sites (index 2), sibling is a site slug
+                              siblingPath = `/admin/sites/${sibling}`
+                              const siblingSite = sites.find((s) => s.slug === sibling)
+                              siblingLabel = siblingSite?.name || sibling
+                              siblingIcon = DomainIcon
+                            } else if (index >= 3 && isDetailCrumb) {
+                              // For vehicle, visitor, or residence detail pages
+                              if (isVehicleDetailCrumb) {
+                                const vehicles = (
+                                  vehiclesSeed as Array<Record<string, unknown>>
+                                ).map((v) => ({
+                                  id: String(v.id),
+                                  plate: String(v.plate),
+                                  makeModel: String(v.makeModel),
+                                }))
+                                const vehicle = vehicles.find((v) => v.id === sibling)
+                                const base = isSiteMode
+                                  ? `/site/${current?.slug}/vehicles/${sibling}`
+                                  : `/admin/vehicles/${sibling}`
+                                siblingPath = base
+                                siblingLabel = vehicle
+                                  ? `${vehicle.plate} - ${vehicle.makeModel}`
+                                  : sibling
+                                siblingIcon = DirectionsCarIcon
+                              } else if (isVisitorDetailCrumb) {
+                                const visitors = (
+                                  visitorsSeed as Array<Record<string, unknown>>
+                                ).map((v) => ({
+                                  id: String(v.id),
+                                  name: String(v.name),
+                                  email: String(v.email),
+                                }))
+                                const visitor = visitors.find((v) => v.id === sibling)
+                                const base = isSiteMode
+                                  ? `/site/${current?.slug}/visitors/${sibling}`
+                                  : `/admin/visitors/${sibling}`
+                                siblingPath = base
+                                siblingLabel = visitor ? visitor.name : sibling
+                                siblingIcon = PersonIcon
+                              } else if (isResidenceDetailCrumb) {
+                                const residences = [
+                                  { id: 'UNIT-TA-1408', label: 'Tower A · 1408' },
+                                  { id: 'UNIT-TA-PH3', label: 'Tower A · Penthouse 3' },
+                                  { id: 'VIL-08', label: 'Villa 08' },
+                                  { id: 'VIL-11', label: 'Villa 11' },
+                                  { id: 'AMN-CLB', label: 'Clubhouse' },
+                                  { id: 'PRC-12', label: 'Parcel · 12' },
+                                ]
+                                const residence = residences.find((r) => r.id === sibling)
+                                const base = isSiteMode
+                                  ? `/site/${current?.slug}/residences/${sibling}`
+                                  : `/admin/residences/${sibling}`
+                                siblingPath = base
+                                siblingLabel = residence ? residence.label : sibling
+                                siblingIcon = HomeWorkIcon
+                              }
+                            } else if (
+                              index === 2 &&
+                              (c.segment === 'admins' ||
+                                c.segment === 'guards' ||
+                                c.segment === 'residents')
+                            ) {
+                              // For role pages at index 2 (e.g., /admin/users/admins)
+                              siblingPath = `/admin/users/${sibling}`
+                              const siblingMeta = getCrumbMeta(sibling)
+                              siblingLabel = siblingMeta.label
+                              siblingIcon = siblingMeta.Icon
+                            } else if (index >= 3) {
+                              // For site-level pages (index 3+)
+                              const currentSegment = c.segment.toLowerCase()
+                              const isUsersSectionSibling =
+                                sibling === 'admins' ||
+                                sibling === 'guards' ||
+                                sibling === 'residents'
 
-                          const Icon = siblingIcon
-                          return (
-                            <MenuItem
-                              key={sibling}
-                              component={RouterLink}
-                              to={siblingPath}
-                              onClick={() => handleCloseMenu(index)}
-                            >
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                {Icon ? <Icon fontSize="small" /> : null}
-                                {siblingLabel}
-                              </Box>
-                            </MenuItem>
-                          )
-                        })}
+                              // If we are within Users section (either on 'users' or a role subpage),
+                              // ensure role siblings include the 'users' prefix in the path.
+                              if (currentSegment === 'users' && isUsersSectionSibling) {
+                                siblingPath = `/admin/sites/${current?.slug}/users/${sibling}`
+                              } else if (
+                                (currentSegment === 'admins' ||
+                                  currentSegment === 'guards' ||
+                                  currentSegment === 'residents') &&
+                                isUsersSectionSibling
+                              ) {
+                                siblingPath = `/admin/sites/${current?.slug}/users/${sibling}`
+                              } else {
+                                siblingPath = `/admin/sites/${current?.slug}/${sibling}`
+                              }
+                              const siblingMeta = getCrumbMeta(sibling)
+                              siblingLabel = siblingMeta.label
+                              siblingIcon = siblingMeta.Icon
+                            } else {
+                              // For admin-level pages (index 1)
+                              const basePath = crumbs
+                                .slice(0, index)
+                                .map((cr) => cr.segment)
+                                .join('/')
+                              siblingPath = basePath ? `/${basePath}/${sibling}` : `/${sibling}`
+                              const siblingMeta = getCrumbMeta(sibling)
+                              siblingLabel = siblingMeta.label
+                              siblingIcon = siblingMeta.Icon
+                            }
+
+                            const Icon = siblingIcon
+                            return (
+                              <MenuItem
+                                key={sibling}
+                                component={RouterLink}
+                                to={siblingPath}
+                                onClick={() => handleCloseMenu(index)}
+                              >
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  {Icon ? <Icon fontSize="small" /> : null}
+                                  {siblingLabel}
+                                </Box>
+                              </MenuItem>
+                            )
+                          })}
                       </Menu>
                     )}
                   </Box>

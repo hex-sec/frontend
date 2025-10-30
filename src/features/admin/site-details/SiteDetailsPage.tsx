@@ -43,6 +43,7 @@ import BarChartIcon from '@mui/icons-material/BarChart'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import CloseIcon from '@mui/icons-material/Close'
+import GavelIcon from '@mui/icons-material/Gavel'
 import { alpha, type Theme, useTheme } from '@mui/material/styles'
 import { useBreadcrumbBackAction } from '@app/layout/useBreadcrumbBackAction'
 import buildEntityUrl from '@app/utils/contextPaths'
@@ -173,6 +174,12 @@ const PANEL_SHORTCUTS: PanelShortcutConfig[] = [
     sitePath: 'reports',
     enterprisePath: (slug) => `/admin/sites/${slug}/reports`,
     Icon: BarChartIcon,
+  },
+  {
+    key: 'policies',
+    sitePath: (slug: string) => `/admin/sites/${slug}/policies`,
+    enterprisePath: (slug) => `/admin/sites/${slug}/policies`,
+    Icon: GavelIcon,
   },
   {
     key: 'incidents',

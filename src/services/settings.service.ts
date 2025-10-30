@@ -16,6 +16,7 @@ export type UserSettings = {
   displayName?: string
   webhookUrl?: string
   modalSettings?: ModalSettings
+  workspaceMode?: 'enterprise' | 'site'
   landingPreference?: {
     target: 'enterpriseDashboard' | 'sitesOverview' | 'site'
     siteSlug?: string

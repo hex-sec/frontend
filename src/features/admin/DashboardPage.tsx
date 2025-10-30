@@ -228,12 +228,6 @@ export default function DashboardPage() {
         caption: t('admin.dashboard.navigation.reports.caption', { lng: language }),
         to: `${siteBase}/reports`,
       },
-      {
-        key: 'policies',
-        label: t('layout.breadcrumbs.policies', { lng: language }),
-        caption: t('admin.dashboard.navigation.policies.caption', { lng: language }),
-        to: buildEntityUrl('policies'),
-      },
     ],
     [language, t, siteBase],
   )

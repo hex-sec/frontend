@@ -125,7 +125,7 @@ export function ModeSwitchDialog({
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <DomainIcon fontSize="small" />
-          {t('topnav.modeDialog.title')}
+          {t('topnav.modeDialog.title', { defaultValue: 'Workspace Focus' })}
         </Box>
       </DialogTitle>
       <DialogContent dividers>
@@ -139,7 +139,7 @@ export function ModeSwitchDialog({
             label={
               <Box>
                 <Typography variant="body1" fontWeight={500}>
-                  {t('topnav.modeDialog.enterpriseOption')}
+                  {t('topnav.modeDialog.enterpriseOption', { defaultValue: 'Enterprise' })}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {t('topnav.modeDialog.enterpriseDescription', {
@@ -156,7 +156,7 @@ export function ModeSwitchDialog({
             label={
               <Box>
                 <Typography variant="body1" fontWeight={500}>
-                  {t('topnav.modeDialog.siteOption')}
+                  {t('topnav.modeDialog.siteOption', { defaultValue: 'Site' })}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {t('topnav.modeDialog.siteDescription', {
@@ -177,7 +177,7 @@ export function ModeSwitchDialog({
             {!canSelectSite ? (
               <Box sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 1, textAlign: 'center' }}>
                 <Typography variant="body2" color="warning.dark">
-                  {t('topnav.modeDialog.noSites')}
+                  {t('topnav.modeDialog.noSites', { defaultValue: 'No sites available' })}
                 </Typography>
               </Box>
             ) : (
@@ -196,7 +196,7 @@ export function ModeSwitchDialog({
                     {...params}
                     label={t('topnav.modeDialog.searchSites', { defaultValue: 'Search sites...' })}
                     placeholder={t('topnav.modeDialog.searchPlaceholder', {
-                      defaultValue: 'Type to search sites',
+                      defaultValue: 'Type to search sites...',
                     })}
                     fullWidth
                     InputProps={{
@@ -459,9 +459,9 @@ export function ModeSwitchDialog({
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button onClick={onClose}>{t('common.cancel', { defaultValue: 'Cancel' })}</Button>
         <Button variant="contained" onClick={onConfirm} disabled={disableConfirm}>
-          {t('common.apply')}
+          {t('common.apply', { defaultValue: 'Apply' })}
         </Button>
       </DialogActions>
     </Dialog>

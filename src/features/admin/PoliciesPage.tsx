@@ -13,6 +13,7 @@ import {
   IconButton,
   InputAdornment,
   Paper,
+  Alert,
   Stack,
   TextField,
   Typography,
@@ -30,6 +31,7 @@ import EditIcon from '@mui/icons-material/Edit'
 // import DeleteIcon from '@mui/icons-material/Delete'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import PolicyIcon from '@mui/icons-material/Policy'
+import AddBusinessIcon from '@mui/icons-material/AddBusiness'
 import SecurityIcon from '@mui/icons-material/Security'
 import HomeIcon from '@mui/icons-material/Home'
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar'
@@ -43,6 +45,7 @@ import PersonIcon from '@mui/icons-material/Person'
 import PageHeader from './components/PageHeader'
 import { useTranslate } from '@i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
+import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
 
 type PolicyStatus = 'active' | 'draft' | 'archived'
 type PolicySection =
@@ -67,6 +70,7 @@ type Policy = {
   content: string
   rules: string[]
   consequences?: string[]
+  siteSlugs?: string[]
 }
 
 // Mock policies data
@@ -96,6 +100,7 @@ const MOCK_POLICIES: Policy[] = [
       'Second violation: $50 fine',
       'Third violation: Visitor privileges suspended for 30 days',
     ],
+    siteSlugs: ['vista-azul'],
   },
   {
     id: 'pol-002',
@@ -123,6 +128,7 @@ const MOCK_POLICIES: Policy[] = [
       'Repeated violations: $100 fine',
       'Severe violations: Pet removal required',
     ],
+    siteSlugs: ['vista-azul', 'los-olivos'],
   },
   {
     id: 'pol-003',
@@ -150,6 +156,7 @@ const MOCK_POLICIES: Policy[] = [
       'Blocking fire lanes: $150 fine + towing',
       'Repeated violations: Parking privileges revoked',
     ],
+    siteSlugs: ['los-olivos'],
   },
   {
     id: 'pol-004',
@@ -172,6 +179,7 @@ const MOCK_POLICIES: Policy[] = [
       'Security deposit required for large events',
       'Outside catering requires health permits',
     ],
+    siteSlugs: ['vista-azul'],
   },
   {
     id: 'pol-005',
@@ -197,6 +205,7 @@ const MOCK_POLICIES: Policy[] = [
       'Second complaint: Written notice and $25 fine',
       'Continued violations: Lease violation notice',
     ],
+    siteSlugs: ['los-olivos'],
   },
 ]
 
@@ -219,6 +228,7 @@ const STATUS_CONFIG = {
 export default function PoliciesPage() {
   const { t } = useTranslate()
   const language = useI18nStore((s) => s.language)
+  const { activeSite, slug: derivedSlug } = useSiteBackNavigation()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
@@ -231,6 +241,9 @@ export default function PoliciesPage() {
   // Filter policies
   const filteredPolicies = useMemo(() => {
     return MOCK_POLICIES.filter((policy) => {
+      if (derivedSlug && policy.siteSlugs && !policy.siteSlugs.includes(derivedSlug)) {
+        return false
+      }
       if (
         searchTerm &&
         !policy.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -242,7 +255,7 @@ export default function PoliciesPage() {
       if (selectedStatus !== 'all' && policy.status !== selectedStatus) return false
       return true
     })
-  }, [searchTerm, selectedSection, selectedStatus])
+  }, [derivedSlug, searchTerm, selectedSection, selectedStatus])
 
   const handleViewPolicy = (policy: Policy) => {
     setSelectedPolicy(policy)
@@ -372,6 +385,22 @@ export default function PoliciesPage() {
 
   return (
     <Stack spacing={3}>
+      {/* Site-scoped alert */}
+      {activeSite ? (
+        <Alert
+          severity="info"
+          icon={<AddBusinessIcon fontSize="inherit" />}
+          sx={{ alignItems: 'center', borderRadius: 2 }}
+        >
+          <Typography variant="body2">
+            {t('admin.policies.alerts.siteScoped', {
+              lng: language,
+              defaultValue: 'Policies shown are scoped to',
+            })}{' '}
+            <strong>{activeSite.name}</strong>.
+          </Typography>
+        </Alert>
+      ) : null}
       <PageHeader
         title={t('admin.policies.title', { lng: language, defaultValue: 'Policies & Regulations' })}
         subtitle={t('admin.policies.subtitle', {
@@ -406,77 +435,103 @@ export default function PoliciesPage() {
             }}
           />
 
-          <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
-            {/* Section Filter */}
-            <Stack direction="row" spacing={1} flexWrap="wrap">
-              <Chip
-                label={t('admin.policies.filters.allSections', {
-                  lng: language,
-                  defaultValue: 'All Sections',
-                })}
-                onClick={() => setSelectedSection('all')}
-                color={selectedSection === 'all' ? 'primary' : 'default'}
-                variant={selectedSection === 'all' ? 'filled' : 'outlined'}
-              />
-              {Object.entries(SECTION_CONFIG).map(([key, config]) => {
-                const IconComponent = config.icon
-                return (
+          <Grid container spacing={2} alignItems="flex-start">
+            <Grid size={{ xs: 12, md: 8 }}>
+              <Stack spacing={1}>
+                <Typography variant="caption" color="text.secondary">
+                  {t('admin.policies.filters.allSections', {
+                    lng: language,
+                    defaultValue: 'All Sections',
+                  })}
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    rowGap: 1,
+                    columnGap: 1,
+                    overflowX: { xs: 'auto', md: 'visible' },
+                    pb: { xs: 0.5, md: 0 },
+                  }}
+                >
                   <Chip
-                    key={key}
-                    icon={<IconComponent />}
-                    label={config.label}
-                    onClick={() => setSelectedSection(key as PolicySection)}
-                    color={
-                      selectedSection === key
-                        ? (config.color as
-                            | 'default'
-                            | 'primary'
-                            | 'secondary'
-                            | 'error'
-                            | 'info'
-                            | 'success'
-                            | 'warning')
-                        : 'default'
-                    }
-                    variant={selectedSection === key ? 'filled' : 'outlined'}
+                    label={t('admin.policies.filters.allSections', {
+                      lng: language,
+                      defaultValue: 'All Sections',
+                    })}
+                    onClick={() => setSelectedSection('all')}
+                    color={selectedSection === 'all' ? 'primary' : 'default'}
+                    variant={selectedSection === 'all' ? 'filled' : 'outlined'}
                   />
-                )
-              })}
-            </Stack>
-
-            {/* Status Filter */}
-            <Stack direction="row" spacing={1}>
-              <Chip
-                label={t('admin.policies.filters.allStatuses', {
-                  lng: language,
-                  defaultValue: 'All Status',
-                })}
-                onClick={() => setSelectedStatus('all')}
-                color={selectedStatus === 'all' ? 'primary' : 'default'}
-                variant={selectedStatus === 'all' ? 'filled' : 'outlined'}
-              />
-              {Object.entries(STATUS_CONFIG).map(([key, config]) => (
-                <Chip
-                  key={key}
-                  label={config.label}
-                  onClick={() => setSelectedStatus(key as PolicyStatus)}
-                  color={
-                    selectedStatus === key
-                      ? (config.color as
-                          | 'default'
-                          | 'primary'
-                          | 'secondary'
-                          | 'error'
-                          | 'info'
-                          | 'success'
-                          | 'warning')
-                      : 'default'
-                  }
-                  variant={selectedStatus === key ? 'filled' : 'outlined'}
-                />
-              ))}
-            </Stack>
-          </Stack>
+                  {Object.entries(SECTION_CONFIG).map(([key, config]) => {
+                    const IconComponent = config.icon
+                    return (
+                      <Chip
+                        key={key}
+                        icon={<IconComponent />}
+                        label={config.label}
+                        onClick={() => setSelectedSection(key as PolicySection)}
+                        color={
+                          selectedSection === key
+                            ? (config.color as
+                                | 'default'
+                                | 'primary'
+                                | 'secondary'
+                                | 'error'
+                                | 'info'
+                                | 'success'
+                                | 'warning')
+                            : 'default'
+                        }
+                        variant={selectedSection === key ? 'filled' : 'outlined'}
+                      />
+                    )
+                  })}
+                </Box>
+              </Stack>
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Stack spacing={1}>
+                <Typography variant="caption" color="text.secondary">
+                  {t('admin.policies.filters.allStatuses', {
+                    lng: language,
+                    defaultValue: 'All Status',
+                  })}
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', rowGap: 1, columnGap: 1 }}>
+                  <Chip
+                    label={t('admin.policies.filters.allStatuses', {
+                      lng: language,
+                      defaultValue: 'All Status',
+                    })}
+                    onClick={() => setSelectedStatus('all')}
+                    color={selectedStatus === 'all' ? 'primary' : 'default'}
+                    variant={selectedStatus === 'all' ? 'filled' : 'outlined'}
+                  />
+                  {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                    <Chip
+                      key={key}
+                      label={config.label}
+                      onClick={() => setSelectedStatus(key as PolicyStatus)}
+                      color={
+                        selectedStatus === key
+                          ? (config.color as
+                              | 'default'
+                              | 'primary'
+                              | 'secondary'
+                              | 'error'
+                              | 'info'
+                              | 'success'
+                              | 'warning')
+                          : 'default'
+                      }
+                      variant={selectedStatus === key ? 'filled' : 'outlined'}
+                    />
+                  ))}
+                </Box>
+              </Stack>
+            </Grid>
+          </Grid>
         </Stack>
       </Paper>
 

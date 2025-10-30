@@ -51,6 +51,7 @@ import HomeWorkIcon from '@mui/icons-material/HomeWork'
 import LocalPoliceIcon from '@mui/icons-material/LocalPolice'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled'
+import PolicyIcon from '@mui/icons-material/Policy'
 import BadgeOutlinedIcon from '@mui/icons-material/Badge'
 import Badge from '@mui/material/Badge'
 import SearchIcon from '@mui/icons-material/Search'
@@ -149,7 +150,8 @@ export default function TopBar() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const openSettings = useUIStore((s) => s.openSettings)
   const setOpenSettings = useUIStore((s) => s.setOpenSettings)
-  const { sites, current, mode, hydrate, setCurrent, setMode } = useSiteStore()
+  const { sites, current, mode, hydrate, setCurrent, setMode, persistMode, loadMode } =
+    useSiteStore()
   const location = useLocation()
   const { load: loadUserSettings, save: saveUserSettings } = useUserSettings()
   const themeKind = useThemeStore((s) => s.kind)
@@ -222,6 +224,12 @@ export default function TopBar() {
           description: t('topnav.siteNav.residences.description'),
         },
         {
+          label: t('layout.breadcrumbs.policies'),
+          to: `/admin/sites/${current.slug}/policies`,
+          Icon: PolicyIcon,
+          description: t('admin.dashboard.navigation.policies.caption'),
+        },
+        {
           label: t('topnav.siteNav.vehicles.label'),
           to: buildEntityUrl('vehicles', undefined, { mode: 'site', currentSlug: current.slug }),
           Icon: DirectionsCarFilledIcon,
@@ -270,22 +278,22 @@ export default function TopBar() {
             description: t('topnav.roleNav.admin.users.description'),
           },
           {
-            label: 'Admins',
+            label: t('topnav.roleNav.admin.admins.label'),
             to: buildEntityUrl('users/admins'),
             Icon: ManageAccountsIcon,
-            description: 'Manage administrative users',
+            description: t('topnav.roleNav.admin.admins.description'),
           },
           {
-            label: 'Guards',
+            label: t('topnav.roleNav.admin.guards.label'),
             to: buildEntityUrl('users/guards'),
             Icon: LocalPoliceIcon,
-            description: 'Manage security personnel',
+            description: t('topnav.roleNav.admin.guards.description'),
           },
           {
-            label: 'Residents',
+            label: t('topnav.roleNav.admin.residents.label'),
             to: buildEntityUrl('users/residents'),
             Icon: GroupsIcon,
-            description: 'Manage resident users',
+            description: t('topnav.roleNav.admin.residents.description'),
           },
           {
             label: t('topnav.roleNav.admin.residences.label'),
@@ -499,6 +507,17 @@ export default function TopBar() {
   // Ensure the stored default landing preference drives the initial navigation.
   const applyLandingPreference = useCallback(
     (preference?: UserSettings['landingPreference']) => {
+      // When in site mode, ignore landing preference and open site context
+      if (mode === 'site' && current) {
+        const destination = siteRoot(current.slug)
+        if (pathname !== destination) {
+          navigate(destination, { replace: true })
+        }
+        hasAppliedLandingRef.current = true
+        return
+      }
+
+      // In enterprise mode, use the landing preference setting
       const storedPreference = preference ?? loadUserSettings()?.landingPreference
       if (!storedPreference) {
         hasAppliedLandingRef.current = true
@@ -658,8 +677,10 @@ export default function TopBar() {
   useEffect(() => {
     if (!user) return
     if (hasAppliedLandingRef.current) return
+    // Load saved workspace mode first
+    loadMode(user.id)
     applyLandingPreference()
-  }, [applyLandingPreference, user])
+  }, [applyLandingPreference, user, loadMode])
 
   useEffect(() => {
     // Ensure each authenticated user hydrates their own locale, theme, and topbar styling.
@@ -1144,6 +1165,7 @@ export default function TopBar() {
   const handleApplyMode = () => {
     if (selectedMode === 'enterprise') {
       setMode('enterprise')
+      persistMode()
       setModeDialogOpen(false)
       setDrawerOpen(false)
       navigate(buildEntityUrl(''))
@@ -1157,6 +1179,7 @@ export default function TopBar() {
 
     setCurrent(targetSite)
     setMode('site')
+    persistMode()
     setModeDialogOpen(false)
     setDrawerOpen(false)
     navigate(siteRoot(targetSite.slug))

@@ -1,6 +1,7 @@
 {
   "common": {
     "close": "Close",
+    "edit": "Edit",
     "save": "Save",
     "cancel": "Cancel",
     "apply": "Apply",
@@ -89,6 +90,18 @@
         "users": {
           "label": "Users",
           "description": "Invite admins and assign roles"
+        },
+        "admins": {
+          "label": "Admins",
+          "description": "Manage administrative users"
+        },
+        "guards": {
+          "label": "Guards",
+          "description": "Manage security personnel"
+        },
+        "residents": {
+          "label": "Residents",
+          "description": "Manage resident users"
         },
         "residences": {
           "label": "Residences",
@@ -224,6 +237,9 @@
       "selectSite": "Select site",
       "chooseSite": "Choose Site",
       "searchSites": "Search sites...",
+      "searchVehicles": "Search vehicles by plate or ID...",
+      "searchVisitors": "Search visitors by name or ID...",
+      "searchResidences": "Search residences by unit or ID...",
       "searchPlaceholder": "Type to search sites",
       "selected": "Selected",
       "selectedSite": "Selected Site",
@@ -582,7 +598,9 @@
       "analytics": "Analytics",
       "visits": "Visits",
       "guards": "Guards",
-      "admins": "Admins"
+      "admins": "Admins",
+      "incidents": "Incidents",
+      "searchSites": "Search sites..."
     },
     "backNavigation": {
       "prefix": "Back to",
@@ -593,6 +611,38 @@
     }
   },
   "admin": {
+    "policies": {
+      "title": "Policies & Regulations",
+      "subtitle": "Manage community policies, rules, and guidelines",
+      "alerts": {
+        "siteScoped": "Policies shown are scoped to"
+      },
+      "actions": {
+        "create": "New Policy"
+      },
+      "search": {
+        "placeholder": "Search policies..."
+      },
+      "filters": {
+        "allSections": "All Sections",
+        "allStatuses": "All Status"
+      },
+      "resultsCount": "Showing {count} policies",
+      "sections": {
+        "rules": "Rules & Guidelines",
+        "consequences": "Violations & Consequences",
+        "details": "Policy Details"
+      },
+      "fields": {
+        "effectiveDate": "Effective Date",
+        "lastUpdated": "Last Updated",
+        "updatedBy": "Updated By"
+      },
+      "empty": {
+        "title": "No policies found",
+        "description": "Try adjusting your filters or create a new policy."
+      }
+    },
     "dashboard": {
       "title": "Enterprise dashboard",
       "subtitle": "Monitor guard operations and resident activity across sites.",
@@ -1337,6 +1387,14 @@
       "reports": {
         "label": "Reports",
         "description": "Analytics and exports."
+      },
+      "policies": {
+        "label": "Policies",
+        "description": "Site policies and guidelines."
+      },
+      "incidents": {
+        "label": "Incidents",
+        "description": "Review incident queue."
       }
     },
     "incidents": {

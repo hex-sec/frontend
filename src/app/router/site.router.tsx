@@ -9,9 +9,11 @@ const UserProfile = lazy(() => import('@features/admin/users/UserProfilePage'))
 const Visits = lazy(() => import('@features/admin/VisitsPage'))
 const Visitors = lazy(() => import('@features/admin/VisitorsPage'))
 const Vehicles = lazy(() => import('@features/admin/VehiclesPage'))
+const VehicleDetail = lazy(() => import('@features/admin/VehicleDetailPage'))
 const Reports = lazy(() => import('@features/admin/ReportsPage'))
 const Residences = lazy(() => import('@features/admin/ResidencesPage'))
 const Sites = lazy(() => import('@features/admin/SitesPage'))
+const Policies = lazy(() => import('@features/admin/PoliciesPage'))
 
 export const siteRoutes: RouteObject[] = [
   {
@@ -119,6 +121,14 @@ export const siteRoutes: RouteObject[] = [
         ),
       },
       {
+        path: 'vehicles/:vehicleId',
+        element: (
+          <Suspense fallback={null}>
+            <VehicleDetail />
+          </Suspense>
+        ),
+      },
+      {
         path: 'sites',
         element: (
           <Suspense fallback={null}>
@@ -139,6 +149,14 @@ export const siteRoutes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <Reports />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'policies',
+        element: (
+          <Suspense fallback={null}>
+            <Policies />
           </Suspense>
         ),
       },
