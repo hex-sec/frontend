@@ -1147,7 +1147,10 @@
       "manage": "Gestionar"
     },
     "rowMenu": {
-      "viewProfile": "Ver perfil"
+      "viewProfile": "Ver perfil",
+      "copyEmail": "Copiar correo",
+      "copyId": "Copiar ID de usuario",
+      "impersonate": "Suplantar sesión"
     },
     "meta": {
       "all": {
@@ -1923,6 +1926,60 @@
         "title": "No se encontraron visitantes",
         "description": "Ajusta los filtros o agrega un perfil de visitante recurrente."
       }
+    }
+  }
+  ,
+  "visitDetails": {
+    "modal": {
+      "title": "Detalles de la Visita",
+      "visitDetails": "Detalles de la Visita",
+      "visitorInformation": "Información del Visitante",
+      "hostInformation": "Información del Anfitrión",
+      "badgeQrCode": "Código QR de la Credencial",
+      "qrInstructions": "Escanea este código QR para validar la credencial",
+      "badgeCode": "Código de la Credencial",
+      "downloadTooltip": "Descargar PDF de la Credencial",
+      "field": {
+        "site": "Sitio",
+        "scheduledFor": "Programado Para",
+        "requestedBy": "Solicitado Por",
+        "requestedAt": "Solicitado El",
+        "expiresAt": "Expira El",
+        "approvedBy": "Aprobado Por",
+        "email": "Correo Electrónico",
+        "name": "Nombre",
+        "vehiclePlate": "Placa del Vehículo",
+        "lastVisit": "Última Visita",
+        "hostName": "Nombre del Anfitrión",
+        "unit": "Unidad"
+      }
+    }
+  }
+  ,
+  "visitDetailsModal": {
+    "title": "Detalles de la Visita",
+    "sections": {
+      "hostInformation": "Información del Anfitrión",
+      "visitorInformation": "Información del Visitante",
+      "badgeQrCode": "Código QR de la Credencial",
+      "visitDetails": "Detalles de la Visita"
+    },
+    "actions": {
+      "downloadPdf": "Descargar PDF de la Credencial"
+    },
+    "fields": {
+      "site": "Sitio",
+      "scheduledFor": "Programado Para",
+      "requestedBy": "Solicitado Por",
+      "requestedAt": "Solicitado El",
+      "expiresAt": "Expira El",
+      "approvedBy": "Aprobado Por",
+      "hostName": "Nombre del Anfitrión",
+      "unit": "Unidad",
+      "name": "Nombre",
+      "email": "Correo Electrónico",
+      "vehiclePlate": "Placa del Vehículo",
+      "lastVisit": "Última Visita"
     }
   }
 }

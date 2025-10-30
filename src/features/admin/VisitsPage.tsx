@@ -16,7 +16,9 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  Snackbar,
 } from '@mui/material'
+import { ListItemIcon } from '@mui/material'
 import AddBusinessIcon from '@mui/icons-material/AddBusiness'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
@@ -24,6 +26,9 @@ import SearchIcon from '@mui/icons-material/Search'
 import CelebrationIcon from '@mui/icons-material/Celebration'
 import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled'
 import DownloadIcon from '@mui/icons-material/Download'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import MarkEmailUnreadIcon from '@mui/icons-material/MarkEmailUnread'
 import QrCode2Icon from '@mui/icons-material/QrCode2'
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
@@ -259,6 +264,9 @@ export default function VisitsPage() {
   })
   const [downloading, setDownloading] = useState(false)
   const [selectedVisit, setSelectedVisit] = useState<VisitRecord | null>(null)
+  const [feedback, setFeedback] = useState<{ open: boolean; message: string } | null>(null)
+  const [statusOverrides, setStatusOverrides] = useState<Map<string, VisitStatus>>(new Map())
+  const [arrivedIds, setArrivedIds] = useState<Set<string>>(new Set())
 
   const filterButtonLabel = useMemo(() => {
     return (
@@ -325,8 +333,87 @@ export default function VisitsPage() {
     setDownloading(true)
     setTimeout(() => {
       setDownloading(false)
+      setFeedback({
+        open: true,
+        message:
+          translate('visitsPage.actions.downloadBadge', 'Download badge') +
+          ' • ' +
+          translate('common.saveChanges', 'Save changes'),
+      })
     }, 1200)
   }, [])
+
+  const handleResendConfirmation = useCallback(
+    (visit?: VisitRecord) => {
+      const message =
+        translate('visitsPage.actions.resendConfirmation', 'Resend confirmation email') +
+        (visit ? ` • ${visit.visitorName}` : '')
+      setFeedback({ open: true, message })
+    },
+    [translate],
+  )
+
+  const handleCancelVisitAction = useCallback(
+    (visit?: VisitRecord) => {
+      const message =
+        translate('visitsPage.actions.cancelVisit', 'Cancel visit') +
+        (visit ? ` • ${visit.visitorName}` : '')
+      setFeedback({ open: true, message })
+    },
+    [translate],
+  )
+
+  const handleCopyToClipboard = useCallback(
+    (value?: string) => {
+      if (!value) return
+      try {
+        void navigator.clipboard.writeText(value)
+        setFeedback({ open: true, message: translate('common.apply', 'Apply') + ' • ' + value })
+      } catch {
+        /* noop */
+      }
+    },
+    [translate],
+  )
+
+  const handleOpenDetails = useCallback((visit: VisitRecord) => {
+    setSelectedVisit(visit)
+  }, [])
+
+  const handleApprove = useCallback(
+    (visit: VisitRecord) => {
+      setStatusOverrides((prev) => {
+        const next = new Map(prev)
+        next.set(visit.id, 'approved')
+        return next
+      })
+      setFeedback({ open: true, message: statusMeta.approved.label + ' • ' + visit.visitorName })
+    },
+    [statusMeta],
+  )
+
+  const handleDeny = useCallback(
+    (visit: VisitRecord) => {
+      setStatusOverrides((prev) => {
+        const next = new Map(prev)
+        next.set(visit.id, 'denied')
+        return next
+      })
+      setFeedback({ open: true, message: statusMeta.denied.label + ' • ' + visit.visitorName })
+    },
+    [statusMeta],
+  )
+
+  const handleMarkArrived = useCallback(
+    (visit: VisitRecord) => {
+      setArrivedIds((prev) => new Set(prev).add(visit.id))
+      setFeedback({
+        open: true,
+        message: translate('visitsPage.pdf.arrived', 'Arrived') + ' • ' + visit.visitorName,
+      })
+    },
+    [translate],
+  )
 
   const columnDefs = useMemo<ColumnDefinition<VisitRecord>[]>(() => {
     const currentSlug = derivedSiteSlug ?? null
@@ -423,14 +510,15 @@ export default function VisitsPage() {
         label: columnLabels.status,
         minWidth: 140,
         render: (visit) => {
-          const meta = statusMeta[visit.status]
+          const effective = statusOverrides.get(visit.id) ?? visit.status
+          const meta = statusMeta[effective]
           return (
             <Chip
               size="small"
               color={meta.color}
               icon={<meta.Icon fontSize="small" />}
               label={meta.label}
-              variant={visit.status === 'pending' ? 'outlined' : 'filled'}
+              variant={effective === 'pending' ? 'outlined' : 'filled'}
             />
           )
         },
@@ -566,7 +654,7 @@ export default function VisitsPage() {
         mobileActions={mobileActions}
       />
 
-      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, minHeight: { xs: 340, sm: 380 } }}>
         {isMobile ? (
           <Stack spacing={2}>
             <Stack direction="column" spacing={1}>
@@ -642,6 +730,10 @@ export default function VisitsPage() {
             rows={filteredVisits}
             getRowId={(visit) => visit.id}
             size="small"
+            initialSkeletonMs={1000}
+            skeletonPadding={{ xs: 2, sm: 3 }}
+            skeletonMinHeight={300}
+            skeletonRows={4}
             onRowClick={(visit) => setSelectedVisit(visit)}
             emptyState={{
               title: emptyStateTitle,
@@ -735,26 +827,114 @@ export default function VisitsPage() {
           <>
             <MenuItem
               onClick={() => {
+                if (rowMenu.visit) handleOpenDetails(rowMenu.visit)
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <VisibilityIcon fontSize="small" />
+              </ListItemIcon>
+              {translate('visitDetails.modal.title', 'Visit Details')}
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
                 handleDownloadBadge()
                 handleCloseRowMenu()
               }}
               disabled={downloading}
             >
+              <ListItemIcon>
+                <DownloadIcon fontSize="small" />
+              </ListItemIcon>
               {downloadBadgeLabel}
             </MenuItem>
             <MenuItem
               onClick={() => {
+                if (rowMenu.visit) handleResendConfirmation(rowMenu.visit)
                 handleCloseRowMenu()
               }}
             >
+              <ListItemIcon>
+                <MarkEmailUnreadIcon fontSize="small" />
+              </ListItemIcon>
               {resendEmailLabel}
             </MenuItem>
             <MenuItem
               onClick={() => {
+                if (rowMenu.visit) handleCancelVisitAction(rowMenu.visit)
                 handleCloseRowMenu()
               }}
             >
+              <ListItemIcon>
+                <ErrorOutlineIcon fontSize="small" />
+              </ListItemIcon>
               {cancelVisitLabel}
+            </MenuItem>
+            <Divider sx={{ my: 0.5 }} />
+            <MenuItem
+              onClick={() => {
+                if (rowMenu.visit) handleCopyToClipboard(rowMenu.visit.badgeCode)
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <ContentCopyIcon fontSize="small" />
+              </ListItemIcon>
+              {translate('visitsPage.table.columns.badge', 'Badge')} •{' '}
+              {translate('usersPage.rowMenu.copyId', 'Copy user ID')}
+            </MenuItem>
+            <MenuItem
+              disabled={!rowMenu.visit?.visitorEmail}
+              onClick={() => {
+                if (rowMenu.visit?.visitorEmail) handleCopyToClipboard(rowMenu.visit.visitorEmail)
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <MarkEmailUnreadIcon fontSize="small" />
+              </ListItemIcon>
+              {translate('usersPage.rowMenu.copyEmail', 'Copy email')}
+            </MenuItem>
+            <Divider sx={{ my: 0.5 }} />
+            <MenuItem
+              disabled={
+                (statusOverrides.get(rowMenu.visit.id) ?? rowMenu.visit.status) === 'approved'
+              }
+              onClick={() => {
+                handleApprove(rowMenu.visit as VisitRecord)
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <CheckCircleOutlineIcon fontSize="small" />
+              </ListItemIcon>
+              {statusMeta.approved.label}
+            </MenuItem>
+            <MenuItem
+              disabled={
+                (statusOverrides.get(rowMenu.visit.id) ?? rowMenu.visit.status) === 'denied'
+              }
+              onClick={() => {
+                handleDeny(rowMenu.visit as VisitRecord)
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <ErrorOutlineIcon fontSize="small" />
+              </ListItemIcon>
+              {statusMeta.denied.label}
+            </MenuItem>
+            <MenuItem
+              disabled={arrivedIds.has(rowMenu.visit.id)}
+              onClick={() => {
+                handleMarkArrived(rowMenu.visit as VisitRecord)
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <AccessTimeIcon fontSize="small" />
+              </ListItemIcon>
+              {translate('visitsPage.pdf.arrived', 'Arrived')}
             </MenuItem>
           </>
         ) : (
@@ -801,8 +981,16 @@ export default function VisitsPage() {
         resendEmailLabel={resendEmailLabel}
         cancelVisitLabel={cancelVisitLabel}
         onDownloadBadge={handleDownloadBadge}
-        onResendEmail={() => {}}
-        onCancelVisit={() => {}}
+        onResendEmail={() => handleResendConfirmation(selectedVisit ?? undefined)}
+        onCancelVisit={() => handleCancelVisitAction(selectedVisit ?? undefined)}
+      />
+
+      <Snackbar
+        open={Boolean(feedback?.open)}
+        autoHideDuration={2000}
+        onClose={() => setFeedback((prev) => (prev ? { ...prev, open: false } : prev))}
+        message={feedback?.message}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       />
     </Stack>
   )

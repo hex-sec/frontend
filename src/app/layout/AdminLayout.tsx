@@ -18,6 +18,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import DomainIcon from '@mui/icons-material/Domain'
+import ListIcon from '@mui/icons-material/List'
 import PeopleIcon from '@mui/icons-material/People'
 import PersonIcon from '@mui/icons-material/Person'
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar'
@@ -42,10 +43,11 @@ import { formatBackLabel } from './backNavigation'
 import { scrollWindowToTop } from './scrollToTop'
 import vehiclesSeed from '../../mocks/vehicles.json'
 import visitorsSeed from '../../mocks/visitors.json'
+import { USERS as USERS_DATA } from '@features/admin/users/userData'
 
 const CRUMB_META_MAP: Record<string, { labelKey: string; Icon?: ElementType }> = {
   admin: { labelKey: 'layout.breadcrumbs.adminDashboard', Icon: DashboardIcon },
-  sites: { labelKey: 'layout.breadcrumbs.sites', Icon: DomainIcon },
+  sites: { labelKey: 'layout.breadcrumbs.sites', Icon: ListIcon },
   users: { labelKey: 'layout.breadcrumbs.users', Icon: PeopleIcon },
   residents: { labelKey: 'layout.breadcrumbs.residents', Icon: PersonIcon },
   residences: { labelKey: 'layout.breadcrumbs.residences', Icon: HomeWorkIcon },
@@ -117,14 +119,14 @@ function getSiblingSegments(
     return USERS_SECTION_SIBLINGS.filter((s) => s !== segment.toLowerCase())
   }
 
-  // Fourth level and beyond: site-level pages, filter out current
-  if (breadcrumbIndex >= 3) {
+  // Third level (enterprise detail) or deeper: detail pages should expose their siblings
+  if (breadcrumbIndex >= 2) {
     // If we're on a users sub-page (admins, guards, residents), show those siblings
     if (segment === 'admins' || segment === 'guards' || segment === 'residents') {
       return USERS_SECTION_SIBLINGS.filter((s) => s !== segment.toLowerCase())
     }
     // If we're on a detail page (ID), show other IDs based on context
-    if (segment.match(/^[A-Z0-9-]+$/) && crumbs && breadcrumbIndex > 0) {
+    if (segment.match(/^[A-Za-z0-9-]+$/) && crumbs && breadcrumbIndex > 0) {
       const previousSegment = crumbs[breadcrumbIndex - 1]?.segment
 
       if (previousSegment === 'vehicles') {
@@ -155,10 +157,22 @@ function getSiblingSegments(
         const filteredResidences =
           allSites && current ? residences.filter((r) => r.siteSlug === current.slug) : residences
         return filteredResidences.map((r) => r.id).filter((id) => id !== segment)
+      } else if (previousSegment === 'users') {
+        type SiteRef = { slug: string }
+        type UserLite = { id: string | number; sites?: SiteRef[] }
+        const users = (USERS_DATA as unknown as UserLite[]).map((u) => ({
+          id: String(u.id),
+          sites: Array.isArray(u.sites) ? u.sites.map((s) => String(s.slug)) : [],
+        }))
+        const filteredUsers =
+          allSites && current ? users.filter((u) => u.sites.includes(current.slug)) : users
+        return filteredUsers.map((u) => u.id).filter((id) => id !== segment)
       }
     }
-    // Otherwise, show site-level siblings
-    return SITE_LEVEL_SIBLINGS.filter((s) => s !== segment.toLowerCase())
+    // For deeper site-level pages, show section siblings
+    if (breadcrumbIndex >= 3) {
+      return SITE_LEVEL_SIBLINGS.filter((s) => s !== segment.toLowerCase())
+    }
   }
 
   return []
@@ -354,22 +368,30 @@ export default function AdminLayout() {
                 const Icon = meta.Icon
                 const isSiteCrumb = current?.slug === c.segment
                 const isVehicleDetailCrumb =
-                  index >= 3 &&
-                  c.segment.match(/^[A-Z0-9-]+$/) &&
+                  index >= 2 &&
+                  c.segment.match(/^[A-Za-z0-9-]+$/) &&
                   index > 0 &&
                   crumbs[index - 1]?.segment === 'vehicles'
                 const isVisitorDetailCrumb =
-                  index >= 3 &&
-                  c.segment.match(/^[A-Z0-9-]+$/) &&
+                  index >= 2 &&
+                  c.segment.match(/^[A-Za-z0-9-]+$/) &&
                   index > 0 &&
                   crumbs[index - 1]?.segment === 'visitors'
                 const isResidenceDetailCrumb =
-                  index >= 3 &&
-                  c.segment.match(/^[A-Z0-9-]+$/) &&
+                  index >= 2 &&
+                  c.segment.match(/^[A-Za-z0-9-]+$/) &&
                   index > 0 &&
                   crumbs[index - 1]?.segment === 'residences'
+                const isUserDetailCrumb =
+                  index >= 2 &&
+                  c.segment.match(/^[A-Za-z0-9-]+$/) &&
+                  index > 0 &&
+                  crumbs[index - 1]?.segment === 'users'
                 const isDetailCrumb =
-                  isVehicleDetailCrumb || isVisitorDetailCrumb || isResidenceDetailCrumb
+                  isVehicleDetailCrumb ||
+                  isVisitorDetailCrumb ||
+                  isResidenceDetailCrumb ||
+                  isUserDetailCrumb
                 const siblings = getSiblingSegments(
                   c.segment,
                   index,
@@ -385,7 +407,10 @@ export default function AdminLayout() {
                     component="span"
                     sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
                   >
-                    {isVehicleDetailCrumb || isVisitorDetailCrumb || isResidenceDetailCrumb ? (
+                    {isVehicleDetailCrumb ||
+                    isVisitorDetailCrumb ||
+                    isResidenceDetailCrumb ||
+                    isUserDetailCrumb ? (
                       <ConfirmationNumberIcon fontSize="small" />
                     ) : Icon ? (
                       <Icon fontSize="small" />
@@ -455,12 +480,14 @@ export default function AdminLayout() {
                                 onChange={(e) => setSiteSearch(e.target.value)}
                                 onClick={(e) => e.stopPropagation()}
                                 onKeyDown={(e) => e.stopPropagation()}
-                                InputProps={{
-                                  startAdornment: (
-                                    <InputAdornment position="start">
-                                      <SearchIcon fontSize="small" />
-                                    </InputAdornment>
-                                  ),
+                                slotProps={{
+                                  input: {
+                                    startAdornment: (
+                                      <InputAdornment position="start">
+                                        <SearchIcon fontSize="small" />
+                                      </InputAdornment>
+                                    ),
+                                  },
                                 }}
                               />
                             </Box>
@@ -473,32 +500,52 @@ export default function AdminLayout() {
                                 size="small"
                                 fullWidth
                                 autoFocus
-                                placeholder={
-                                  isVisitorDetailCrumb
-                                    ? t('layout.breadcrumbs.searchVisitors', {
-                                        lng: language,
-                                        defaultValue: 'Search visitors by name or ID...',
-                                      })
-                                    : isResidenceDetailCrumb
-                                      ? t('layout.breadcrumbs.searchResidences', {
-                                          lng: language,
-                                          defaultValue: 'Search residences by unit or ID...',
-                                        })
-                                      : t('layout.breadcrumbs.searchVehicles', {
-                                          lng: language,
-                                          defaultValue: 'Search vehicles by plate or ID...',
-                                        })
-                                }
+                                placeholder={(() => {
+                                  const placeholders: Record<string, string> = {
+                                    vehicle: t('layout.breadcrumbs.searchVehicles', {
+                                      lng: language,
+                                      defaultValue: 'Search vehicles by plate or ID...',
+                                    }),
+                                    visitor: t('layout.breadcrumbs.searchVisitors', {
+                                      lng: language,
+                                      defaultValue: 'Search visitors by name or ID...',
+                                    }),
+                                    residence: t('layout.breadcrumbs.searchResidences', {
+                                      lng: language,
+                                      defaultValue: 'Search residences by unit or ID...',
+                                    }),
+                                    user: t('layout.breadcrumbs.searchUsers', {
+                                      lng: language,
+                                      defaultValue: 'Search users by name or ID...',
+                                    }),
+                                    generic: t('layout.breadcrumbs.searchGeneric', {
+                                      lng: language,
+                                      defaultValue: 'Search…',
+                                    }),
+                                  }
+                                  const key = isVehicleDetailCrumb
+                                    ? 'vehicle'
+                                    : isVisitorDetailCrumb
+                                      ? 'visitor'
+                                      : isResidenceDetailCrumb
+                                        ? 'residence'
+                                        : isUserDetailCrumb
+                                          ? 'user'
+                                          : 'generic'
+                                  return placeholders[key]
+                                })()}
                                 value={vehicleSearch}
                                 onChange={(e) => setVehicleSearch(e.target.value)}
                                 onClick={(e) => e.stopPropagation()}
                                 onKeyDown={(e) => e.stopPropagation()}
-                                InputProps={{
-                                  startAdornment: (
-                                    <InputAdornment position="start">
-                                      <SearchIcon fontSize="small" />
-                                    </InputAdornment>
-                                  ),
+                                slotProps={{
+                                  input: {
+                                    startAdornment: (
+                                      <InputAdornment position="start">
+                                        <SearchIcon fontSize="small" />
+                                      </InputAdornment>
+                                    ),
+                                  },
                                 }}
                               />
                             </Box>
@@ -566,6 +613,17 @@ export default function AdminLayout() {
                                   sibling.toLowerCase().includes(searchLower) ||
                                   residence?.label.toLowerCase().includes(searchLower)
                                 )
+                              } else if (isUserDetailCrumb) {
+                                const users = USERS_DATA.map((u) => ({
+                                  id: String(u.id),
+                                  name: String(u.name),
+                                }))
+                                const user = users.find((u) => u.id === sibling)
+                                const searchLower = vehicleSearch.toLowerCase()
+                                return (
+                                  sibling.toLowerCase().includes(searchLower) ||
+                                  (user?.name.toLowerCase().includes(searchLower) ?? false)
+                                )
                               }
                             }
                             return true
@@ -593,7 +651,7 @@ export default function AdminLayout() {
                                   makeModel: String(v.makeModel),
                                 }))
                                 const vehicle = vehicles.find((v) => v.id === sibling)
-                                const base = isSiteMode
+                                const base = isSitePath
                                   ? `/site/${current?.slug}/vehicles/${sibling}`
                                   : `/admin/vehicles/${sibling}`
                                 siblingPath = base
@@ -610,7 +668,7 @@ export default function AdminLayout() {
                                   email: String(v.email),
                                 }))
                                 const visitor = visitors.find((v) => v.id === sibling)
-                                const base = isSiteMode
+                                const base = isSitePath
                                   ? `/site/${current?.slug}/visitors/${sibling}`
                                   : `/admin/visitors/${sibling}`
                                 siblingPath = base
@@ -626,12 +684,24 @@ export default function AdminLayout() {
                                   { id: 'PRC-12', label: 'Parcel · 12' },
                                 ]
                                 const residence = residences.find((r) => r.id === sibling)
-                                const base = isSiteMode
+                                const base = isSitePath
                                   ? `/site/${current?.slug}/residences/${sibling}`
                                   : `/admin/residences/${sibling}`
                                 siblingPath = base
                                 siblingLabel = residence ? residence.label : sibling
                                 siblingIcon = HomeWorkIcon
+                              } else if (isUserDetailCrumb) {
+                                const users = USERS_DATA.map((u) => ({
+                                  id: String(u.id),
+                                  name: String(u.name),
+                                }))
+                                const user = users.find((u) => u.id === sibling)
+                                const base = isSitePath
+                                  ? `/site/${current?.slug}/users/${sibling}`
+                                  : `/admin/users/${sibling}`
+                                siblingPath = base
+                                siblingLabel = user?.name || sibling
+                                siblingIcon = PersonIcon
                               }
                             } else if (
                               index === 2 &&
@@ -652,19 +722,35 @@ export default function AdminLayout() {
                                 sibling === 'guards' ||
                                 sibling === 'residents'
 
-                              // If we are within Users section (either on 'users' or a role subpage),
-                              // ensure role siblings include the 'users' prefix in the path.
-                              if (currentSegment === 'users' && isUsersSectionSibling) {
-                                siblingPath = `/admin/sites/${current?.slug}/users/${sibling}`
-                              } else if (
-                                (currentSegment === 'admins' ||
-                                  currentSegment === 'guards' ||
-                                  currentSegment === 'residents') &&
-                                isUsersSectionSibling
-                              ) {
-                                siblingPath = `/admin/sites/${current?.slug}/users/${sibling}`
+                              // Build path based on whether we're in site mode or enterprise mode
+                              if (isSiteMode && current) {
+                                // Site mode: use /site/:slug paths
+                                if (currentSegment === 'users' && isUsersSectionSibling) {
+                                  siblingPath = `/site/${current.slug}/users/${sibling}`
+                                } else if (
+                                  (currentSegment === 'admins' ||
+                                    currentSegment === 'guards' ||
+                                    currentSegment === 'residents') &&
+                                  isUsersSectionSibling
+                                ) {
+                                  siblingPath = `/site/${current.slug}/users/${sibling}`
+                                } else {
+                                  siblingPath = `/site/${current.slug}/${sibling}`
+                                }
                               } else {
-                                siblingPath = `/admin/sites/${current?.slug}/${sibling}`
+                                // Enterprise mode: use /admin/sites/:slug paths
+                                if (currentSegment === 'users' && isUsersSectionSibling) {
+                                  siblingPath = `/admin/sites/${current?.slug}/users/${sibling}`
+                                } else if (
+                                  (currentSegment === 'admins' ||
+                                    currentSegment === 'guards' ||
+                                    currentSegment === 'residents') &&
+                                  isUsersSectionSibling
+                                ) {
+                                  siblingPath = `/admin/sites/${current?.slug}/users/${sibling}`
+                                } else {
+                                  siblingPath = `/admin/sites/${current?.slug}/${sibling}`
+                                }
                               }
                               const siblingMeta = getCrumbMeta(sibling)
                               siblingLabel = siblingMeta.label

@@ -8,6 +8,7 @@ const Sites = lazy(() => import('@features/admin/SitesPage'))
 const SiteDetails = lazy(() => import('@features/admin/site-details/SiteDetailsPage'))
 const Visits = lazy(() => import('@features/admin/VisitsPage'))
 const Visitors = lazy(() => import('@features/admin/VisitorsPage'))
+const VisitorProfile = lazy(() => import('@features/admin/VisitorProfilePage'))
 const Residents = lazy(() => import('@features/admin/ResidentsPage'))
 const Residences = lazy(() => import('@features/admin/ResidencesPage'))
 const Vehicles = lazy(() => import('@features/admin/VehiclesPage'))
@@ -18,6 +19,7 @@ const Users = lazy(() => import('@features/admin/UsersPage'))
 const UserProfile = lazy(() => import('@features/admin/users/UserProfilePage'))
 const VisitProfile = lazy(() => import('@features/admin/VisitProfilePage'))
 const VehicleDetail = lazy(() => import('@features/admin/VehicleDetailPage'))
+const ResidenceDetail = lazy(() => import('@features/admin/ResidenceDetailPage'))
 const Incidents = lazy(() => import('@features/admin/IncidentsPage'))
 
 export const adminRoutes: RouteObject[] = [
@@ -134,10 +136,26 @@ export const adminRoutes: RouteObject[] = [
         ),
       },
       {
+        path: 'sites/:slug/visitors/:visitorId',
+        element: (
+          <Suspense fallback={null}>
+            <VisitorProfile />
+          </Suspense>
+        ),
+      },
+      {
         path: 'sites/:slug/residences',
         element: (
           <Suspense fallback={null}>
             <Residences />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'sites/:slug/residences/:residenceId',
+        element: (
+          <Suspense fallback={null}>
+            <ResidenceDetail />
           </Suspense>
         ),
       },
@@ -186,6 +204,14 @@ export const adminRoutes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <Visitors />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'visitors/:visitorId',
+        element: (
+          <Suspense fallback={null}>
+            <VisitorProfile />
           </Suspense>
         ),
       },
@@ -270,6 +296,30 @@ export const adminRoutes: RouteObject[] = [
         ),
       },
       {
+        path: 'users/guards/:userId',
+        element: (
+          <Suspense fallback={null}>
+            <UserProfile />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'users/admins/:userId',
+        element: (
+          <Suspense fallback={null}>
+            <UserProfile />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'users/residents/:userId',
+        element: (
+          <Suspense fallback={null}>
+            <UserProfile />
+          </Suspense>
+        ),
+      },
+      {
         path: 'visits/:visitId',
         element: (
           <Suspense fallback={null}>
@@ -290,6 +340,14 @@ export const adminRoutes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <Residences />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'residences/:residenceId',
+        element: (
+          <Suspense fallback={null}>
+            <ResidenceDetail />
           </Suspense>
         ),
       },

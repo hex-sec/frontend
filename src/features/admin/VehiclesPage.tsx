@@ -31,13 +31,14 @@ import ReportIcon from '@mui/icons-material/Report'
 import UpdateIcon from '@mui/icons-material/Update'
 import DownloadIcon from '@mui/icons-material/Download'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import buildEntityUrl from '@app/utils/contextPaths'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
 import type { ColumnDefinition } from '../../components/table/useColumnPreferences'
 import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
 import { useTranslate } from '@i18n/useTranslate'
 import { useI18nStore } from '@store/i18n.store'
+import { Snackbar } from '@mui/material'
 import PageHeader from './components/PageHeader'
 
 type VehicleUsage = 'resident' | 'visitor' | 'service'
@@ -110,8 +111,10 @@ const STATUS_META_BASE: Record<
 
 export default function VehiclesPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
   const isSiteContext = Boolean(derivedSiteSlug)
+  const isAdminSitesRoute = location.pathname.startsWith('/admin/sites/')
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const [search, setSearch] = useState('')
@@ -124,10 +127,15 @@ export default function VehiclesPage() {
     anchor: null,
     vehicle: undefined,
   })
+  const [downloading, setDownloading] = useState<boolean>(false)
+  const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set())
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set())
+  const [feedback, setFeedback] = useState<{ open: boolean; message: string } | null>(null)
 
   const filteredVehicles = useMemo(() => {
     const lower = search.trim().toLowerCase()
     return MOCK_VEHICLES.filter((vehicle) => {
+      if (removedIds.has(vehicle.id)) return false
       if (derivedSiteSlug && vehicle.siteSlug !== derivedSiteSlug) {
         return false
       }
@@ -149,7 +157,7 @@ export default function VehiclesPage() {
         vehicle.permitId.toLowerCase().includes(lower)
       )
     })
-  }, [derivedSiteSlug, filter, search, showHighPassesOnly, statusFilter])
+  }, [derivedSiteSlug, filter, search, showHighPassesOnly, statusFilter, removedIds])
 
   const handleOpenFilterMenu = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     setFilterAnchor(event.currentTarget)
@@ -325,12 +333,45 @@ export default function VehiclesPage() {
   )
 
   const handleDownloadPermit = useCallback(() => {
-    handleCloseRowMenu()
-  }, [handleCloseRowMenu])
+    setDownloading(true)
+    setTimeout(() => {
+      setDownloading(false)
+      setFeedback({
+        open: true,
+        message: translate('vehiclesPage.actions.downloadPermit', 'Download permit'),
+      })
+    }, 1200)
+  }, [translate])
 
-  const handleFlagVehicle = useCallback(() => {
-    handleCloseRowMenu()
-  }, [handleCloseRowMenu])
+  const handleFlagVehicle = useCallback(
+    (vehicle?: VehicleRecord) => {
+      if (vehicle?.id) {
+        setFlaggedIds((prev) => new Set(prev).add(vehicle.id))
+        setFeedback({
+          open: true,
+          message:
+            translate('vehiclesPage.actions.flagForReview', 'Flag for review') +
+            ` • ${vehicle.plate}`,
+        })
+      }
+    },
+    [translate],
+  )
+
+  const handleRemoveFromRegistry = useCallback(
+    (vehicle?: VehicleRecord) => {
+      if (vehicle?.id) {
+        setRemovedIds((prev) => new Set(prev).add(vehicle.id))
+        setFeedback({
+          open: true,
+          message:
+            translate('vehiclesPage.actions.removeFromRegistry', 'Remove from registry') +
+            ` • ${vehicle.plate}`,
+        })
+      }
+    },
+    [translate],
+  )
 
   const filterButtonLabel = useMemo(() => {
     return (
@@ -472,14 +513,15 @@ export default function VehiclesPage() {
         label: columnLabels.status,
         minWidth: 150,
         render: (vehicle) => {
-          const meta = statusMeta[vehicle.status]
+          const effectiveStatus = flaggedIds.has(vehicle.id) ? 'flagged' : vehicle.status
+          const meta = statusMeta[effectiveStatus]
           return (
             <Chip
               size="small"
               color={meta.color}
               icon={<meta.Icon fontSize="small" />}
               label={meta.label}
-              variant={vehicle.status === 'expired' ? 'outlined' : 'filled'}
+              variant={effectiveStatus === 'expired' ? 'outlined' : 'filled'}
             />
           )
         },
@@ -556,7 +598,7 @@ export default function VehiclesPage() {
         mobileActions={mobileActions}
       />
 
-      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, minHeight: { xs: 340, sm: 380 } }}>
         {isMobile ? (
           <Stack spacing={2}>
             <Stack direction="column" spacing={1}>
@@ -628,6 +670,10 @@ export default function VehiclesPage() {
                     timeFormatter={timeFormatter}
                     onOpenRowMenu={handleOpenRowMenu}
                     onCardClick={() => {
+                      if (isAdminSitesRoute && derivedSiteSlug) {
+                        navigate(`/admin/sites/${derivedSiteSlug}/vehicles/${vehicle.id}`)
+                        return
+                      }
                       const base = buildEntityUrl('vehicles', vehicle.id, {
                         mode: derivedSiteSlug ? 'site' : 'enterprise',
                         currentSlug: derivedSiteSlug ?? null,
@@ -648,7 +694,15 @@ export default function VehiclesPage() {
             rows={filteredVehicles}
             getRowId={(vehicle) => vehicle.id}
             size="small"
+            initialSkeletonMs={1000}
+            skeletonPadding={{ xs: 2, sm: 3 }}
+            skeletonMinHeight={300}
+            skeletonRows={4}
             onRowClick={(vehicle) => {
+              if (isAdminSitesRoute && derivedSiteSlug) {
+                navigate(`/admin/sites/${derivedSiteSlug}/vehicles/${vehicle.id}`)
+                return
+              }
               const base = buildEntityUrl('vehicles', vehicle.id, {
                 mode: derivedSiteSlug ? 'site' : 'enterprise',
                 currentSlug: derivedSiteSlug ?? null,
@@ -772,16 +826,40 @@ export default function VehiclesPage() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MenuItem onClick={handleDownloadPermit}>{downloadPermitLabel}</MenuItem>
-        <MenuItem onClick={handleFlagVehicle}>{flagForReviewLabel}</MenuItem>
         <MenuItem
           onClick={() => {
+            handleDownloadPermit()
+            handleCloseRowMenu()
+          }}
+          disabled={downloading}
+        >
+          {downloadPermitLabel}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (rowMenu.vehicle) handleFlagVehicle(rowMenu.vehicle)
+            handleCloseRowMenu()
+          }}
+        >
+          {flagForReviewLabel}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (rowMenu.vehicle) handleRemoveFromRegistry(rowMenu.vehicle)
             handleCloseRowMenu()
           }}
         >
           {removeFromRegistryLabel}
         </MenuItem>
       </Menu>
+
+      <Snackbar
+        open={Boolean(feedback?.open)}
+        autoHideDuration={2000}
+        onClose={() => setFeedback((prev) => (prev ? { ...prev, open: false } : prev))}
+        message={feedback?.message}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      />
     </Stack>
   )
 }

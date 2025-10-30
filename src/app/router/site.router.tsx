@@ -8,8 +8,10 @@ const Users = lazy(() => import('@features/admin/UsersPage'))
 const UserProfile = lazy(() => import('@features/admin/users/UserProfilePage'))
 const Visits = lazy(() => import('@features/admin/VisitsPage'))
 const Visitors = lazy(() => import('@features/admin/VisitorsPage'))
+const VisitorProfile = lazy(() => import('@features/admin/VisitorProfilePage'))
 const Vehicles = lazy(() => import('@features/admin/VehiclesPage'))
 const VehicleDetail = lazy(() => import('@features/admin/VehicleDetailPage'))
+const ResidenceDetail = lazy(() => import('@features/admin/ResidenceDetailPage'))
 const Reports = lazy(() => import('@features/admin/ReportsPage'))
 const Residences = lazy(() => import('@features/admin/ResidencesPage'))
 const Sites = lazy(() => import('@features/admin/SitesPage'))
@@ -113,6 +115,14 @@ export const siteRoutes: RouteObject[] = [
         ),
       },
       {
+        path: 'visitors/:visitorId',
+        element: (
+          <Suspense fallback={null}>
+            <VisitorProfile />
+          </Suspense>
+        ),
+      },
+      {
         path: 'vehicles',
         element: (
           <Suspense fallback={null}>
@@ -141,6 +151,14 @@ export const siteRoutes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <Residences />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'residences/:residenceId',
+        element: (
+          <Suspense fallback={null}>
+            <ResidenceDetail />
           </Suspense>
         ),
       },

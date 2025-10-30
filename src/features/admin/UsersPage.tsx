@@ -10,6 +10,7 @@ import {
   Divider,
   IconButton,
   InputAdornment,
+  ListItemIcon,
   Menu,
   MenuItem,
   Paper,
@@ -27,6 +28,9 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 import SearchIcon from '@mui/icons-material/Search'
 import ShieldIcon from '@mui/icons-material/Shield'
 import DomainIcon from '@mui/icons-material/Domain'
+import EmailIcon from '@mui/icons-material/Email'
+import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
+import VisibilityIcon from '@mui/icons-material/Visibility'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useSiteStore } from '@store/site.store'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
@@ -46,7 +50,7 @@ import {
   parseRoleFilter,
 } from '@features/admin/users/userData'
 import { useLastActiveFormatter } from '@features/admin/users/useLastActiveFormatter'
-import buildEntityUrl from '@app/utils/contextPaths'
+// import buildEntityUrl from '@app/utils/contextPaths'
 import { useI18nStore } from '@store/i18n.store'
 
 const ROLE_META_KEYS: Record<RoleFilter, string> = {
@@ -304,23 +308,25 @@ export default function UsersPage(): JSX.Element {
 
   const buildDetailUrl = useCallback(
     (user: UserRecord) => {
-      const params = new URLSearchParams()
-      if (effectiveFilter !== 'all') {
-        params.set('role', effectiveFilter)
+      // Prefer role-segmented routes when a role view is active
+      const roleSegment = effectiveFilter !== 'all' ? `${effectiveFilter}s` : null
+
+      if (derivedSiteSlug) {
+        // Site context paths
+        if (roleSegment) {
+          return `/site/${derivedSiteSlug}/users/${roleSegment}/${user.id}`
+        }
+        return `/site/${derivedSiteSlug}/users/${user.id}`
       }
-      if (!isSiteContext && !lockedSiteFilter && siteFilter !== 'all') {
-        params.set('site', siteFilter)
+
+      // Enterprise paths
+      if (roleSegment) {
+        return `/admin/users/${roleSegment}/${user.id}`
       }
-      const searchSuffix = params.toString()
-      const base = buildEntityUrl('users', user.id, {
-        mode: derivedSiteSlug ? 'site' : 'enterprise',
-        currentSlug: derivedSiteSlug ?? null,
-        routeParamSlug: derivedSiteSlug ?? null,
-        preferSiteWhenPossible: true,
-      })
-      return searchSuffix ? `${base}?${searchSuffix}` : base
+      // Fallback to non-segmented detail
+      return `/admin/users/${user.id}`
     },
-    [derivedSiteSlug, effectiveFilter, isSiteContext, lockedSiteFilter, siteFilter],
+    [derivedSiteSlug, effectiveFilter],
   )
 
   const handleOpenFilter = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -371,6 +377,14 @@ export default function UsersPage(): JSX.Element {
     navigate(target)
   }, [rowMenu.user, buildDetailUrl, closeRowMenu, navigate])
 
+  const handleCopyToClipboard = useCallback((value: string) => {
+    try {
+      void navigator.clipboard.writeText(value)
+    } catch {
+      // ignore clipboard errors
+    }
+  }, [])
+
   const columnDefs = useMemo<ColumnDefinition<UserRecord>[]>(() => {
     const highlightSlug = activeSiteSlug ?? null
     return [
@@ -402,14 +416,9 @@ export default function UsersPage(): JSX.Element {
         disableToggle: true,
         minWidth: 120,
         render: (user) => (
-          <Button
-            component={RouterLink}
-            to={buildDetailUrl(user)}
-            size="small"
-            sx={{ fontFamily: 'monospace', textTransform: 'none', px: 0 }}
-          >
+          <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
             {user.id}
-          </Button>
+          </Typography>
         ),
       },
       {
@@ -583,7 +592,7 @@ export default function UsersPage(): JSX.Element {
         mobileActions={mobileActions}
       />
 
-      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, minHeight: { xs: 340, sm: 380 } }}>
         {isMobile ? (
           <Stack spacing={2}>
             <Stack direction="column" spacing={1}>
@@ -642,12 +651,14 @@ export default function UsersPage(): JSX.Element {
                 defaultValue: 'Search by name, email, or site',
               })}
               fullWidth
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
@@ -688,6 +699,14 @@ export default function UsersPage(): JSX.Element {
             rows={filteredUsers}
             getRowId={(user) => user.id}
             size="small"
+            initialSkeletonMs={1000}
+            skeletonPadding={{ xs: 2, sm: 3 }}
+            skeletonMinHeight={300}
+            skeletonRows={4}
+            onRowClick={(user) => {
+              const target = buildDetailUrl(user)
+              navigate(target)
+            }}
             emptyState={{
               title: activeMeta.emptyTitle,
               description: activeMeta.emptyDescription,
@@ -762,12 +781,14 @@ export default function UsersPage(): JSX.Element {
                     lng: language,
                     defaultValue: 'Search by name, email, or site',
                   })}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon fontSize="small" />
-                      </InputAdornment>
-                    ),
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    },
                   }}
                 />
               </Stack>
@@ -784,10 +805,52 @@ export default function UsersPage(): JSX.Element {
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <MenuItem onClick={handleRowMenuViewProfile}>
+          <ListItemIcon>
+            <VisibilityIcon fontSize="small" />
+          </ListItemIcon>
           {t('usersPage.rowMenu.viewProfile', {
             lng: language,
             defaultValue: 'View profile',
           })}
+        </MenuItem>
+        <Divider />
+        <MenuItem
+          disabled={!rowMenu.user?.email}
+          onClick={() => {
+            if (!rowMenu.user?.email) return
+            handleCopyToClipboard(rowMenu.user.email)
+            closeRowMenu()
+          }}
+        >
+          <ListItemIcon>
+            <EmailIcon fontSize="small" />
+          </ListItemIcon>
+          {t('usersPage.rowMenu.copyEmail', { lng: language, defaultValue: 'Copy email' })}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (!rowMenu.user) return
+            handleCopyToClipboard(String(rowMenu.user.id))
+            closeRowMenu()
+          }}
+        >
+          <ListItemIcon>
+            <BadgeOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          {t('usersPage.rowMenu.copyId', { lng: language, defaultValue: 'Copy user ID' })}
+        </MenuItem>
+        <Divider />
+        <MenuItem
+          disabled={rowMenu.user?.status !== 'active'}
+          onClick={() => {
+            // Placeholder for impersonation flow
+            closeRowMenu()
+          }}
+        >
+          <ListItemIcon>
+            <ShieldIcon fontSize="small" />
+          </ListItemIcon>
+          {t('usersPage.rowMenu.impersonate', { lng: language, defaultValue: 'Impersonate' })}
         </MenuItem>
       </Menu>
 

@@ -7,6 +7,7 @@ import {
   Divider,
   IconButton,
   InputAdornment,
+  ListItemIcon,
   Menu,
   MenuItem,
   Paper,
@@ -19,6 +20,9 @@ import {
 } from '@mui/material'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt'
+import BlockIcon from '@mui/icons-material/Block'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1'
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom'
 import HandshakeIcon from '@mui/icons-material/Handshake'
@@ -30,7 +34,7 @@ import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred'
 import HourglassTopIcon from '@mui/icons-material/HourglassTop'
 import BadgeIcon from '@mui/icons-material/Badge'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
 import type { ColumnDefinition } from '../../components/table/useColumnPreferences'
 import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
@@ -108,6 +112,7 @@ type VisitorFilter = 'all' | VisitorStatus | VisitorCategory
 
 export default function VisitorsPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
   const { t } = useTranslate()
   const language = useI18nStore((state) => state.language) ?? 'en'
@@ -321,6 +326,19 @@ export default function VisitorsPage() {
       )
     })
   }, [activityFilter, derivedSiteSlug, filter, search])
+
+  const isAdminSitesRoute = location.pathname.startsWith('/admin/sites/')
+  const buildVisitorDetailUrl = useCallback(
+    (visitorId: string) => {
+      if (isAdminSitesRoute && derivedSiteSlug) {
+        return `/admin/sites/${derivedSiteSlug}/visitors/${visitorId}`
+      }
+      return derivedSiteSlug
+        ? `/site/${derivedSiteSlug}/visitors/${visitorId}`
+        : `/admin/visitors/${visitorId}`
+    },
+    [derivedSiteSlug, isAdminSitesRoute],
+  )
 
   const handleOpenFilterMenu = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     setFilterAnchor(event.currentTarget)
@@ -558,7 +576,7 @@ export default function VisitorsPage() {
         mobileActions={mobileActions}
       />
 
-      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, minHeight: { xs: 340, sm: 380 } }}>
         {isMobile ? (
           <Stack spacing={2}>
             <Stack direction="column" spacing={1}>
@@ -619,10 +637,7 @@ export default function VisitorsPage() {
                     timeFormatter={timeFormatter}
                     onOpenRowMenu={handleOpenRowMenu}
                     onCardClick={() => {
-                      // Navigate to visitor's most recent visit
-                      if (visitor.id) {
-                        navigate(`/admin/visits/visit-${visitor.id}`)
-                      }
+                      if (visitor.id) navigate(buildVisitorDetailUrl(visitor.id))
                     }}
                   />
                 ))}
@@ -636,6 +651,13 @@ export default function VisitorsPage() {
             rows={filteredVisitors}
             getRowId={(visitor) => visitor.id}
             size="small"
+            initialSkeletonMs={1000}
+            skeletonPadding={{ xs: 2, sm: 3 }}
+            skeletonMinHeight={300}
+            skeletonRows={4}
+            onRowClick={(row) => {
+              if (row.id) navigate(buildVisitorDetailUrl(row.id))
+            }}
             emptyState={{
               title: emptyTitle,
               description: emptyDescription,
@@ -740,13 +762,26 @@ export default function VisitorsPage() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MenuItem onClick={handlePromoteToPass}>{issueVisitPassLabel}</MenuItem>
-        <MenuItem onClick={handleBlockVisitor}>{blockVisitorLabel}</MenuItem>
+        <MenuItem onClick={handlePromoteToPass}>
+          <ListItemIcon>
+            <PersonAddAltIcon fontSize="small" />
+          </ListItemIcon>
+          {issueVisitPassLabel}
+        </MenuItem>
+        <MenuItem onClick={handleBlockVisitor}>
+          <ListItemIcon>
+            <BlockIcon fontSize="small" />
+          </ListItemIcon>
+          {blockVisitorLabel}
+        </MenuItem>
         <MenuItem
           onClick={() => {
             handleCloseRowMenu()
           }}
         >
+          <ListItemIcon>
+            <DeleteOutlineIcon fontSize="small" />
+          </ListItemIcon>
           {deleteProfileLabel}
         </MenuItem>
       </Menu>

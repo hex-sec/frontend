@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback, type MouseEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   Alert,
   Button,
@@ -8,15 +8,18 @@ import {
   FormControlLabel,
   IconButton,
   InputAdornment,
+  ListItemIcon,
   Menu,
   MenuItem,
   Paper,
   Stack,
   Switch,
   TextField,
+  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
+  Snackbar,
 } from '@mui/material'
 import HomeWorkIcon from '@mui/icons-material/HomeWork'
 import MapsHomeWorkIcon from '@mui/icons-material/MapsHomeWork'
@@ -28,6 +31,10 @@ import SearchIcon from '@mui/icons-material/Search'
 import AddHomeWorkIcon from '@mui/icons-material/AddHomeWork'
 import SubjectIcon from '@mui/icons-material/Subject'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import { useSiteBackNavigation } from '@app/layout/useSiteBackNavigation'
 import { useSiteStore } from '@store/site.store'
 import { ConfigurableTable } from '@features/search/table/ConfigurableTable'
@@ -93,13 +100,34 @@ type ResidenceFilter = 'all' | ResidenceStatus
 
 export default function ResidencesPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { activeSite, slug: derivedSiteSlug } = useSiteBackNavigation()
   const { sites } = useSiteStore()
   const { t } = useTranslate()
   const language = useI18nStore((state) => state.language) ?? 'en'
   const isSiteContext = Boolean(derivedSiteSlug)
+
+  const isAdminSitesRoute = location.pathname.startsWith('/admin/sites/')
+  const handleRowClick = useCallback(
+    (residence: ResidenceRecord) => {
+      if (isAdminSitesRoute && derivedSiteSlug) {
+        navigate(`/admin/sites/${derivedSiteSlug}/residences/${residence.id}`)
+        return
+      }
+      const baseUrl = derivedSiteSlug ? `/site/${derivedSiteSlug}` : '/admin'
+      navigate(`${baseUrl}/residences/${residence.id}`)
+    },
+    [navigate, derivedSiteSlug, isAdminSitesRoute],
+  )
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const [rowMenu, setRowMenu] = useState<{
+    anchor: HTMLElement | null
+    residence?: ResidenceRecord
+  }>({ anchor: null, residence: undefined })
+  const [statusOverrides, setStatusOverrides] = useState<Map<string, ResidenceStatus>>(new Map())
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set())
+  const [feedback, setFeedback] = useState<{ open: boolean; message: string } | null>(null)
 
   // Site filter state - auto-populate from context
   const [siteFilter, setSiteFilter] = useState<string>(() => {
@@ -299,6 +327,7 @@ export default function ResidencesPage() {
   const filteredResidences = useMemo(() => {
     const needle = search.trim().toLowerCase()
     return MOCK_RESIDENCES.filter((residence) => {
+      if (removedIds.has(residence.id)) return false
       if (siteFilter !== 'all' && residence.siteSlug !== siteFilter) {
         return false
       }
@@ -321,7 +350,45 @@ export default function ResidencesPage() {
         residentsJoined.includes(needle)
       )
     })
-  }, [siteFilter, filter, search, showLargeLayoutsOnly, showUnassignedResidencesOnly])
+  }, [siteFilter, filter, search, showLargeLayoutsOnly, showUnassignedResidencesOnly, removedIds])
+
+  const handleOpenRowMenu = useCallback(
+    (event: MouseEvent<HTMLButtonElement>, residence: ResidenceRecord) => {
+      event.stopPropagation()
+      setRowMenu({ anchor: event.currentTarget, residence })
+    },
+    [],
+  )
+
+  const handleCloseRowMenu = useCallback(
+    () => setRowMenu({ anchor: null, residence: undefined }),
+    [],
+  )
+
+  const handleCopyToClipboard = useCallback((value?: string) => {
+    if (!value) return
+    try {
+      void navigator.clipboard.writeText(value)
+      setFeedback({ open: true, message: value })
+    } catch {
+      /* noop */
+    }
+  }, [])
+
+  const handleMarkStatus = useCallback((residence: ResidenceRecord, next: ResidenceStatus) => {
+    setStatusOverrides((prev) => {
+      const map = new Map(prev)
+      map.set(residence.id, next)
+      return map
+    })
+    const label = next === 'occupied' ? 'Occupied' : next === 'vacant' ? 'Vacant' : 'Maintenance'
+    setFeedback({ open: true, message: `${label} • ${residence.label}` })
+  }, [])
+
+  const handleRemoveResidence = useCallback((residence: ResidenceRecord) => {
+    setRemovedIds((prev) => new Set(prev).add(residence.id))
+    setFeedback({ open: true, message: `Removed • ${residence.label}` })
+  }, [])
 
   const handleOpenFilterMenu = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     setFilterAnchor(event.currentTarget)
@@ -366,14 +433,15 @@ export default function ResidencesPage() {
         label: columnLabels.status,
         minWidth: 140,
         render: (residence: ResidenceRecord) => {
-          const meta = statusMeta[residence.status]
+          const effective = statusOverrides.get(residence.id) ?? residence.status
+          const meta = statusMeta[effective]
           return (
             <Chip
               size="small"
               color={meta.color}
               icon={<meta.Icon fontSize="small" />}
               label={meta.label}
-              variant={residence.status === 'vacant' ? 'outlined' : 'filled'}
+              variant={effective === 'vacant' ? 'outlined' : 'filled'}
             />
           )
         },
@@ -448,6 +516,27 @@ export default function ResidencesPage() {
           </Stack>
         ),
       },
+      {
+        id: 'actions',
+        label: translate('residencesPage.table.columns.actions', 'Actions'),
+        minWidth: 160,
+        align: 'right',
+        disableToggle: true,
+        render: (residence: ResidenceRecord) => (
+          <Stack direction="row" spacing={1} justifyContent="flex-end">
+            <Tooltip title={translate('usersPage.rowMenu.viewProfile', 'View profile')}>
+              <Button size="small" variant="outlined" onClick={() => handleRowClick(residence)}>
+                {translate('usersPage.rowMenu.viewProfile', 'View profile')}
+              </Button>
+            </Tooltip>
+            <Tooltip title={translate('visitsPage.actions.moreActions', 'More actions')}>
+              <IconButton size="small" onClick={(e) => handleOpenRowMenu(e, residence)}>
+                <MoreVertIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        ),
+      },
     ]
   }, [
     columnLabels,
@@ -501,7 +590,7 @@ export default function ResidencesPage() {
         mobileActions={mobileActions}
       />
 
-      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, minHeight: { xs: 340, sm: 380 } }}>
         {isMobile ? (
           <Stack spacing={2}>
             {/* Site selector for enterprise mode */}
@@ -597,6 +686,7 @@ export default function ResidencesPage() {
                     inspectionCompliantLabel={inspectionCompliantLabel}
                     inspectionFollowUpLabel={inspectionFollowUpLabel}
                     dateFormatter={dateFormatter}
+                    onClick={handleRowClick}
                   />
                 ))}
               </Stack>
@@ -609,6 +699,11 @@ export default function ResidencesPage() {
             rows={filteredResidences}
             getRowId={(residence) => residence.id}
             size="small"
+            initialSkeletonMs={1000}
+            skeletonPadding={{ xs: 2, sm: 3 }}
+            skeletonMinHeight={300}
+            skeletonRows={4}
+            onRowClick={handleRowClick}
             emptyState={{
               title: tableEmptyTitle,
               description: tableEmptyDescription,
@@ -707,6 +802,124 @@ export default function ResidencesPage() {
           </MenuItem>
         ))}
       </Menu>
+
+      <Menu
+        anchorEl={rowMenu.anchor}
+        open={Boolean(rowMenu.anchor && rowMenu.residence)}
+        onClose={handleCloseRowMenu}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        {rowMenu.residence ? (
+          <>
+            <MenuItem
+              onClick={() => {
+                handleRowClick(rowMenu.residence as ResidenceRecord)
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <VisibilityIcon fontSize="small" />
+              </ListItemIcon>
+              {t('usersPage.rowMenu.viewProfile', { lng: language, defaultValue: 'View profile' })}
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleCopyToClipboard((rowMenu.residence as ResidenceRecord).id)
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <ContentCopyIcon fontSize="small" />
+              </ListItemIcon>
+              {t('usersPage.rowMenu.copyId', { lng: language, defaultValue: 'Copy user ID' })}
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleCopyToClipboard((rowMenu.residence as ResidenceRecord).siteName)
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <HomeWorkIcon fontSize="small" />
+              </ListItemIcon>
+              {t('residencesPage.table.columns.site', { lng: language, defaultValue: 'Site' })}
+            </MenuItem>
+            <Divider sx={{ my: 0.5 }} />
+            <MenuItem
+              disabled={
+                (statusOverrides.get((rowMenu.residence as ResidenceRecord).id) ??
+                  (rowMenu.residence as ResidenceRecord).status) === 'occupied'
+              }
+              onClick={() => {
+                handleMarkStatus(rowMenu.residence as ResidenceRecord, 'occupied')
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <CheckCircleOutlineIcon fontSize="small" />
+              </ListItemIcon>
+              {t('residencesPage.statuses.occupied', { lng: language, defaultValue: 'Occupied' })}
+            </MenuItem>
+            <MenuItem
+              disabled={
+                (statusOverrides.get((rowMenu.residence as ResidenceRecord).id) ??
+                  (rowMenu.residence as ResidenceRecord).status) === 'vacant'
+              }
+              onClick={() => {
+                handleMarkStatus(rowMenu.residence as ResidenceRecord, 'vacant')
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <DoNotDisturbOnIcon fontSize="small" />
+              </ListItemIcon>
+              {t('residencesPage.statuses.vacant', { lng: language, defaultValue: 'Vacant' })}
+            </MenuItem>
+            <MenuItem
+              disabled={
+                (statusOverrides.get((rowMenu.residence as ResidenceRecord).id) ??
+                  (rowMenu.residence as ResidenceRecord).status) === 'maintenance'
+              }
+              onClick={() => {
+                handleMarkStatus(rowMenu.residence as ResidenceRecord, 'maintenance')
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <BuildCircleIcon fontSize="small" />
+              </ListItemIcon>
+              {t('residencesPage.statuses.maintenance', {
+                lng: language,
+                defaultValue: 'Maintenance',
+              })}
+            </MenuItem>
+            <Divider sx={{ my: 0.5 }} />
+            <MenuItem
+              onClick={() => {
+                handleRemoveResidence(rowMenu.residence as ResidenceRecord)
+                handleCloseRowMenu()
+              }}
+            >
+              <ListItemIcon>
+                <DeleteOutlineIcon fontSize="small" />
+              </ListItemIcon>
+              {t('vehiclesPage.actions.removeFromRegistry', {
+                lng: language,
+                defaultValue: 'Remove from registry',
+              })}
+            </MenuItem>
+          </>
+        ) : null}
+      </Menu>
+
+      <Snackbar
+        open={Boolean(feedback?.open)}
+        autoHideDuration={2000}
+        onClose={() => setFeedback((prev) => (prev ? { ...prev, open: false } : prev))}
+        message={feedback?.message}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      />
     </Stack>
   )
 }
@@ -722,6 +935,7 @@ function ResidenceCard({
   inspectionCompliantLabel,
   inspectionFollowUpLabel,
   dateFormatter,
+  onClick,
 }: {
   residence: ResidenceRecord
   typeMeta: Record<ResidenceType, { label: string; Icon: typeof HomeWorkIcon }>
@@ -736,6 +950,7 @@ function ResidenceCard({
   inspectionCompliantLabel: string
   inspectionFollowUpLabel: string
   dateFormatter: Intl.DateTimeFormat
+  onClick: (residence: ResidenceRecord) => void
 }) {
   const typeIcon = typeMeta[residence.type].Icon
   const statusChip = statusMeta[residence.status]
@@ -743,12 +958,14 @@ function ResidenceCard({
 
   return (
     <Paper
+      onClick={() => onClick(residence)}
       sx={(theme) => ({
         p: 2,
         borderRadius: 2,
         border: '1px solid',
         borderColor: 'divider',
         transition: theme.transitions.create(['box-shadow', 'transform'], { duration: 180 }),
+        cursor: 'pointer',
         '&:hover': {
           boxShadow: theme.shadows[4],
         },

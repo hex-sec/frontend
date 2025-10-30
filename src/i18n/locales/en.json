@@ -1159,7 +1159,10 @@
       "manage": "Manage"
     },
     "rowMenu": {
-      "viewProfile": "View profile"
+      "viewProfile": "View profile",
+      "copyEmail": "Copy email",
+      "copyId": "Copy user ID",
+      "impersonate": "Impersonate"
     },
     "meta": {
       "all": {
@@ -1935,6 +1938,60 @@
         "title": "No visitors found",
         "description": "Adjust filters or add a recurring visitor profile."
       }
+    }
+  }
+  ,
+  "visitDetails": {
+    "modal": {
+      "title": "Visit Details",
+      "visitDetails": "Visit Details",
+      "visitorInformation": "Visitor Information",
+      "hostInformation": "Host Information",
+      "badgeQrCode": "Badge QR Code",
+      "qrInstructions": "Scan this QR code to validate the badge",
+      "badgeCode": "Badge Code",
+      "downloadTooltip": "Download Badge PDF",
+      "field": {
+        "site": "Site",
+        "scheduledFor": "Scheduled For",
+        "requestedBy": "Requested By",
+        "requestedAt": "Requested At",
+        "expiresAt": "Expires At",
+        "approvedBy": "Approved By",
+        "email": "Email",
+        "name": "Name",
+        "vehiclePlate": "Vehicle Plate",
+        "lastVisit": "Last Visit",
+        "hostName": "Host Name",
+        "unit": "Unit"
+      }
+    }
+  }
+  ,
+  "visitDetailsModal": {
+    "title": "Visit Details",
+    "sections": {
+      "hostInformation": "Host Information",
+      "visitorInformation": "Visitor Information",
+      "badgeQrCode": "Badge QR Code",
+      "visitDetails": "Visit Details"
+    },
+    "actions": {
+      "downloadPdf": "Download Badge PDF"
+    },
+    "fields": {
+      "site": "Site",
+      "scheduledFor": "Scheduled For",
+      "requestedBy": "Requested By",
+      "requestedAt": "Requested At",
+      "expiresAt": "Expires At",
+      "approvedBy": "Approved By",
+      "hostName": "Host Name",
+      "unit": "Unit",
+      "name": "Name",
+      "email": "Email",
+      "vehiclePlate": "Vehicle Plate",
+      "lastVisit": "Last Visit"
     }
   }
 }

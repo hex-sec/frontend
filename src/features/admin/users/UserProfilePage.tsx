@@ -1,5 +1,11 @@
-import { useMemo } from 'react'
-import { Link as RouterLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useMemo, useEffect, useState } from 'react'
+import {
+  Link as RouterLink,
+  useNavigate,
+  useParams,
+  useSearchParams,
+  useLocation,
+} from 'react-router-dom'
 import {
   Avatar,
   Box,
@@ -11,6 +17,8 @@ import {
   Stack,
   Tooltip,
   Typography,
+  Skeleton,
+  Fade,
 } from '@mui/material'
 import Grid from '@mui/material/Grid2'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
@@ -55,6 +63,7 @@ type TimelineEntryConfig = {
   time: string
   title: string
   subtitle: string
+  timeOfDay?: string
 }
 
 const TIMELINE_CONFIG: Record<UserRoleTimelineGroup, TimelineEntryConfig[]> = {
@@ -82,18 +91,21 @@ const TIMELINE_CONFIG: Record<UserRoleTimelineGroup, TimelineEntryConfig[]> = {
     {
       key: 'invitationSent',
       time: 'Yesterday',
+      timeOfDay: '14:00',
       title: 'Portal invitation sent',
       subtitle: 'Awaiting account activation.',
     },
     {
       key: 'amenityBooking',
       time: '2d ago',
+      timeOfDay: '09:30',
       title: 'Amenity booking',
       subtitle: 'Clubhouse reserved for Oct 28.',
     },
     {
       key: 'broadcastOpened',
       time: 'Last week',
+      timeOfDay: '11:45',
       title: 'Broadcast opened',
       subtitle: 'Read hurricane preparedness notice.',
     },
@@ -102,18 +114,21 @@ const TIMELINE_CONFIG: Record<UserRoleTimelineGroup, TimelineEntryConfig[]> = {
     {
       key: 'scheduleApproved',
       time: 'Today',
+      timeOfDay: '10:00',
       title: 'Approved guard schedule',
       subtitle: 'Validated Nov 1 roster.',
     },
     {
       key: 'incidentReviewed',
       time: 'Yesterday',
+      timeOfDay: '16:00',
       title: 'Reviewed incident follow-up',
       subtitle: 'Marked gate obstruction as resolved.',
     },
     {
       key: 'exportedResidents',
       time: '3d ago',
+      timeOfDay: '13:00',
       title: 'Exported residents CSV',
       subtitle: 'Shared with finance team.',
     },
@@ -123,6 +138,7 @@ const TIMELINE_CONFIG: Record<UserRoleTimelineGroup, TimelineEntryConfig[]> = {
 export default function UserProfilePage() {
   const { userId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const { mode, current } = useSiteStore()
   const { t } = useTranslate()
@@ -176,6 +192,13 @@ export default function UserProfilePage() {
     variant: 'outlined',
     color: 'inherit',
   })
+
+  const [isLoading, setIsLoading] = useState(false)
+  useEffect(() => {
+    setIsLoading(true)
+    const timer = setTimeout(() => setIsLoading(false), 400)
+    return () => clearTimeout(timer)
+  }, [location.pathname])
 
   if (userId && !user) {
     const notFoundTitle = translate('admin.userProfile.notFound.title', 'User not found')
@@ -275,21 +298,54 @@ export default function UserProfilePage() {
 
   const timelineEntries = useMemo(
     () =>
-      TIMELINE_CONFIG[timelineGroup].map((entry) => ({
-        time: translate(
+      TIMELINE_CONFIG[timelineGroup].map((entry) => {
+        const timeLabel = translate(
           `admin.userProfile.timeline.${timelineGroup}.${entry.key}.time`,
           entry.time,
-        ),
-        title: translate(
-          `admin.userProfile.timeline.${timelineGroup}.${entry.key}.title`,
-          entry.title,
-        ),
-        subtitle: translate(
-          `admin.userProfile.timeline.${timelineGroup}.${entry.key}.subtitle`,
-          entry.subtitle,
-        ),
-      })),
-    [timelineGroup, translate],
+        )
+        // Use explicit timeOfDay when provided, otherwise compute when raw time is HH:MM
+        let timeOfDay: string | null = null
+        if (entry.timeOfDay) {
+          const mExp = /^\s*(\d{1,2}):(\d{2})\s*$/.exec(entry.timeOfDay)
+          if (mExp) {
+            const hours = Math.max(0, Math.min(23, Number(mExp[1])))
+            const minutes = Math.max(0, Math.min(59, Number(mExp[2])))
+            const d = new Date()
+            d.setHours(hours, minutes, 0, 0)
+            timeOfDay = new Intl.DateTimeFormat(language, {
+              hour: '2-digit',
+              minute: '2-digit',
+            }).format(d)
+          } else {
+            timeOfDay = entry.timeOfDay
+          }
+        } else {
+          const m = /^\s*(\d{1,2}):(\d{2})\s*$/.exec(entry.time)
+          if (m) {
+            const hours = Math.max(0, Math.min(23, Number(m[1])))
+            const minutes = Math.max(0, Math.min(59, Number(m[2])))
+            const d = new Date()
+            d.setHours(hours, minutes, 0, 0)
+            timeOfDay = new Intl.DateTimeFormat(language, {
+              hour: '2-digit',
+              minute: '2-digit',
+            }).format(d)
+          }
+        }
+        return {
+          time: timeLabel,
+          title: translate(
+            `admin.userProfile.timeline.${timelineGroup}.${entry.key}.title`,
+            entry.title,
+          ),
+          subtitle: translate(
+            `admin.userProfile.timeline.${timelineGroup}.${entry.key}.subtitle`,
+            entry.subtitle,
+          ),
+          timeOfDay,
+        }
+      }),
+    [timelineGroup, translate, language],
   )
 
   const detailItems = useMemo(
@@ -334,7 +390,7 @@ export default function UserProfilePage() {
     {
       label: statusTag,
       color: statusColor,
-      variant: user.status === 'active' ? 'filled' : 'outlined',
+      variant: (user.status === 'active' ? 'filled' : 'outlined') as 'filled' | 'outlined',
     },
   ]
 
@@ -443,216 +499,332 @@ export default function UserProfilePage() {
   )
 
   return (
-    <Box sx={{ width: '100%', py: { xs: 2, md: 3 } }}>
-      <Stack
-        spacing={3}
-        sx={{
-          width: '100%',
-          maxWidth: { xs: '100%', xl: 1200 },
-          mx: 'auto',
-          px: { xs: 1.5, sm: 2, xl: 0 },
-        }}
-      >
-        <PageHeader
-          title={user.name}
-          subtitle={positionText || undefined}
-          badges={badges}
-          rightActions={rightActions}
-          mobileBackButton={mobileBackButton}
-          mobileActions={mobileActions}
-          avatar={headerAvatar}
-        />
-
-        <Grid container spacing={3} alignItems="stretch">
-          <Grid size={{ xs: 12, md: 7 }} sx={{ display: 'flex' }}>
-            <Stack spacing={3} sx={{ width: '100%' }}>
-              <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
-                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
-                  {profileSummaryTitle}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {profileNotes}
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Stack spacing={1.5}>
-                  {detailItems.map((item) => (
-                    <Stack key={item.key} direction="row" spacing={1.5} alignItems="center">
-                      <Avatar
-                        sx={{
-                          width: 32,
-                          height: 32,
-                          bgcolor: 'action.hover',
-                          color: 'text.primary',
-                        }}
-                      >
-                        {item.icon}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">
-                          {item.label}
-                        </Typography>
-                        <Typography variant="body2">{item.value}</Typography>
-                      </Box>
+    <Box sx={{ position: 'relative', minHeight: 200 }}>
+      <Fade in={isLoading} timeout={{ enter: 0, exit: 300 }} unmountOnExit>
+        <Box sx={{ position: 'absolute', inset: 0, zIndex: 1, bgcolor: 'background.default' }}>
+          <Stack
+            spacing={3}
+            sx={{
+              px: { xs: 1.5, sm: 2, xl: 0 },
+              py: { xs: 2, md: 3 },
+              maxWidth: { xs: '100%', xl: 1200 },
+              mx: 'auto',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Skeleton variant="circular" width={64} height={64} />
+              <Box sx={{ flex: 1 }}>
+                <Skeleton variant="text" width="50%" height={32} />
+                <Skeleton variant="text" width="30%" height={24} sx={{ mt: 1 }} />
+              </Box>
+              <Skeleton variant="rectangular" width={140} height={36} sx={{ borderRadius: 1 }} />
+            </Box>
+            <Grid container spacing={3} alignItems="stretch">
+              <Grid size={{ xs: 12, md: 7 }}>
+                <Stack spacing={3}>
+                  <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: 3 }}>
+                    <Skeleton variant="text" width="40%" height={24} />
+                    <Stack spacing={1.5} sx={{ mt: 1 }}>
+                      {[1, 2, 3, 4].map((i) => (
+                        <Stack key={i} direction="row" spacing={1.5} alignItems="center">
+                          <Skeleton variant="circular" width={32} height={32} />
+                          <Box sx={{ flex: 1 }}>
+                            <Skeleton variant="text" width="30%" height={16} />
+                            <Skeleton variant="text" width="60%" height={20} sx={{ mt: 0.5 }} />
+                          </Box>
+                        </Stack>
+                      ))}
                     </Stack>
-                  ))}
+                  </Paper>
+                  <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: 3 }}>
+                    <Skeleton variant="text" width="40%" height={24} />
+                    <Skeleton
+                      variant="rectangular"
+                      width="100%"
+                      height={120}
+                      sx={{ borderRadius: 2, mt: 1 }}
+                    />
+                  </Paper>
                 </Stack>
-              </Paper>
+              </Grid>
+              <Grid size={{ xs: 12, md: 5 }}>
+                <Stack spacing={3}>
+                  <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: 3 }}>
+                    <Skeleton variant="text" width="50%" height={24} />
+                    <Skeleton
+                      variant="rectangular"
+                      width="100%"
+                      height={120}
+                      sx={{ borderRadius: 2, mt: 1 }}
+                    />
+                  </Paper>
+                  <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: 3 }}>
+                    <Skeleton variant="text" width="50%" height={24} />
+                    <Skeleton
+                      variant="rectangular"
+                      width="100%"
+                      height={160}
+                      sx={{ borderRadius: 2, mt: 1 }}
+                    />
+                  </Paper>
+                </Stack>
+              </Grid>
+            </Grid>
+          </Stack>
+        </Box>
+      </Fade>
 
-              <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
-                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                  {activityTitle}
-                </Typography>
-                <Stack spacing={1.5}>
-                  {timelineEntries.map((entry) => (
-                    <Stack
-                      key={entry.time + entry.title}
-                      direction="row"
-                      spacing={2}
-                      alignItems="flex-start"
-                    >
-                      <Typography variant="caption" color="text.secondary" sx={{ minWidth: 64 }}>
-                        {entry.time}
+      <Fade in={!isLoading} timeout={{ enter: 400, exit: 0 }} mountOnEnter unmountOnExit>
+        <Box
+          sx={{
+            position: isLoading ? 'absolute' : 'static',
+            top: 0,
+            left: 0,
+            right: 0,
+            opacity: isLoading ? 0 : 1,
+          }}
+        >
+          <Box sx={{ width: '100%', py: { xs: 2, md: 3 } }}>
+            <Stack
+              spacing={3}
+              sx={{
+                width: '100%',
+                maxWidth: { xs: '100%', xl: 1200 },
+                mx: 'auto',
+                px: { xs: 1.5, sm: 2, xl: 0 },
+              }}
+            >
+              <PageHeader
+                title={user.name}
+                subtitle={positionText || undefined}
+                badges={badges}
+                rightActions={rightActions}
+                mobileBackButton={mobileBackButton}
+                mobileActions={mobileActions}
+                avatar={headerAvatar}
+              />
+
+              <Grid container spacing={3} alignItems="stretch">
+                <Grid size={{ xs: 12, md: 7 }} sx={{ display: 'flex' }}>
+                  <Stack spacing={3} sx={{ width: '100%' }}>
+                    <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
+                      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
+                        {profileSummaryTitle}
                       </Typography>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="body2" fontWeight={600}>
-                          {entry.title}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {entry.subtitle}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  ))}
-                </Stack>
-              </Paper>
-            </Stack>
-          </Grid>
-          <Grid size={{ xs: 12, md: 5 }} sx={{ display: 'flex' }}>
-            <Stack spacing={3} sx={{ width: '100%' }}>
-              <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
-                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
-                  {assignmentsTitle}
-                </Typography>
-                <Stack spacing={1}>
-                  {activeSites.map((site) => {
-                    const sitePath = siteRoot(site.slug)
-                    const isFocused = siteScoped && current?.slug === site.slug
-                    return (
-                      <Button
-                        key={site.slug}
-                        component={RouterLink}
-                        to={sitePath}
-                        variant={isFocused ? 'contained' : 'outlined'}
-                        color={isFocused ? 'secondary' : 'inherit'}
-                        endIcon={<LaunchIcon fontSize="small" />}
-                        sx={{ justifyContent: 'space-between', width: '100%' }}
-                      >
-                        {site.name}
-                      </Button>
-                    )
-                  })}
-                </Stack>
-                {activeSites.length === 0 ? (
-                  <Typography variant="caption" color="text.secondary">
-                    {assignmentsEmpty}
-                  </Typography>
-                ) : null}
-              </Paper>
+                      <Typography variant="body2" color="text.secondary">
+                        {profileNotes}
+                      </Typography>
+                      <Divider sx={{ my: 2 }} />
+                      <Grid container spacing={1.5}>
+                        {detailItems.map((item) => (
+                          <Grid key={item.key} size={{ xs: 12, sm: 6 }}>
+                            <Stack direction="row" spacing={1.5} alignItems="center">
+                              <Avatar
+                                sx={{
+                                  width: 32,
+                                  height: 32,
+                                  bgcolor: 'action.hover',
+                                  color: 'text.primary',
+                                }}
+                              >
+                                {item.icon}
+                              </Avatar>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">
+                                  {item.label}
+                                </Typography>
+                                <Typography variant="body2">{item.value}</Typography>
+                              </Box>
+                            </Stack>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Paper>
 
-              <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
-                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                  {relatedTitle}
-                </Typography>
-                <Stack spacing={1.25}>
-                  {relatedUsers.length === 0 ? (
-                    <Typography variant="caption" color="text.secondary">
-                      {relatedEmpty}
-                    </Typography>
-                  ) : (
-                    relatedUsers.map((member) => (
-                      <Stack key={member.id} direction="row" spacing={1.5} alignItems="center">
-                        <Avatar sx={{ width: 32, height: 32 }}>
-                          {member.name
-                            .split(' ')
-                            .map((part) => part[0])
-                            .join('')
-                            .slice(0, 2)
-                            .toUpperCase()}
-                        </Avatar>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography variant="body2" fontWeight={600}>
-                            {member.name}
-                          </Typography>
+                    <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
+                      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                        {activityTitle}
+                      </Typography>
+                      <Stack spacing={1.5}>
+                        {timelineEntries.map((entry) => (
+                          <Stack
+                            key={entry.time + entry.title}
+                            direction="row"
+                            spacing={2}
+                            alignItems="flex-start"
+                          >
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{ minWidth: 64 }}
+                            >
+                              {entry.time}
+                            </Typography>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="body2" fontWeight={600}>
+                                {entry.title}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {entry.subtitle}
+                              </Typography>
+                            </Box>
+                            {entry.timeOfDay ? (
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{ whiteSpace: 'nowrap' }}
+                              >
+                                {entry.timeOfDay}
+                              </Typography>
+                            ) : null}
+                          </Stack>
+                        ))}
+                      </Stack>
+                    </Paper>
+                  </Stack>
+                </Grid>
+                <Grid size={{ xs: 12, md: 5 }} sx={{ display: 'flex' }}>
+                  <Stack spacing={3} sx={{ width: '100%' }}>
+                    <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
+                      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
+                        {assignmentsTitle}
+                      </Typography>
+                      <Stack spacing={1}>
+                        {activeSites.map((site) => {
+                          const sitePath = siteRoot(site.slug)
+                          const isFocused = siteScoped && current?.slug === site.slug
+                          return (
+                            <Button
+                              key={site.slug}
+                              component={RouterLink}
+                              to={sitePath}
+                              variant={isFocused ? 'contained' : 'outlined'}
+                              color={isFocused ? 'secondary' : 'inherit'}
+                              endIcon={<LaunchIcon fontSize="small" />}
+                              sx={{ justifyContent: 'space-between', width: '100%' }}
+                            >
+                              {site.name}
+                            </Button>
+                          )
+                        })}
+                      </Stack>
+                      {activeSites.length === 0 ? (
+                        <Typography variant="caption" color="text.secondary">
+                          {assignmentsEmpty}
+                        </Typography>
+                      ) : null}
+                    </Paper>
+
+                    <Paper sx={{ p: 3, borderRadius: 3, width: '100%' }}>
+                      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                        {relatedTitle}
+                      </Typography>
+                      <Stack spacing={1.25}>
+                        {relatedUsers.length === 0 ? (
                           <Typography variant="caption" color="text.secondary">
-                            {member.sites.map((site) => site.name).join(', ')}
+                            {relatedEmpty}
+                          </Typography>
+                        ) : (
+                          relatedUsers.map((member) => (
+                            <Stack
+                              key={member.id}
+                              direction="row"
+                              spacing={1.5}
+                              alignItems="center"
+                            >
+                              <Avatar sx={{ width: 32, height: 32 }}>
+                                {member.name
+                                  .split(' ')
+                                  .map((part) => part[0])
+                                  .join('')
+                                  .slice(0, 2)
+                                  .toUpperCase()}
+                              </Avatar>
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={600}>
+                                  {member.name}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {member.sites.map((site) => site.name).join(', ')}
+                                </Typography>
+                              </Box>
+                              <IconButton
+                                size="small"
+                                component={RouterLink}
+                                to={buildPeerLink(member, {
+                                  resolvedFilter,
+                                  siteScoped,
+                                  currentSlug: current?.slug,
+                                })}
+                              >
+                                <LaunchIcon fontSize="small" />
+                              </IconButton>
+                            </Stack>
+                          ))
+                        )}
+                      </Stack>
+                    </Paper>
+
+                    <Paper
+                      sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        background: (theme) =>
+                          alpha(
+                            theme.palette.primary.main,
+                            theme.palette.mode === 'dark' ? 0.12 : 0.06,
+                          ),
+                        border: (theme) => `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                        width: '100%',
+                      }}
+                    >
+                      <Stack
+                        direction="row"
+                        spacing={2}
+                        alignItems="center"
+                        sx={{ flexWrap: 'wrap' }}
+                      >
+                        <GroupsIcon color="primary" />
+                        <Box sx={{ flex: 1, minWidth: 220 }}>
+                          <Typography variant="subtitle1" fontWeight={600}>
+                            {quickTipsTitle}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {quickTipsBody}
                           </Typography>
                         </Box>
-                        <IconButton
-                          size="small"
+                        <Button
+                          variant="contained"
                           component={RouterLink}
-                          to={buildPeerLink(member, {
-                            resolvedFilter,
-                            siteScoped,
-                            currentSlug: current?.slug,
-                          })}
+                          to={returnPath}
+                          sx={{
+                            whiteSpace: 'nowrap',
+                            backgroundColor: (theme) => theme.palette.primary.main,
+                            color: (theme) => theme.palette.primary.contrastText,
+                            '&:link, &:visited': {
+                              color: (theme) => theme.palette.primary.contrastText,
+                            },
+                            '&:hover': {
+                              backgroundColor: (theme) => theme.palette.primary.dark,
+                              color: (theme) => theme.palette.primary.contrastText,
+                            },
+                            '&:focus-visible': {
+                              backgroundColor: (theme) => theme.palette.primary.dark,
+                              color: (theme) => theme.palette.primary.contrastText,
+                            },
+                          }}
                         >
-                          <LaunchIcon fontSize="small" />
-                        </IconButton>
+                          {reviewRosterLabel}
+                        </Button>
                       </Stack>
-                    ))
-                  )}
-                </Stack>
-              </Paper>
-
-              <Paper
-                sx={{
-                  p: 3,
-                  borderRadius: 3,
-                  background: (theme) =>
-                    alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.06),
-                  border: (theme) => `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                  width: '100%',
-                }}
-              >
-                <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap' }}>
-                  <GroupsIcon color="primary" />
-                  <Box sx={{ flex: 1, minWidth: 220 }}>
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      {quickTipsTitle}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {quickTipsBody}
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="contained"
-                    component={RouterLink}
-                    to={returnPath}
-                    sx={{
-                      whiteSpace: 'nowrap',
-                      backgroundColor: (theme) => theme.palette.primary.main,
-                      color: (theme) => theme.palette.primary.contrastText,
-                      '&:link, &:visited': {
-                        color: (theme) => theme.palette.primary.contrastText,
-                      },
-                      '&:hover': {
-                        backgroundColor: (theme) => theme.palette.primary.dark,
-                        color: (theme) => theme.palette.primary.contrastText,
-                      },
-                      '&:focus-visible': {
-                        backgroundColor: (theme) => theme.palette.primary.dark,
-                        color: (theme) => theme.palette.primary.contrastText,
-                      },
-                    }}
-                  >
-                    {reviewRosterLabel}
-                  </Button>
-                </Stack>
-              </Paper>
+                    </Paper>
+                  </Stack>
+                </Grid>
+              </Grid>
             </Stack>
-          </Grid>
-        </Grid>
-      </Stack>
+          </Box>
+        </Box>
+      </Fade>
     </Box>
   )
 }
