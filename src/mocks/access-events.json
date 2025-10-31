@@ -1,0 +1,64 @@
+[
+  {
+    "id": "evt-001",
+    "code": "QRC-4812",
+    "direction": "in",
+    "result": "allowed",
+    "medium": "qr",
+    "at": "2025-10-21T14:30:00Z",
+    "person": {
+      "id": "person-001",
+      "name": "Hannah Lee",
+      "type": "visitor",
+      "unit": "Tower A · 1408",
+      "avatarUrl": null
+    }
+  },
+  {
+    "id": "evt-002",
+    "code": "RFID-1234",
+    "direction": "in",
+    "result": "allowed",
+    "medium": "rfid",
+    "at": "2025-10-21T14:25:00Z",
+    "person": {
+      "id": "person-002",
+      "name": "Carla Jenkins",
+      "type": "resident",
+      "unit": "Tower A · 1408",
+      "avatarUrl": null
+    }
+  },
+  {
+    "id": "evt-003",
+    "code": "ABC123",
+    "direction": "in",
+    "result": "denied",
+    "medium": "plate",
+    "at": "2025-10-21T14:20:00Z",
+    "person": {
+      "id": "person-003",
+      "name": "Unknown Vehicle",
+      "type": "visitor",
+      "unit": null,
+      "avatarUrl": null
+    },
+    "reason": "Vehicle not registered"
+  },
+  {
+    "id": "evt-004",
+    "code": "XYZ789",
+    "direction": "out",
+    "result": "allowed",
+    "medium": "plate",
+    "at": "2025-10-21T14:15:00Z",
+    "person": {
+      "id": "person-004",
+      "name": "Miguel Serrano",
+      "type": "guard",
+      "unit": null,
+      "avatarUrl": null
+    }
+  }
+]
+

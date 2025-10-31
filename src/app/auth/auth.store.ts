@@ -48,8 +48,26 @@ export const useAuthStore = create<AuthState>()(
           role: payload.role,
           sites: payload.sites,
         }
+
+        // For guards without sites, create a default site membership for dev/testing
+        if (user.role === 'guard' && (!user.sites || user.sites.length === 0)) {
+          user.sites = [
+            {
+              siteId: 'default-site',
+              role: 'guard',
+              siteName: 'Default Site',
+            },
+          ]
+        }
+
         const first = user.sites && user.sites.length > 0 ? user.sites[0] : undefined
-        const currentSite = first ? { id: first.siteId, name: first.siteName } : null
+        const currentSite = first
+          ? {
+              id: first.siteId,
+              name: first.siteName,
+              slug: first.siteId === 'default-site' ? 'default' : undefined,
+            }
+          : null
         set({ user, currentSite })
       },
       logout: () => set({ user: null, currentSite: null }),

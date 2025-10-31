@@ -3,8 +3,10 @@ import ReactDOM from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import AppThemeProvider from '@app/AppThemeProvider'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ToastProvider } from '@features/shared/components/ToastProvider'
 import { adminRoutes } from '@app/router/admin.router'
 import { guardRoutes } from '@app/router/guard.router'
+import { kioskRoutes } from '@app/router/kiosk.router'
 import { appRoutes } from '@app/router/app.router'
 import { authRoutes } from '@app/router/auth.router'
 import { landingRoutes } from '@app/router/landing.router'
@@ -20,6 +22,7 @@ const router = createBrowserRouter([
   ...adminRoutes,
   ...siteRoutes,
   ...guardRoutes,
+  ...kioskRoutes,
   ...appRoutes,
 ])
 
@@ -30,7 +33,9 @@ function renderApp() {
     <React.StrictMode>
       <AppThemeProvider>
         <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
         </QueryClientProvider>
       </AppThemeProvider>
     </React.StrictMode>,

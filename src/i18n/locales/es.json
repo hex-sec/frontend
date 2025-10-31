@@ -1981,5 +1981,82 @@
       "vehiclePlate": "Placa del Vehículo",
       "lastVisit": "Última Visita"
     }
+  },
+  "guard": {
+    "pages": {
+      "dashboard": "Dashboard",
+      "access": "Control de Acceso",
+      "visitors": "Visitantes",
+      "parcels": "Paquetes",
+      "incidents": "Incidentes",
+      "shift": "Turno",
+      "log": "Registro"
+    },
+    "access": {
+      "title": "Control de Acceso",
+      "direction": {
+        "in": "Entrar",
+        "out": "Salir",
+        "label": "Dirección de acceso"
+      },
+      "codeInput": {
+        "label": "Escanea o escribe código",
+        "placeholder": "QR, RFID, o placa",
+        "helperText": "Presiona Enter o escanea con el lector",
+        "offlineHelper": "Sin conexión. La solicitud se enviará cuando se restaure la conexión.",
+        "ariaLabel": "Código de acceso"
+      },
+      "buttons": {
+        "enter": "Entrar",
+        "exit": "Salir",
+        "enterAria": "Entrar con código",
+        "exitAria": "Salir con código"
+      },
+      "liveFeed": {
+        "title": "Eventos Recientes",
+        "empty": "No hay eventos recientes",
+        "loading": "Cargando eventos..."
+      },
+      "errors": {
+        "unknown": "Error desconocido",
+        "checkFailed": "Error al verificar acceso"
+      }
+    },
+    "offline": {
+      "noConnection": "Sin conexión a internet",
+      "queued": "{{count}} solicitud(es) en cola. Se enviarán al reconectar.",
+      "pending": "{{count}} solicitud(es) pendiente(s) de envío",
+      "sendNow": "Enviar ahora",
+      "sending": "Enviando...",
+      "saved": "Solicitud guardada. Se enviará cuando se restaure la conexión.",
+      "saveError": "Error al guardar la solicitud. Por favor, intente nuevamente.",
+      "allSent": "Todas las solicitudes pendientes se enviaron exitosamente."
+    }
+  },
+  "kiosk": {
+    "pages": {
+      "welcome": "Bienvenido",
+      "scan": "Escanear QR",
+      "lookup": "Buscar",
+      "confirm": "Confirmar",
+      "done": "Completado"
+    },
+    "camera": {
+      "error": {
+        "title": "Error de cámara",
+        "permission": "Permiso de cámara denegado. Por favor, permite el acceso a la cámara en la configuración del navegador.",
+        "notFound": "No se encontró ninguna cámara conectada.",
+        "busy": "La cámara está siendo usada por otra aplicación.",
+        "generic": "Error al inicializar la cámara",
+        "fallback": "Puedes usar el buscador manual en su lugar."
+      },
+      "paused": "Escaneo pausado"
+    }
+  },
+  "errorBoundary": {
+    "title": "Algo salió mal",
+    "retry": "Reintentar",
+    "reload": "Recargar página",
+    "unknownError": "Error desconocido"
   }
 }

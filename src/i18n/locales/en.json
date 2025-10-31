@@ -1993,5 +1993,82 @@
       "vehiclePlate": "Vehicle Plate",
       "lastVisit": "Last Visit"
     }
+  },
+  "guard": {
+    "pages": {
+      "dashboard": "Dashboard",
+      "access": "Access Control",
+      "visitors": "Visitors",
+      "parcels": "Parcels",
+      "incidents": "Incidents",
+      "shift": "Shift",
+      "log": "Log"
+    },
+    "access": {
+      "title": "Access Control",
+      "direction": {
+        "in": "Enter",
+        "out": "Exit",
+        "label": "Access direction"
+      },
+      "codeInput": {
+        "label": "Scan or enter code",
+        "placeholder": "QR, RFID, or plate",
+        "helperText": "Press Enter or scan with reader",
+        "offlineHelper": "No connection. Request will be sent when connection is restored.",
+        "ariaLabel": "Access code"
+      },
+      "buttons": {
+        "enter": "Enter",
+        "exit": "Exit",
+        "enterAria": "Enter with code",
+        "exitAria": "Exit with code"
+      },
+      "liveFeed": {
+        "title": "Recent Events",
+        "empty": "No recent events",
+        "loading": "Loading events..."
+      },
+      "errors": {
+        "unknown": "Unknown error",
+        "checkFailed": "Error checking access"
+      }
+    },
+    "offline": {
+      "noConnection": "No internet connection",
+      "queued": "{{count}} request(s) in queue. Will be sent when reconnected.",
+      "pending": "{{count}} pending request(s) to send",
+      "sendNow": "Send now",
+      "sending": "Sending...",
+      "saved": "Request saved. Will be sent when connection is restored.",
+      "saveError": "Error saving request. Please try again.",
+      "allSent": "All pending requests were sent successfully."
+    }
+  },
+  "kiosk": {
+    "pages": {
+      "welcome": "Welcome",
+      "scan": "Scan QR",
+      "lookup": "Lookup",
+      "confirm": "Confirm",
+      "done": "Done"
+    },
+    "camera": {
+      "error": {
+        "title": "Camera error",
+        "permission": "Camera permission denied. Please allow camera access in browser settings.",
+        "notFound": "No camera found connected.",
+        "busy": "Camera is being used by another application.",
+        "generic": "Error initializing camera",
+        "fallback": "You can use the manual search instead."
+      },
+      "paused": "Scan paused"
+    }
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "retry": "Retry",
+    "reload": "Reload page",
+    "unknownError": "Unknown error"
   }
 }

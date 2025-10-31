@@ -565,16 +565,34 @@ export default function VisitsPage() {
         align: 'right',
         minWidth: 160,
         render: (visit) => (
-          <Stack direction="row" spacing={1} justifyContent="flex-end">
+          <Stack
+            direction="row"
+            spacing={1}
+            justifyContent="flex-end"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Tooltip title={downloadBadgeLabel}>
               <span>
-                <IconButton size="small" onClick={handleDownloadBadge} disabled={downloading}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDownloadBadge()
+                  }}
+                  disabled={downloading}
+                >
                   <DownloadIcon fontSize="small" />
                 </IconButton>
               </span>
             </Tooltip>
             <Tooltip title={moreActionsLabel}>
-              <IconButton size="small" onClick={(event) => handleOpenRowMenu(event, visit)}>
+              <IconButton
+                size="small"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  handleOpenRowMenu(event, visit)
+                }}
+              >
                 <MoreVertIcon fontSize="small" />
               </IconButton>
             </Tooltip>
